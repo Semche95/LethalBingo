@@ -1,0 +1,132 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block body_classes %}d-flex flex-column{% endblock %}
+
+{% block body %}
+    <!-- Notes Controller -->
+    <div {{ stimulus_controller('game-notes', { 
+        gameId: game.id,
+        saveUrl: path('app_game_save_notes', {id: game.id})
+    }) }}>
+        <!-- Notes Sidebar -->
+        <div class="notes-sidebar" {{ stimulus_target('game-notes', 'panel') }}>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-status-top bg-green"></div>
+                <div class="card-header">
+                    <h3 class="card-title">Notes</h3>
+                </div>
+                <div class="card-body">
+                    <textarea 
+                        class="form-control" 
+                        rows="50"
+                        style="resize: vertical;"
+                        placeholder="Prenez des notes ici..."
+                        {{ stimulus_target('game-notes', 'notes') }}
+                        data-action="input->game-notes#saveNotes resize->game-notes#saveTextareaHeight"
+                    >{{ game.notes }}</textarea>
+                    <div class="text-muted small mt-2" {{ stimulus_target('game-notes', 'status') }}>
+                        Notes sauvegardées automatiquement
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button 
+            type="button" 
+            class="btn btn-icon btn-primary notes-toggle-btn" 
+            {{ stimulus_target('game-notes', 'toggle') }}
+            data-action="click->game-notes#togglePanel"
+            aria-label="Afficher/masquer les notes"
+            title="Afficher les notes"
+        >
+            {{ ux_icon('mdi:note-text', {height: '24', width: '24'}) }}
+        </button>
+    </div>
+
+    <div class="page">
+        <div class="container game-container my-auto">
+            <div class="py-4" {{ stimulus_controller('game') }}>
+                <div class="text-center mb-4" id="bingo-card-title" {{ turbo_stream_listen('bingo-card-title') }}>
+                    {% include 'game/card-title.stream.html.twig' with {game} only %}
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="m-auto" id="bingo-card" {{ turbo_stream_listen('bingo-card') }}>
+                            {% include 'game/card.stream.html.twig' with {game, squares} only %}
+                        </div>
+                    </div>
+                    {% if is_granted('ROLE_REFEREE') %}
+                        <div class="card-footer text-center d-flex justify-content-center align-items-center">
+                            <a href="{{ path('app_referee_game_edit', {id: game.id}) }}"
+                               class="btn btn-secondary me-5">
+                                Retour au tableau de bord
+                            </a>
+                            {% if not game.startedAt and not game.finishedAt %}
+                                <form action="{{ path('app_game_start', {id: game.id}) }}" method="post">
+                                    <input type="hidden" name="token" value="{{ csrf_token('start-game') }}">
+                                    <button type="submit" class="btn btn-success">
+                                        Démarrer la partie
+                                    </button>
+                                </form>
+                            {% else %}
+                                {% if game.finishedAt %}
+                                    <span>
+                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
+                                        Partie terminée le {{ game.finishedAt|date('d/m/Y à H:i:s') }}
+                                    </span>
+                                {% elseif game.startedAt %}
+                                    <span class="me-5">
+                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
+                                        Partie démarrée le {{ game.startedAt|date('d/m/Y à H:i:s') }}
+                                    </span>
+                                    <form action="{{ path('app_game_stop', {id: game.id}) }}" method="post">
+                                        <input type="hidden" name="token" value="{{ csrf_token('stop-game') }}">
+                                        <button type="submit" class="btn btn-warning">
+                                            Arrêter la partie
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <button type="button" class="btn btn-danger ms-5" data-bs-toggle="modal"
+                                        data-bs-target="#reset-game-modal">
+                                    Réinitialiser
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if is_granted('ROLE_REFEREE') %}
+                    <div class="card mt-4">
+                        <div class="card-status-top bg-blue"></div>
+                        <div class="card-header">
+                            <h3 class="card-title">Étapes</h3>
+                        </div>
+                        <div class="card-body">
+                            {{ component('GameSteps', {game}) }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if is_granted('ROLE_REFEREE') %}
+        {% component BootstrapModal with {id: 'reset-game-modal', status: 'danger'} %}
+            {% block modal_title %}Confirmation de la réinitialisation{% endblock %}
+            {% block modal_body %}
+                Réinitialiser la partie&nbsp;? Cette action est irréversible, toutes les cases retrouveront leur état initial
+                et la partie sera considérée comme n'ayant jamais été jouée.
+            {% endblock %}
+            {% block modal_footer %}
+                <form action="{{ path('app_game_reset', {id: game.id}) }}" method="post" class="d-flex w-100">
+                    <input type="hidden" name="token" value="{{ csrf_token('reset-game') }}">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger ms-auto">
+                        Confirmer
+                    </button>
+                </form>
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+{% endblock %}

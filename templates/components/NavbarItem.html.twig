@@ -1,0 +1,13 @@
+<div {{ attributes.defaults({class: 'nav-item'}) }}>
+    <a class="nav-link" href="{{ path(route, routeParams) }}"
+            {% if tooltip is not empty %} data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ tooltip|e('html_attr') }}"{% endif %}>
+        {% if icon is not empty %}
+            <span class="nav-link-icon d-md-none d-lg-inline-block{{ label is empty ? ' me-0' }}">
+                {{ ux_icon(icon, {height: '24', width: '24'}) }}
+            </span>
+        {% endif %}
+        {%- if label is not empty -%}
+            <span class="nav-link-title">{{ label }}</span>
+        {%- endif -%}
+    </a>
+</div>

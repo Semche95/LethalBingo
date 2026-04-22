@@ -1,0 +1,112 @@
+{% extends 'layouts/main.html.twig' %}
+
+{% block content %}
+    <!-- Présentation du site -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title">Bingo Lethal Company</h2>
+            <p class="lead">
+                La plateforme pour organiser et participer à des compétitions de bingo dans l'univers de Lethal Company.
+            </p>
+            <p>
+                Ce site vous permet de créer, gérer et participer à des parties de bingo thématiques basées sur le jeu Lethal Company.
+                Que vous soyez arbitre ou joueur, vous trouverez ici tous les outils nécessaires pour une expérience de jeu optimale.
+            </p>
+            <div class="text-center my-4">
+                <img src="{{ asset('assets/img/gifs/lethal-company.gif') }}" alt="Lethal Company" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+
+    <!-- Fonctionnalités par type d'utilisateur -->
+    <div class="row mb-4">
+        <!-- Fonctionnalités pour les joueurs -->
+        <div class="col-md-6 d-flex">
+            <div class="card w-100">
+                <div class="card-header bg-primary-subtle">
+                    <h3 class="card-title">
+                        {{ ux_icon('tabler:user', {height: '18', width: '18'}) }}
+                        Espace joueur
+                    </h3>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p>En tant que <strong>joueur</strong>, vous pouvez :</p>
+                    <ul>
+                        <li>Accéder à votre grille de bingo personnelle</li>
+                        <li>Suivre votre progression dans les parties en cours</li>
+                        <li>Interagir avec les cases de votre grille</li>
+                        <li>Voir les résultats des parties terminées</li>
+                    </ul>
+                    <div class="alert alert-info mt-auto">
+                        Les joueurs ont un accès simplifié, concentré uniquement sur leur expérience de jeu.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fonctionnalités pour les arbitres -->
+        <div class="col-md-6 d-flex">
+            <div class="card w-100">
+                <div class="card-header bg-success-subtle">
+                    <h3 class="card-title">
+                        {{ ux_icon('tabler:gavel', {height: '18', width: '18'}) }}
+                        Espace arbitre
+                    </h3>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <p>En tant qu'<strong>arbitre</strong>, vous pouvez :</p>
+                    <ul>
+                        <li>Créer et gérer des parties de bingo</li>
+                        <li>Configurer des grilles de bingo personnalisées</li>
+                        <li>Gérer les équipes participantes</li>
+                        <li>Suivre la progression de toutes les équipes</li>
+                        <li>Valider les cases de bingo des joueurs</li>
+                    </ul>
+                    <div class="alert alert-success mt-auto">
+                        Les arbitres disposent d'un tableau de bord complet pour administrer les compétitions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des règles -->
+    <div class="card mb-4">
+        <div class="card-header bg-amber">
+            <h3 class="card-title">
+                {{ ux_icon('material-symbols:rule', {height: '18', width: '18'}) }}
+                Règles du jeu
+            </h3>
+        </div>
+        <div class="card-body">
+            <p>Pour garantir une expérience équitable pour tous les participants, veuillez respecter les règles suivantes :</p>
+            <ul id="rules">
+                <li>Au début de chaque jour, sauf vente, tuer l'admin avec une pelle et laisser la pelle dans le
+                    vaisseau
+                </li>
+                <li>Aucun mod permis, uniquement en pure vanilla</li>
+                <li>Interdit de remake (sauf crash en début de game)</li>
+                <li>Interdit de communiquer par une autre voie que le jeu</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Appel à l'action -->
+    <div class="card">
+        <div class="card-body text-center">
+            <h3 class="card-title">Prêt à commencer ?</h3>
+            <p>Connectez-vous pour accéder au tableau de bord et gérer les parties de bingo.</p>
+            <div class="mt-3">
+                {% if not is_granted('IS_AUTHENTICATED') %}
+                    <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg">Se connecter</a>
+                {% else %}
+                    {% if is_granted('ROLE_REFEREE') %}
+                        <a href="{{ path('app_referee_dashboard') }}" class="btn btn-success btn-lg">Accéder à mon tableau de bord d'arbitre</a>
+                    {% else %}
+                        <p class="text-muted mt-2">Contactez votre arbitre pour accéder à votre grille de bingo</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

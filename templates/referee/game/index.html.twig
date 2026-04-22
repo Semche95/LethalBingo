@@ -1,0 +1,33 @@
+{% extends 'layouts/referee.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Parties</h3>
+            <div class="card-actions">
+                <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
+                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
+                </a>
+            </div>
+        </div>
+        {{ component('DataTable', {
+            columns: ['Round', 'Équipe', 'Démarrée', 'Terminée', ''],
+            data: games|map(g => [
+                g.round,
+                g.team,
+                g.startedAt ? g.startedAt|date('d/m/Y H:i:s') : 'Non',
+                g.finishedAt ? g.finishedAt|date('d/m/Y H:i:s') : 'Non',
+                _self.add_button(g.id)
+            ]),
+            options: [null, null, null, null, {class: 'text-end'}],
+            empty_data: 'Aucune partie créée'
+        }) }}
+    </div>
+{% endblock %}
+
+{% macro add_button(id) %}
+    <a href="{{ path('app_referee_game_edit', {id: id}) }}" class="btn btn-primary">
+        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+    </a>
+{% endmacro %}

@@ -1,0 +1,84 @@
+{% extends 'layouts/referee.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+    <div class="card" {{ stimulus_controller('referee--bingo-form') }}>
+        <div class="card-header">
+            <h3 class="card-title">
+                {% if mode == 'add' %}
+                    Nouveau bingo
+                {% else %}
+                    Fiche du bingo
+                {% endif %}
+            </h3>
+        </div>
+        {{ form_start(form, {
+            attr: {
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': 'save'
+            }
+        }) }}
+        {{ form_errors(form) }}
+        {{ form_errors(form.squares) }}
+        <div class="card-body">
+            <div class="row mb-3">
+                {{ form_label(form.round) }}
+                <div class="col-sm-2">
+                    {{ form_widget(form.round) }}
+                </div>
+                <div class="offset-sm-2 col-sm-10">
+                    {{ form_errors(form.round) }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                {{ form_label(form.season) }}
+                <div class="col-sm-2">
+                    {{ form_widget(form.season) }}
+                </div>
+                <div class="offset-sm-2 col-sm-10">
+                    {{ form_errors(form.season) }}
+                </div>
+            </div>
+            {{ component('BingoCard', {
+                'editMode': true,
+                'squares': data.squares,
+                'squaresFieldName': form.squares.vars.full_name,
+            }|merge(stimulus_target('referee--bingo-form', 'bingo').toArray())) }}
+        </div>
+
+        <div class="card-footer">
+            <div class="d-flex">
+                <a href="{{ path('app_referee_bingo') }}" class="btn btn-secondary">Retour</a>
+                {% if mode == 'edit' %}
+                    <div class="vr mx-3"></div>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#delete-bingo-modal">
+                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                    </button>
+                {% endif %}
+                <button type="submit" class="btn btn-success ms-auto">Enregistrer</button>
+            </div>
+        </div>
+        {{ form_widget(form._token) }}
+        {{ form_end(form, {render_rest: false}) }}
+    </div>
+
+    {% if mode == 'edit' %}
+        {% component BootstrapModal with {id: 'delete-bingo-modal', status: 'danger'} %}
+            {% block modal_title %}Confirmation de la suppression{% endblock %}
+            {% block modal_body %}
+                Supprimer le bingo <strong>{{ gameRound }}</strong>&nbsp;?
+            {% endblock %}
+            {% block modal_footer %}
+                <form action="{{ path('app_referee_bingo_delete', {id: gameRound.id}) }}" method="post"
+                      class="d-flex w-100">
+                    <input type="hidden" name="token" value="{{ csrf_token('delete-bingo') }}">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger ms-auto">
+                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                    </button>
+                </form>
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+{% endblock %}

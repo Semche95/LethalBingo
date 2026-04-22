@@ -1,0 +1,9 @@
+<turbo-stream action="update" targets="#bingo-card">
+    <template>
+        {{ component('BingoCard', {
+            'editMode': false,
+            'squares': squares,
+            'game': game,
+        }|merge(stimulus_target('game', 'bingo').toArray())) }}
+    </template>
+</turbo-stream>

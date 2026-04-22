@@ -1,0 +1,27 @@
+{% extends 'layouts/referee.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Équipes</h3>
+            <div class="card-actions">
+                <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary">
+                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
+                </a>
+            </div>
+        </div>
+        {{ component('DataTable', {
+            columns: ['Nom', 'Membres', ''],
+            data: teams|map(t => [t.name, t.members, _self.add_button(t.id)]),
+            options: [null, null, {class: 'text-end'}],
+            empty_data: 'Aucune équipe créée'
+        }) }}
+    </div>
+{% endblock %}
+
+{% macro add_button(id) %}
+    <a href="{{ path('app_referee_team_edit', {id: id}) }}" class="btn btn-primary">
+        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+    </a>
+{% endmacro %}

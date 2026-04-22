@@ -1,0 +1,3 @@
+{% macro tooltip(route) %}
+    {% if app.request.get('_route') == route %}active{% endif %}
+{% endmacro %}

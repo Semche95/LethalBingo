@@ -1,0 +1,31 @@
+{% set square = this.squares[row][col] ?? null %}
+<p class="d-flex gap-1 mb-1">
+    {% if this.squareVisible(row, col) %}
+        {{ component('BingoSquareVisibility', {
+            'title': 'Case visible',
+            'icon': 'tabler:eye',
+            'class': 'px-2 py-1 btn btn-primary'
+        }) }}
+    {% else %}
+        {{ component('BingoSquareVisibility', {
+            'title': 'Case cachée',
+            'icon': 'tabler:eye-closed',
+            'class': 'px-2 py-1 btn btn-secondary'
+        }) }}
+    {% endif %}
+    {{ component('BingoSquareCategorySelector', {
+        'name': this.squaresFieldName ~ '[' ~ row ~ '][' ~ col ~ '][category]',
+        'value': square.category ?? null,
+        'required': ''
+    }) }}
+</p>
+<p class="h-full mb-0">
+            <textarea name="{{ this.squaresFieldName }}[{{ row }}][{{ col }}][label]"
+                      class="form-control h-full p-1" required>{{ square.label ?? '' }}</textarea>
+    <input type="hidden"
+           name="{{ this.squaresFieldName }}[{{ row }}][{{ col }}][visible]"
+           value="{{ this.squareVisible(row, col) ? 1 : 0 }}"/>
+    <input type="hidden"
+           name="{{ this.squaresFieldName }}[{{ row }}][{{ col }}][id]"
+           value="{{ square.id ?? null }}"/>
+</p>

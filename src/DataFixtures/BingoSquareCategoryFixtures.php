@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\DataFixtures;
+
+use App\Entity\BingoSquareCategory;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+
+/**
+ * Fixture for loading bingo square categories data.
+ */
+class BingoSquareCategoryFixtures extends Fixture
+{
+    /**
+     * Load bingo square categories data.
+     */
+    public function load(ObjectManager $manager): void
+    {
+        $categories = [
+            ['pendant la game', 3],
+            ['morts', 5],
+            ['lancement du vaisseau', 1],
+            ['autre', 4],
+            ['the company', 2],
+        ];
+        foreach ($categories as $i => $category) {
+            [$label, $position] = $category;
+            $category = new BingoSquareCategory()
+                ->setLabel($label)
+                ->setPosition($position);
+            $manager->persist($category);
+            $this->addReference('category_' . $i, $category);
+        }
+        $manager->flush();
+    }
+}

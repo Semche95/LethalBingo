@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <meta name="turbo-refresh-method" content="morph"/>
+    <meta name="turbo-refresh-scroll" content="preserve"/>
+    <title>{% block title %}Bingo Lethal Company{% endblock %}</title>
+    <link rel="icon" sizes="16x16 24x24 32x32 64x64" href="{{ asset('assets/img/favicon.ico') }}"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favicon-16x16.png') }}"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon-32x32.png') }}"/>
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('assets/img/favicon-48x48.png') }}"/>
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('assets/img/favicon-192x192.png') }}"/>
+    <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="{{ asset('assets/img/favicon-180x180.png') }}"/>
+    <link rel="apple-touch-icon" type="image/png" sizes="167x167" href="{{ asset('assets/img/favicon-167x167.png') }}"/>
+    <link rel="apple-touch-icon" type="image/png" sizes="152x152" href="{{ asset('assets/img/favicon-152x152.png') }}"/>
+    {% block stylesheets %}
+        {{ vite_entry_link_tags('app') }}
+    {% endblock %}
+    {% block javascripts %}
+        {{ vite_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body {{ stimulus_controller('app') }} data-turbo-prefetch="false" class="{% block body_classes %}{% endblock %}">
+{% include 'layouts/_toasts.html.twig' only %}
+{% block body %}{% endblock %}
+</body>
+</html>

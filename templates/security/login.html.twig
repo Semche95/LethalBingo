@@ -1,0 +1,38 @@
+{% extends 'layouts/main.html.twig' %}
+
+{% block title %}Connexion | {{ parent() }}{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="card w-33">
+            <div class="card-body">
+                <h2 class="h2 text-center mb-4">Connexion</h2>
+                {% if error %}
+                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+                <form action="{{ path('app_login') }}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Nom d'utilisateur</label>
+                        <input type="text" value="{{ last_username }}" name="_username" id="username"
+                               class="form-control" autocomplete="username" required autofocus>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" for="password">Mot de passe</label>
+                        <input type="password" name="_password" id="password" class="form-control"
+                               autocomplete="current-password" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-check">
+                            <input type="checkbox" class="form-check-input" name="_remember_me">
+                            <span class="form-check-label">Se souvenir de moi</span>
+                        </label>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary w-100">Connexion</button>
+                    </div>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

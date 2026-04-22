@@ -1,0 +1,107 @@
+{% extends 'layouts/referee.html.twig' %}
+
+{% block content %}
+    {{ parent() }}
+    <div class="card" {{ stimulus_controller('referee--game-form') }}>
+        <div class="card-header">
+            <h3 class="card-title">
+                {% if mode == 'add' %}
+                    Nouvelle partie
+                {% else %}
+                    Fiche de la partie
+                {% endif %}
+            </h3>
+        </div>
+
+        {{ form_start(form) }}
+        {{ form_errors(form) }}
+        <div class="card-body">
+            <div class="row mb-3">
+                {{ form_label(form.round) }}
+                <div class="col-sm-3">
+                    {{ form_widget(form.round) }}
+                </div>
+                <div class="col-sm-6 d-flex align-items-center">
+                    <a href="{{ path('app_referee_bingo_add') }}">Ajouter un bingo</a>
+                </div>
+                <div class="offset-sm-2 col-sm-10">
+                    {{ form_errors(form.round) }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                {{ form_label(form.team) }}
+                <div class="col-sm-3">
+                    {{ form_widget(form.team) }}
+                </div>
+                <div class="col-sm-6 d-flex align-items-center">
+                    <a href="{{ path('app_referee_team_add') }}">Ajouter une équipe</a>
+                </div>
+                <div class="offset-sm-2 col-sm-10">
+                    {{ form_errors(form.team) }}
+                </div>
+            </div>
+            {% if mode == 'edit' %}
+                <div class="row mb-3">
+                    <label class="col-form-label col-sm-2">Lien de la partie</label>
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ url('app_game', {slug: game.slug}) }}"
+                                   readonly>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="tooltip"
+                                    title="Copier dans le presse-papier"
+                                    {{ stimulus_action('referee--game-form', 'copyGameLink', 'click', {url: url('app_game', {slug: game.slug})}) }}>
+                                {{ ux_icon('tabler:clipboard-text', {height: '20', width: '20'}) }}
+                            </button>
+                        </div>
+                        <p class="form-hint">À envoyer aux participants.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 offset-2">
+                        <a href="{{ path('app_game', {slug: game.slug}) }}" class="btn btn-success">
+                            {% if game.finishedAt is null %}
+                                Rejoindre la partie
+                            {% else %}
+                                Récapitulatif de la partie
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <div class="d-flex">
+                <a href="{{ path('app_referee_game') }}" class="btn btn-secondary">Retour</a>
+                {% if mode == 'edit' and not game.readOnly %}
+                    <div class="vr mx-3"></div>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#delete-game-modal">
+                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                    </button>
+                {% endif %}
+                {% if mode == 'add' or not game.readOnly %}
+                    <button type="submit" class="btn btn-success ms-auto">Enregistrer</button>
+                {% endif %}
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+
+    {% if mode == 'edit' %}
+        {% component BootstrapModal with {id: 'delete-game-modal', status: 'danger'} %}
+            {% block modal_title %}Confirmation de la suppression{% endblock %}
+            {% block modal_body %}
+                Supprimer la partie&nbsp;?
+            {% endblock %}
+            {% block modal_footer %}
+                <form action="{{ path('app_referee_game_delete', {id: game.id}) }}" method="post" class="d-flex w-100">
+                    <input type="hidden" name="token" value="{{ csrf_token('delete-game') }}">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger ms-auto">
+                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                    </button>
+                </form>
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+{% endblock %}

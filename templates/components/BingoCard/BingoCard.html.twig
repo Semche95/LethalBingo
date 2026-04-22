@@ -1,0 +1,49 @@
+<div {{ attributes.defaults({class: 'bingo'}) }}>
+    <div class="bingo-grid">
+        {% for row in range(0, this.maxRows) %}
+            {% set firstRow = loop.first %}
+            {% for col in range(0, this.maxCols) %}
+                {% set cellClasses = ['text-center', 'align-middle'] %}
+                {% set firstCol = loop.first %}
+                {% if not firstRow and not firstCol %}
+                    {% set square = this.squares[row][col] ?? null %}
+                    {% set cellClasses = cellClasses|merge(['p-1', 'bingo-square']) %}
+                    {% if row > 1 %}
+                        {% set cellClasses = cellClasses|merge(['border-top-0']) %}
+                    {% endif %}
+                    {% if col > 1 %}
+                        {% set cellClasses = cellClasses|merge(['border-start-0']) %}
+                    {% endif %}
+                    {% if not this.squareVisible(row, col) %}
+                        {% set cellClasses = cellClasses|merge(['bingo-square-hidden']) %}
+                    {% endif %}
+                    {% if not this.editMode and this.squareValidated(square.id) and this.squareContentShowable(square.id, row, col) %}
+                        {% set cellClasses = cellClasses|merge(['bingo-square-validated']) %}
+                    {% endif %}
+                {% else %}
+                    {% set cellClasses = cellClasses|merge(['vcenter']) %}
+                    {% if firstRow %}
+                        {% set cellClasses = cellClasses|merge(['bingo-row pb-3']) %}
+                    {% endif %}
+                    {% if firstCol %}
+                        {% set cellClasses = cellClasses|merge(['bingo-col pe-5']) %}
+                    {% endif %}
+                {% endif %}
+
+                <div class="{{ cellClasses|join(' ') }}" id="square{{ row }}{{ col }}" style="grid-row: {{ row + 1 }}; grid-column: {{ col + 1 }};">
+                    {% if firstRow and not firstCol %}
+                        {{ col }} {# Numéro de la colonne #}
+                    {% elseif not firstRow and firstCol %}
+                        {{ this.rowLetter(row) }} {# Lettre de la ligne #}
+                    {% elseif not firstRow and not firstCol %}
+                        {% if this.editMode %}
+                            {% include 'components/BingoCard/_cell_content_edit.html.twig' with {this, row, col} only %}
+                        {% else %}
+                            {% include 'components/BingoCard/_cell_content_public.html.twig' with {this, row, col} only %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>

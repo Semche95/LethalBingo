@@ -1,0 +1,63 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block body %}
+    <div class="page">
+        <header class="navbar navbar-expand-md d-print-none">
+            <div class="container-xl">
+                <h1 class="navbar-brand d-none-navbar-horizontal pe-0 pe-md-3">
+                    <a href="{{ path('app_home') }}">
+                        <img src="{{ asset('assets/img/logo.png') }}" width="32" height="32"
+                             alt="Bingo Lethal Company"
+                             class="navbar-brand-image">
+                    </a>
+                </h1>
+                <div class="navbar-nav flex-row order-md-last">
+                    {% if is_granted('IS_AUTHENTICATED') %}
+                        <div class="nav-item {{ app.request.attributes.get('_route') == 'app_user_profile' ? 'active' : '' }}" {{ stimulus_controller('navbar-user') }}>
+                            <a href="{{ path('app_user_profile') }}" class="nav-link d-flex lh-1 text-reset">
+                                <span class="avatar avatar-sm">{{ ux_icon('tabler:user', {class: 'w-4 h-4'}) }}</span>
+                                <div class="d-none d-xl-block ps-2">{{ app.user }}</div>
+                            </a>
+                        </div>
+                        {{ component('NavbarItem', {label: '', tooltip: 'Déconnexion', route: 'app_logout', icon: 'tabler:logout'}) }}
+                    {% else %}
+                        {{ component('NavbarItem', {
+                            label: 'Connexion',
+                            route: 'app_login',
+                            icon: 'tabler:user',
+                            class: app.request.attributes.get('_route') == 'app_login' ? 'active' : ''
+                        }) }}
+                    {% endif %}
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-menu">
+                    <div class="d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center">
+                        <div class="navbar-nav">
+                            {{ component('NavbarItem', {
+                                label: 'Accueil',
+                                route: 'app_home',
+                                icon: 'tabler:home',
+                                class: app.request.attributes.get('_route') == 'app_home' ? 'active' : ''
+                            }) }}
+                            {% if is_granted('ROLE_REFEREE') %}
+                                {{ component('NavbarItem', {
+                                    label: 'Tableau de bord',
+                                    route: 'app_referee_dashboard',
+                                    icon: 'tabler:layout-dashboard',
+                                    class: app.request.attributes.get('_route') starts with 'app_referee' ? 'active' : ''
+                                }) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-wrapper">
+            <div class="page-body">
+                <div class="container-xl">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

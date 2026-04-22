@@ -1,0 +1,111 @@
+{% extends 'layouts/main.html.twig' %}
+
+{# Override Bootstrap 5 horizontal form layout to make labels wider #}
+{% form_theme form _self %}
+
+{% block form_label_class -%}
+    col-sm-4
+{%- endblock form_label_class %}
+
+{% block form_group_class -%}
+    col-sm-8
+{%- endblock form_group_class %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {{ ux_icon('tabler:user', {height: '18', width: '18'}) }}
+                        Informations du profil
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="text-center mb-3">
+                                <span class="avatar avatar-xl">{{ ux_icon('tabler:user', {class: 'w-6 h-6'}) }}</span>
+                            </div>
+                            <div class="text-center mb-3">
+                                <h3>{{ user }}</h3>
+                                <div class="mt-2">
+                                    {% if 'ROLE_ADMIN' in user.roles %}
+                                        <span class="badge text-bg-danger">Administrateur</span>
+                                    {% elseif 'ROLE_REFEREE' in user.roles %}
+                                        <span class="badge text-bg-success">Arbitre</span>
+                                    {% else %}
+                                        <span class="badge text-bg-primary">Joueur</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <div class="mb-3">
+                                <h4>Nom d'utilisateur</h4>
+                                <p>{{ user }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <h4>Rôle</h4>
+                                <p>
+                                    {% if 'ROLE_ADMIN' in user.roles %}
+                                        Administrateur
+                                    {% elseif 'ROLE_REFEREE' in user.roles %}
+                                        Arbitre
+                                    {% elseif 'ROLE_USER' in user.roles %}
+                                        Utilisateur
+                                    {% else %}
+                                        {{ user.roles|first }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        {{ ux_icon('tabler:lock', {height: '18', width: '18'}) }}
+                        Changer de mot de passe
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% for flash_error in app.flashes('error') %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ flash_error }}
+                        </div>
+                    {% endfor %}
+
+                    {% for flash_success in app.flashes('success') %}
+                        <div class="alert alert-success" role="alert">
+                            {{ flash_success }}
+                        </div>
+                    {% endfor %}
+
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.currentPassword, {'attr': {'autofocus': true}}) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.plainPassword.first) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.plainPassword.second) }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Changer le mot de passe</button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

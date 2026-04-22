@@ -1,0 +1,183 @@
+@import "@tabler/core/dist/css/tabler.min.css";
+
+:root {
+    --bingo-square-blue: #57dbff;
+    --bingo-border-color: var(--tblr-dark);
+}
+
+[data-bs-theme="dark"] {
+    --bingo-border-color: var(--tblr-light);
+}
+
+.modal {
+    --tblr-modal-margin: 6rem;
+}
+
+.modal.top {
+    --tblr-modal-margin: 1rem;
+}
+
+.modal-footer {
+    justify-content: space-between;
+}
+
+.card-title {
+    font-size: 1.1rem;
+}
+
+ul#rules {
+    padding-left: 0.4rem;
+}
+
+ul#rules > li {
+    list-style-type: none;
+}
+
+ul#rules > li:before {
+    content: '✓ ';
+}
+
+.vcenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bingo-grid {
+    display: grid;
+    grid-template-columns: auto repeat(5, 1fr);
+    grid-template-rows: auto repeat(5, 1fr);
+    gap: 0;
+    aspect-ratio: 3 / 2;
+}
+
+.bingo-row {
+    min-height: 2rem;
+}
+
+.bingo-col {
+    flex: 0;
+}
+
+.bingo .bingo-square {
+    border: var(--tblr-border-width) var(--tblr-border-style) var(--bingo-border-color);
+    color: var(--tblr-white);
+    aspect-ratio: 3 / 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.bingo .bingo-square-hidden {
+    color: var(--bingo-square-blue);
+}
+
+.bingo .bingo-square-validated {
+    background: #5d9010;
+}
+
+.form-control {
+    border-color: var(--tblr-gray-600);
+}
+
+.table thead th {
+    font-size: 0.825rem;
+    padding: 0.75rem;
+    color: var(--tblr-light);
+    text-transform: none;
+}
+
+.form-check {
+    margin-bottom: 0;
+}
+
+.toast-container {
+    top: 3.5rem;
+    right: 45%;
+}
+
+.tooltip {
+    font-size: 1.1rem;
+}
+
+.game-container {
+    max-width: 1140px;
+}
+
+li.sidebar-category > span {
+    text-decoration: underline;
+}
+
+.btn-link {
+    color: rgba(var(--tblr-link-color-rgb), var(--tblr-link-opacity, 1));
+}
+
+.btn-link:hover {
+    color: var(--tblr-link-hover-color-rgb);
+}
+
+.blink {
+    animation: blinker 1s linear infinite;
+}
+
+.bg-amber {
+    background-color: #845700;
+}
+
+@keyframes blinker {
+    50% {
+        background-color: #ff5400;
+    }
+}
+
+/* Notes toggle button fixed at top left of page */
+.notes-toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Move toggle button to the right of the sidebar when sidebar is visible */
+[data-controller="game-notes"] .notes-sidebar:not(.d-none) ~ .notes-toggle-btn {
+    left: 320px; /* 300px (sidebar width) + 20px (margin) */
+}
+
+/* Notes sidebar styles */
+.notes-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 300px;
+    z-index: 999;
+    background-color: var(--tblr-bg-surface);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.notes-sidebar.d-none {
+    transform: translateX(-100%);
+}
+
+.notes-sidebar:not(.d-none) {
+    transform: translateX(0);
+}
+
+/* Adjust main content when sidebar is visible */
+.notes-sidebar:not(.d-none) ~ .page {
+    margin-left: 300px;
+    transition: margin-left 0.3s ease;
+}
+
+.page {
+    transition: margin-left 0.3s ease;
+}

@@ -1,0 +1,19 @@
+<div {{ attributes }}>
+    <ul class="navbar-nav">
+        {% for category in this.categories %}
+            <li class="sidebar-category px-3 pt-2">
+                <span>{{ category }}</span>
+                {% if this.notValidatedSquares(category)|length > 0 %}
+                    <ul>
+                        {% for square in this.notValidatedSquares(category) %}
+                            <li class="pt-2">
+                                <a href="#" {{ stimulus_action('game', 'scrollToSquare', 'click', {row: square.row, col: square.col}) }}>{{ square.coords }}</a>
+                                {{ square }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>

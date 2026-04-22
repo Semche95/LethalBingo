@@ -1,0 +1,49 @@
+<div class="d-flex flex-column align-middle h-full">
+    {% set square = this.squares[row][col] %}
+    {% if is_granted('ROLE_REFEREE') and not this.game.finishedAt %}
+        <span class="d-flex justify-content-evenly p-1 mb-0">
+            {% if not this.squareRevealed(square.id) and not this.squareVisible(row, col) %}
+                <button type="button"
+                        class="btn btn-secondary" {{ stimulus_action('live', 'action', 'click', {action: 'reveal', squareId: square.id}) }}
+                        data-bs-toggle="tooltip" title="Révéler la case">
+                    {{ ux_icon('tabler:eye-closed', {height: '18', width: '18'}) }}
+                </button>
+            {% else %}
+                <button type="button"{{ this.squareVisible(row, col) ? ' disabled' }}
+                        class="btn btn-primary" {{ stimulus_action('live', 'action', 'click', {action: 'conceal', squareId: square.id}) }}
+                        data-bs-toggle="tooltip" title="Masquer la case">
+                    {{ ux_icon('tabler:eye', {height: '18', width: '18'}) }}
+                </button>
+            {% endif %}
+            {% if this.inProgress %}
+                {% if not this.squareValidated(square.id) %}
+                    <button type="button"
+                            class="btn btn-secondary" {{ stimulus_action('live', 'action', 'click', {action: 'validate', squareId: square.id}) }}
+                            data-bs-toggle="tooltip" title="Valider la case">
+                        {{ ux_icon('oui:cross', {height: '18', width: '18'}) }}
+                    </button>
+                {% else %}
+                    <button type="button"
+                            class="btn btn-primary" {{ stimulus_action('live', 'action', 'click', {action: 'invalidate', squareId: square.id}) }}
+                            data-bs-toggle="tooltip" title="Invalider la case">
+                        {{ ux_icon('tabler:check', {height: '18', width: '18'}) }}
+                    </button>
+                {% endif %}
+            {% endif %}
+        </span>
+    {% endif %}
+
+    {% if is_granted('ROLE_REFEREE') or this.inProgress %}
+        <span class="d-flex flex-grow-1 vcenter">
+            {% if this.squareContentShowable(square.id, row, col) %}
+                <span>{{ square.label }}</span>
+            {% else %}
+                <span>???</span>
+            {% endif %}
+        </span>
+    {% elseif this.game.finishedAt %}
+        <span class="d-flex flex-grow-1 vcenter">
+            <span>{{ square.label }}</span>
+        </span>
+    {% endif %}
+</div>
