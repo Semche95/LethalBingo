@@ -62,7 +62,6 @@ ul#rules > li:before {
 .bingo .bingo-square {
     border: var(--tblr-border-width) var(--tblr-border-style) var(--bingo-border-color);
     color: var(--tblr-white);
-    aspect-ratio: 3 / 2;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -74,6 +73,10 @@ ul#rules > li:before {
 
 .bingo .bingo-square-validated {
     background: #5d9010;
+}
+
+#bingo-form .bingo .bingo-square {
+    aspect-ratio: 1 / 1;
 }
 
 .form-control {
