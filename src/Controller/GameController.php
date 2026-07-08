@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Game;
 use App\Service\BingoService;
-use App\Service\GameTimerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,12 +15,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GameController extends AbstractController
 {
     #[Route('/{slug}', name: 'app_game', requirements: ['slug' => '[a-zA-Z0-9]{12}'])]
-    public function game(GameTimerService $gameTimerService, BingoService $bingo, Game $game): Response
+    public function game(BingoService $bingo, Game $game): Response
     {
         $bingoDto = $bingo->entityToDto($game->getRound());
         return $this->render('game/game.html.twig', [
             'game' => $game,
-            'timerDisplay' => $gameTimerService->formatGameDuration($game),
             'squares' => $bingoDto->squares,
         ]);
     }

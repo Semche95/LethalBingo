@@ -3,47 +3,268 @@ import { Controller } from '@hotwired/stimulus'
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
     static override values = {
-        isHighlighted: Boolean,
-        cancelSounds: Boolean,
-        timerReachedZero: Boolean,
-        isGameFinished: Boolean,
+        gameStartedAt: Number,
+        gameFinishedAt: Number,
+        gameTotalPausedSeconds: Number,
+        gameLastPausedAt: Number,
+        gameIsPaused: Boolean
     }
 
-    declare readonly isHighlightedValue: boolean
-    declare readonly cancelSoundsValue: boolean
-    declare readonly timerReachedZeroValue: boolean
-    declare readonly isGameFinishedValue: boolean
+    static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton']
+
+    declare readonly gameStartedAtValue: number | null
+    declare readonly gameFinishedAtValue: number | null
+    declare readonly gameTotalPausedSecondsValue: number
+    declare readonly gameLastPausedAtValue: number | null
+    declare readonly gameIsPausedValue: boolean
+
+    declare readonly timerDisplayTarget: HTMLElement
+    declare readonly pauseBadgeTarget: HTMLElement
+    declare readonly pauseButtonTarget: HTMLElement
+    declare readonly hasPauseButtonTarget: boolean
 
     private notificationAudio: HTMLAudioElement | null = null
     private endAudio: HTMLAudioElement | null = null
+    private timerInterval: number | null = null
+    private isHighlighted: boolean = false
+    private highlightUntil: number | null = null
+    private timerReachedZero: boolean = false
 
     override connect() {
+        // Load audio files
         const notificationSoundURL = new URL('/assets/sounds/interval.mp3', import.meta.url)
         const endSoundURL = new URL('/assets/sounds/end.mp3', import.meta.url)
         this.notificationAudio = new Audio(notificationSoundURL.href)
         this.endAudio = new Audio(endSoundURL.href)
+
+        // Start the timer update interval
+        this.startTimerInterval()
+
+        // Initial update
+        this.updateTimerDisplay()
+
+        // Check if timer is already at zero when the page loads
+        if (this.hasPauseButtonTarget) {
+            const formattedTime = this.formatGameDuration()
+            if (formattedTime === '00:00:00') {
+                this.timerReachedZero = true
+                this.pauseButtonTarget.classList.add('d-none')
+            }
+        }
     }
 
     override disconnect() {
         this.resetAudio(true)
         this.notificationAudio = null
         this.endAudio = null
-    }
 
-    isHighlightedValueChanged() {
-        this.playNotificationSound()
-    }
-
-    cancelSoundsValueChanged() {
-        if (this.cancelSoundsValue) {
-            this.resetAudio()
+        // Clear the timer interval
+        if (this.timerInterval !== null) {
+            window.clearInterval(this.timerInterval)
+            this.timerInterval = null
         }
     }
 
-    timerReachedZeroValueChanged() {
-        if (this.timerReachedZeroValue) {
+    gameIsPausedValueChanged() {
+        this.updatePauseBadge()
+        this.updateTimerDisplay()
+    }
+
+    gameStartedAtValueChanged() {
+        this.updateTimerDisplay()
+    }
+
+    gameFinishedAtValueChanged() {
+        this.updateTimerDisplay()
+    }
+
+    gameTotalPausedSecondsValueChanged() {
+        this.updateTimerDisplay()
+    }
+
+    gameLastPausedAtValueChanged() {
+        this.updateTimerDisplay()
+    }
+
+    private startTimerInterval() {
+        // Update the timer every 500ms
+        this.timerInterval = window.setInterval(() => {
+            this.updateTimerDisplay()
+        }, 500)
+    }
+
+    private updateTimerDisplay() {
+        const formattedTime = this.formatGameDuration()
+        this.timerDisplayTarget.textContent = formattedTime
+
+        // Check if timer has reached zero
+        const timerReachedZero = formattedTime === '00:00:00'
+        if (timerReachedZero && !this.timerReachedZero) {
+            this.timerReachedZero = true
             this.playEndOfTimerSound()
+
+            // Hide pause button when timer reaches zero
+            if (this.hasPauseButtonTarget) {
+                this.pauseButtonTarget.classList.add('d-none')
+            }
+        } else if (!timerReachedZero && this.timerReachedZero) {
+            this.timerReachedZero = false
+
+            // Show pause button when timer is not zero
+            if (this.hasPauseButtonTarget) {
+                this.pauseButtonTarget.classList.remove('d-none')
+            }
         }
+
+        // Update pause badge
+        this.updatePauseBadge()
+
+        // Update highlighting
+        this.updateHighlighting()
+    }
+
+    private updatePauseBadge() {
+        if (this.gameIsPausedValue) {
+            this.pauseBadgeTarget.classList.remove('d-none')
+        } else {
+            this.pauseBadgeTarget.classList.add('d-none')
+        }
+    }
+
+    private updateHighlighting() {
+        // Only check highlighting if the game is active
+        if (this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue) {
+            // Calculate remaining seconds
+            const remainingSeconds = this.calculateRemainingSeconds()
+
+            // Check if we're in the last minute (red text for the entire last minute)
+            if (this.isOneMinuteOrLess(remainingSeconds)) {
+                this.setHighlighting(true, 'danger', null)
+            }
+            // Check if we're at 3 minutes exactly
+            else if (this.isAtThreeMinutesExactly(remainingSeconds)) {
+                this.setHighlighting(true, 'danger', Date.now() + 3000)
+            }
+            // Check if we're at 5 minutes exactly
+            else if (this.isAtFiveMinutesExactly(remainingSeconds)) {
+                this.setHighlighting(true, 'danger', Date.now() + 3000)
+            }
+            // Check if we're at a 10-minute interval
+            else if (this.isAtTenMinuteInterval(remainingSeconds)) {
+                this.setHighlighting(true, 'warning', Date.now() + 3000)
+            }
+            // Remove highlight if time has passed (except for the last minute)
+            // or if there's no highlightUntil timestamp and we're not at a specific threshold
+            else if (this.isHighlighted && (
+                (this.highlightUntil && Date.now() > this.highlightUntil) || 
+                !this.highlightUntil
+            )) {
+                this.setHighlighting(false, 'warning', null)
+            }
+        }
+    }
+
+    private setHighlighting(isHighlighted: boolean, highlightType: string, highlightUntil: number | null) {
+        // Only play sound if highlighting is being turned on
+        if (!this.isHighlighted && isHighlighted) {
+            this.playNotificationSound()
+        }
+
+        this.isHighlighted = isHighlighted
+        this.highlightUntil = highlightUntil
+
+        // Apply highlighting to the timer display
+        if (isHighlighted) {
+            this.timerDisplayTarget.className = `text-${highlightType} animate-pulse`
+        } else {
+            this.timerDisplayTarget.className = ''
+        }
+    }
+
+    private calculateRemainingSeconds(): number {
+        if (!this.gameStartedAtValue) {
+            return 3600 // Default to 1 hour
+        } else if (this.gameFinishedAtValue) {
+            return 0
+        }
+
+        // Calculate elapsed seconds since game started
+        const elapsedSeconds = Math.floor(Date.now() / 1000) - this.gameStartedAtValue
+
+        // Subtract total paused time
+        let adjustedElapsedSeconds = elapsedSeconds - this.gameTotalPausedSecondsValue
+
+        // If the game is currently paused, subtract the time since it was paused
+        if (this.gameIsPausedValue && this.gameLastPausedAtValue) {
+            const pausedSeconds = Math.floor(Date.now() / 1000) - this.gameLastPausedAtValue
+            adjustedElapsedSeconds -= pausedSeconds
+        }
+
+        // Calculate remaining seconds (don't go below zero)
+        return Math.max(0, 3600 - adjustedElapsedSeconds)
+    }
+
+    private formatGameDuration(): string {
+        if (!this.gameStartedAtValue) {
+            return '01:00:00'
+        } else if (this.gameFinishedAtValue) {
+            return '00:00:00'
+        }
+
+        const remainingSeconds = this.calculateRemainingSeconds()
+
+        // If time is up, return 00:00:00
+        if (remainingSeconds <= 0) {
+            return '00:00:00'
+        }
+
+        // Convert remaining seconds to hours, minutes, seconds
+        const hours = Math.floor(remainingSeconds / 3600)
+        const minutes = Math.floor((remainingSeconds % 3600) / 60)
+        const seconds = remainingSeconds % 60
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    }
+
+    // Checks if the remaining time is at a 10-minute interval (50, 40, 30, 20, 10 minutes)
+    private isAtTenMinuteInterval(remainingSeconds: number): boolean {
+        // Convert to minutes
+        const remainingMinutes = Math.floor(remainingSeconds / 60)
+        const remainingSecondsInMinute = remainingSeconds % 60
+
+        // Check if it's exactly at a 10-minute mark (50, 40, 30, 20, 10 minutes)
+        // Require exactly 0 seconds to ensure precise timing
+        return remainingMinutes > 0 && remainingMinutes <= 50 && remainingMinutes % 10 === 0 && remainingSecondsInMinute === 0
+    }
+
+    // Checks if the remaining time is at 5 minutes (00:05:00)
+    private isAtFiveMinutesExactly(remainingSeconds: number): boolean {
+        // Convert to minutes
+        const remainingMinutes = Math.floor(remainingSeconds / 60)
+        const remainingSecondsInMinute = remainingSeconds % 60
+
+        // Check if it's exactly at 5 minutes (00:05:00)
+        return remainingMinutes === 5 && remainingSecondsInMinute === 0
+    }
+
+    // Checks if the remaining time is at 3 minutes (00:03:00)
+    private isAtThreeMinutesExactly(remainingSeconds: number): boolean {
+        // Convert to minutes
+        const remainingMinutes = Math.floor(remainingSeconds / 60)
+        const remainingSecondsInMinute = remainingSeconds % 60
+
+        // Check if it's exactly at 3 minutes (00:03:00)
+        return remainingMinutes === 3 && remainingSecondsInMinute === 0
+    }
+
+    // Checks if the remaining time is exactly 1 minute (00:01:00) or less
+    private isOneMinuteOrLess(remainingSeconds: number): boolean {
+        // Convert to minutes
+        const remainingMinutes = Math.floor(remainingSeconds / 60)
+        const remainingSecondsInMinute = remainingSeconds % 60
+
+        // Check if it's exactly 1 minute (00:01:00) or less
+        return (remainingMinutes === 1 && remainingSecondsInMinute === 0) || remainingMinutes === 0
     }
 
     private resetAudio(cleanup = false) {
@@ -62,7 +283,7 @@ export default class extends Controller<HTMLDivElement> {
 
     private playAudio(audio: HTMLAudioElement | null, errorType: string) {
         // Don't play sounds if the game is finished
-        if (this.isGameFinishedValue) {
+        if (this.gameFinishedAtValue) {
             return
         }
 
@@ -77,11 +298,11 @@ export default class extends Controller<HTMLDivElement> {
         }
     }
 
-    playNotificationSound() {
+    private playNotificationSound() {
         this.playAudio(this.notificationAudio, 'notification')
     }
 
-    playEndOfTimerSound() {
+    private playEndOfTimerSound() {
         this.playAudio(this.endAudio, 'end')
     }
 }

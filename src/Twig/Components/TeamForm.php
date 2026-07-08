@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -35,6 +36,7 @@ final class TeamForm extends AbstractController
     }
 
     #[LiveAction]
+    #[IsGranted('ROLE_REFEREE')]
     public function save(EntityManagerInterface $em): RedirectResponse
     {
         $this->submitForm();

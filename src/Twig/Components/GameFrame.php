@@ -25,8 +25,6 @@ final class GameFrame extends AbstractController
     #[LiveProp]
     public array $squares;
 
-    #[LiveProp]
-    public string $timerDisplay;
 
     public function __construct(
         private readonly GameService $gameService,

@@ -1,9 +1,10 @@
 <div {{ attributes.defaults(stimulus_controller('game--game-timer', {
-    isHighlighted: this.isHighlighted,
-    cancelSounds: this.cancelSounds,
-    timerReachedZero: this.timerReachedZero,
-    isGameFinished: this.game.finishedAt ? true : false
-})) }} data-poll="delay(500)|$render">
+    gameStartedAt: this.game.startedAt ? this.game.startedAt.timestamp : null,
+    gameFinishedAt: this.game.finishedAt ? this.game.finishedAt.timestamp : null,
+    gameTotalPausedSeconds: this.game.totalPausedSeconds,
+    gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.timestamp : null,
+    gameIsPaused: this.game.isPaused ? true : false
+})) }}>
     <div class="vcenter">
         <div class="me-3">
             {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
@@ -11,10 +12,8 @@
         <div class="text-center">
             <h3 class="m-0">Temps restant</h3>
             <div class="fs-1 fw-bold" id="timer-display">
-                <span class="{{ this.isHighlighted ? 'text-' ~ this.highlightType ~ ' animate-pulse' : '' }}">{{ this.timerDisplay }}</span>
-                {% if this.game.isPaused %}
-                    <span class="badge text-bg-warning ms-2">PAUSE</span>
-                {% endif %}
+                <span data-game--game-timer-target="timerDisplay">{{ this.timerDisplay }}</span>
+                <span data-game--game-timer-target="pauseBadge" class="badge text-bg-warning ms-2 d-none">PAUSE</span>
             </div>
         </div>
         {% if is_granted('ROLE_REFEREE') and this.game.startedAt and not this.game.finishedAt %}
@@ -118,7 +117,8 @@
                             data-bs-toggle="tooltip"
                             title="Mettre en pause"
                             data-action="live#action"
-                            data-live-action-param="pauseGame">
+                            data-live-action-param="pauseGame"
+                            data-game--game-timer-target="pauseButton">
                         {{ ux_icon('mdi:pause', {height: '24', width: '24'}) }}
                     </button>
                 {% endif %}
