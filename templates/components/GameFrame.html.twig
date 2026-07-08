@@ -6,13 +6,15 @@
             <div class="py-4">
                 {{ component('BingoCardTitle', {game: this.game}) }}
 
-                <div class="mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            {{ component('GameTimer', {game: this.game}) }}
+                {% if not this.game.finishedAt %}
+                    <div class="mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                {{ component('GameTimer', {game: this.game}) }}
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
 
                 <div class="card">
                     <div class="card-body">
