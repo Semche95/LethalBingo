@@ -24,6 +24,7 @@ final class GameSteps
     }
 
     #[LiveListener('gameFrameRefresh')]
+    #[LiveListener('gameStepsRefresh')]
     public function __invoke()
     {
     }

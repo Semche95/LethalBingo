@@ -128,6 +128,7 @@ readonly class BingoService
     public function refreshBingoCard(Game $game): void
     {
         $this->gameService->refreshGameFrame($game, RefreshEvent::BingoCard);
+        $this->gameService->refreshGameFrame($game, RefreshEvent::GameSteps);
     }
 
     public function reveal(Game $game, int $squareId): void

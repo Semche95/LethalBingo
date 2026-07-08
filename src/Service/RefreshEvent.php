@@ -8,6 +8,7 @@ enum RefreshEvent: string
 {
     case GameFrame = 'gameFrameRefresh';
     case GameTimer = 'gameTimerRefresh';
+    case GameSteps = 'gameStepsRefresh';
     case BingoCard = 'bingoCardRefresh';
     case BingoCardTitle = 'bingoCardTitleRefresh';
 }
