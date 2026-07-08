@@ -31,7 +31,7 @@ class TeamController extends AbstractController
     public function add(): Response
     {
         $team = new Team();
-        $team->addMember((new TeamMember())->setCaptain(true));
+        $team->addMember(new TeamMember()->setCaptain(true));
         return $this->render('referee/team/form.html.twig', [
             'team' => $team,
             'mode' => 'add',

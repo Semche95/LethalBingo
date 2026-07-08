@@ -1,4 +1,4 @@
-<div {{ attributes.defaults({class: 'bingo'}) }}>
+<div{{ attributes.defaults({class: 'bingo'}) }}>
     <div class="bingo-grid">
         {% for row in range(0, this.maxRows) %}
             {% set firstRow = loop.first %}
@@ -30,7 +30,8 @@
                     {% endif %}
                 {% endif %}
 
-                <div class="{{ cellClasses|join(' ') }}" id="square{{ row }}{{ col }}" style="grid-row: {{ row + 1 }}; grid-column: {{ col + 1 }};">
+                <div class="{{ cellClasses|join(' ') }}" id="square{{ row }}{{ col }}"
+                     style="grid-row: {{ row + 1 }}; grid-column: {{ col + 1 }};">
                     {% if firstRow and not firstCol %}
                         {{ col }} {# Numéro de la colonne #}
                     {% elseif not firstRow and firstCol %}

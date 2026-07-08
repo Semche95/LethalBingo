@@ -19,7 +19,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
-class Bingo
+readonly class BingoService
 {
     public const int MAX_ROWS = 5;
     public const int MAX_COLS = 5;
@@ -35,10 +35,11 @@ class Bingo
     ];
 
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly GameRoundRepository $gameRoundRepository,
-        private readonly BingoSquareRevealedRepository $bingoSquareRevealedRepository,
-        private readonly BingoSquareValidatedRepository $bingoSquareValidatedRepository,
+        private EntityManagerInterface         $em,
+        private GameRoundRepository            $gameRoundRepository,
+        private BingoSquareRevealedRepository  $bingoSquareRevealedRepository,
+        private BingoSquareValidatedRepository $bingoSquareValidatedRepository,
+        private GameService                    $gameService,
     )
     {
     }
@@ -80,7 +81,7 @@ class Bingo
             throw new ValidatorException(sprintf('Le round %d existe déjà pour la saison %d.', $bingoDto->round, $bingoDto->season));
         }
 
-        $gameRound = (new GameRound())
+        $gameRound = new GameRound()
             ->setNumber($bingoDto->round)
             ->setSeason($bingoDto->season);
         $this->em->persist($gameRound);
@@ -110,7 +111,7 @@ class Bingo
                 if ($id !== null && $id !== '') {
                     $bingoSquare = $this->em->getReference(BingoSquare::class, $id);
                 } else {
-                    $bingoSquare = (new BingoSquare())
+                    $bingoSquare = new BingoSquare()
                         ->setRound($gameRound)
                         ->setRow($row)
                         ->setCol($col);
@@ -124,15 +125,21 @@ class Bingo
         }
     }
 
+    public function refreshBingoCard(Game $game): void
+    {
+        $this->gameService->refreshGameFrame($game, RefreshEvent::BingoCard);
+    }
+
     public function reveal(Game $game, int $squareId): void
     {
         try {
-            $square = (new BingoSquareRevealed())
+            $square = new BingoSquareRevealed()
                 ->setGame($game)
                 ->setBingoSquare($this->em->getReference(BingoSquare::class, $squareId))
                 ->setRevealedAt(new DateTimeImmutable());
             $this->em->persist($square);
             $this->em->flush();
+            $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException $e) {
         }
     }
@@ -145,6 +152,7 @@ class Bingo
                 $this->em->remove($square);
                 $this->em->flush();
             }
+            $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException $e) {
         }
     }
@@ -152,12 +160,13 @@ class Bingo
     public function validate(Game $game, int $squareId): void
     {
         try {
-            $square = (new BingoSquareValidated())
+            $square = new BingoSquareValidated()
                 ->setGame($game)
                 ->setBingoSquare($this->em->getReference(BingoSquare::class, $squareId))
                 ->setValidatedAt(new DateTimeImmutable());
             $this->em->persist($square);
             $this->em->flush();
+            $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException $e) {
         }
     }
@@ -170,6 +179,7 @@ class Bingo
                 $this->em->remove($square);
                 $this->em->flush();
             }
+            $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException $e) {
         }
     }

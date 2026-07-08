@@ -1,0 +1,107 @@
+<div {{ attributes.defaults(stimulus_controller('game--game-frame', {
+    mercureUrl: mercure('game/' ~ this.game.slug)
+})) }}>
+    <div class="page">
+        <div class="container game-container my-auto">
+            <div class="py-4">
+                {{ component('BingoCardTitle', {game: this.game}) }}
+
+                <div class="mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            {{ component('GameTimer', {game: this.game, timerDisplay: this.timerDisplay}) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="m-auto">
+                            {{ component('BingoCard', {
+                                'editMode': false,
+                                'squares': this.squares,
+                                'game': this.game,
+                            }) }}
+                        </div>
+                    </div>
+                    {% if is_granted('ROLE_REFEREE') %}
+                        <div class="card-footer text-center d-flex justify-content-center align-items-center">
+                            <a href="{{ path('app_referee_game_edit', {id: this.game.id}) }}"
+                               class="btn btn-secondary me-5">
+                                Retour au tableau de bord
+                            </a>
+                            {% if not this.isGameStarted() and not this.isGameFinished() %}
+                                <button
+                                        type="button"
+                                        class="btn btn-success"
+                                        data-action="live#action"
+                                        data-live-action-param="startGame"
+                                >
+                                    Démarrer la partie
+                                </button>
+                            {% else %}
+                                {% if this.isGameFinished() %}
+                                    <span>
+                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
+                                        Partie terminée le {{ this.game.finishedAt|date('d/m/Y à H:i:s') }}
+                                    </span>
+                                {% elseif this.isGameStarted() %}
+                                    <span class="me-5">
+                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
+                                        Partie démarrée le {{ this.game.startedAt|date('d/m/Y à H:i:s') }}
+                                    </span>
+                                    <button
+                                            type="button"
+                                            class="btn btn-warning"
+                                            data-action="live#action"
+                                            data-live-action-param="stopGame"
+                                    >
+                                        Arrêter la partie
+                                    </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-danger ms-5" data-bs-toggle="modal"
+                                        data-bs-target="#reset-game-modal">
+                                    Réinitialiser
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if is_granted('ROLE_REFEREE') %}
+                    <div class="card mt-4">
+                        <div class="card-status-top bg-blue"></div>
+                        <div class="card-header">
+                            <h3 class="card-title">Étapes</h3>
+                        </div>
+                        <div class="card-body">
+                            {{ component('GameSteps', {game: this.game}) }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if is_granted('ROLE_REFEREE') %}
+        {% component BootstrapModal with {id: 'reset-game-modal', status: 'danger'} %}
+            {% block modal_title %}Confirmation de la réinitialisation{% endblock %}
+            {% block modal_body %}
+                Réinitialiser la partie&nbsp;? Cette action est irréversible, toutes les cases retrouveront leur état initial
+                et la partie sera considérée comme n'ayant jamais été jouée.
+            {% endblock %}
+            {% block modal_footer %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button
+                        type="button"
+                        class="btn btn-danger ms-auto"
+                        data-bs-dismiss="modal"
+                        data-action="live#action"
+                        data-live-action-param="resetGame"
+                >
+                    Confirmer
+                </button>
+            {% endblock %}
+        {% endcomponent %}
+    {% endif %}
+</div>

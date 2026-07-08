@@ -1,0 +1,13 @@
+<div{{ attributes.defaults({class: 'text-center mb-4'}) }}>
+    <h1>
+        Bingo {{ this.game.round }}
+        {% if this.game.finishedAt %}
+            (terminé)
+        {% elseif this.game.startedAt %}
+            (en cours)
+        {% else %}
+            (pas démarré)
+        {% endif %}
+    </h1>
+    <h2>Équipe {{ this.game.team }}</h2>
+</div>

@@ -4,7 +4,7 @@ export default class extends Controller<HTMLDivElement> {
     static override targets = ['notes', 'status', 'panel', 'toggle']
     static override values = {
         gameId: Number,
-        saveUrl: String
+        saveUrl: String,
     }
 
     declare readonly notesTarget: HTMLTextAreaElement
@@ -41,11 +41,11 @@ export default class extends Controller<HTMLDivElement> {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    notes: this.notesTarget.value
-                })
+                    notes: this.notesTarget.value,
+                }),
             })
 
             if (!response.ok) {
@@ -59,7 +59,6 @@ export default class extends Controller<HTMLDivElement> {
                 this.statusTarget.textContent = 'Notes sauvegardées automatiquement'
             }, 3000)
         } catch (error) {
-            console.error('Error saving notes:', error)
             this.statusTarget.textContent = 'Erreur lors de la sauvegarde'
         }
     }
@@ -81,9 +80,6 @@ export default class extends Controller<HTMLDivElement> {
         const computedHeight = window.getComputedStyle(this.notesTarget).height
         const storageKey = `game-notes-height-${this.gameIdValue}`
         localStorage.setItem(storageKey, computedHeight)
-
-        // Log for debugging
-        console.debug(`Saved textarea height: ${computedHeight} for game ${this.gameIdValue}`)
     }
 
     override connect(): void {
@@ -102,9 +98,6 @@ export default class extends Controller<HTMLDivElement> {
         const savedHeight = localStorage.getItem(heightStorageKey)
         if (savedHeight) {
             this.notesTarget.style.height = savedHeight
-            console.debug(`Restored textarea height: ${savedHeight} for game ${this.gameIdValue}`)
-        } else {
-            console.debug(`No saved height found for game ${this.gameIdValue}`)
         }
 
         // Initialize ResizeObserver to detect height changes
@@ -122,11 +115,13 @@ export default class extends Controller<HTMLDivElement> {
         }
     }
 
-    togglePanel(): void {
-        if (this.panelTarget.classList.contains('d-none')) {
-            this.showPanel()
-        } else {
-            this.hidePanel()
+    togglePanel(event: Event): void {
+        if (event.currentTarget === this.toggleTarget) {
+            if (this.panelTarget.classList.contains('d-none')) {
+                this.showPanel()
+            } else {
+                this.hidePanel()
+            }
         }
     }
 

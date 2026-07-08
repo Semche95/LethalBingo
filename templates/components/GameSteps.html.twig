@@ -7,7 +7,7 @@
                     <ul>
                         {% for square in this.notValidatedSquares(category) %}
                             <li class="pt-2">
-                                <a href="#" {{ stimulus_action('game', 'scrollToSquare', 'click', {row: square.row, col: square.col}) }}>{{ square.coords }}</a>
+                                <a href="#" {{ stimulus_action('game--game-frame', 'scrollToSquare', 'click', {row: square.row, col: square.col}) }}>{{ square.coords }}</a>
                                 {{ square }}
                             </li>
                         {% endfor %}

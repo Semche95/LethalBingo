@@ -22,3 +22,6 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # Alias for LiveComponentMetadataFactory to fix autowiring
+    Symfony\UX\LiveComponent\Metadata\LiveComponentMetadataFactory: '@ux.live_component.metadata_factory'

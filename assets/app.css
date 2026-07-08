@@ -149,7 +149,7 @@ li.sidebar-category > span {
 }
 
 /* Move toggle button to the right of the sidebar when sidebar is visible */
-[data-controller="game-notes"] .notes-sidebar:not(.d-none) ~ .notes-toggle-btn {
+[data-controller="game--game-notes"] .notes-sidebar:not(.d-none) ~ .notes-toggle-btn {
     left: 320px; /* 300px (sidebar width) + 20px (margin) */
 }
 
@@ -183,4 +183,9 @@ li.sidebar-category > span {
 
 .page {
     transition: margin-left 0.3s ease;
+}
+
+/* Allow vertical resizing for textareas */
+.resize-vertical {
+    resize: vertical;
 }

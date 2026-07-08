@@ -1,30 +1,36 @@
 import { Controller } from '@hotwired/stimulus'
-import { initTooltips } from '../utils'
+import { initTooltips } from '../../utils'
 import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
+import { Component, getComponent } from '@symfony/ux-live-component'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
     static override targets = ['bingo']
+    static override values = {
+        mercureUrl: String,
+    }
 
-    private boundCardUpdated!: OmitThisParameter<() => void>
+    declare readonly mercureUrlValue: string
+    private component!: Component
+    private es!: EventSource
 
-    override initialize() {
-        this.boundCardUpdated = this.cardUpdated.bind(this)
+    override async initialize() {
+        this.component = await getComponent(this.element)
     }
 
     override connect() {
-        document.addEventListener('bingo-card:updated', this.boundCardUpdated)
+        this.es = new EventSource(this.mercureUrlValue)
+        this.es.onmessage = async (event) => {
+            const eventData = JSON.parse(event.data)
+            this.component.emit(eventData.event, null)
+        }
     }
 
     override disconnect() {
-        document.removeEventListener('bingo-card:updated', this.boundCardUpdated)
+        this.es.close()
     }
 
-    cardUpdated() {
-        console.log('cardUpdated')
-        this.refreshTooltips()
-    }
-
+    // TODO
     refreshTooltips() {
         document.querySelectorAll('.tooltip[role="tooltip"]').forEach((elem) => elem.remove())
         initTooltips(this.element.querySelectorAll('[data-bs-toggle="tooltip"]'))

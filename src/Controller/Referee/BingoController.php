@@ -8,7 +8,7 @@ use App\Dto\BingoDto;
 use App\Entity\GameRound;
 use App\Form\BingoFormType;
 use App\Repository\GameRoundRepository;
-use App\Service\Bingo;
+use App\Service\BingoService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -30,7 +30,7 @@ class BingoController extends AbstractController
     }
 
     #[Route('/add', name: 'app_referee_bingo_add')]
-    public function add(Request $request, Bingo $bingo): Response
+    public function add(Request $request, BingoService $bingo): Response
     {
         $bingoDto = new BingoDto();
         $form = $this->createForm(BingoFormType::class, $bingoDto);
@@ -54,7 +54,7 @@ class BingoController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_referee_bingo_edit', requirements: ['id' => '\d+'])]
-    public function edit(Request $request, Bingo $bingo, GameRound $gameRound): Response
+    public function edit(Request $request, BingoService $bingo, GameRound $gameRound): Response
     {
         $bingoDto = $bingo->entityToDto($gameRound);
         $form = $this->createForm(BingoFormType::class, $bingoDto);

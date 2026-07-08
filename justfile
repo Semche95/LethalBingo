@@ -52,3 +52,5 @@ sf *cmd='': ## List all Symfony commands or pass the parameter "c=" to run a giv
 	@{{symfony}} {{cmd}}
 
 cc: && (sf 'c:c') ## Clear the cache
+
+migrate: && (sf '--no-interaction d:m:m')

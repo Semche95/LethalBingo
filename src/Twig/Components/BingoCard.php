@@ -4,22 +4,19 @@ namespace App\Twig\Components;
 
 use App\Entity\BingoSquare;
 use App\Entity\Game;
-use App\Service\Bingo;
+use App\Service\BingoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Mercure\HubInterface;
-use Symfony\Component\Mercure\Update;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentToolsTrait;
-use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent(template: 'components/BingoCard/BingoCard.html.twig')]
 final class BingoCard extends AbstractController
 {
-    use DefaultActionTrait;
     use ComponentToolsTrait;
 
     #[LiveProp]
@@ -32,20 +29,25 @@ final class BingoCard extends AbstractController
     public ?Game $game = null;
 
     public function __construct(
-        private readonly Bingo $bingo,
-        private readonly HubInterface $hub,
+        private readonly BingoService $bingo
     )
+    {
+    }
+
+    #[LiveListener('gameFrameRefresh')]
+    #[LiveListener('bingoCardRefresh')]
+    public function __invoke()
     {
     }
 
     public function getMaxRows(): int
     {
-        return Bingo::MAX_ROWS;
+        return BingoService::MAX_ROWS;
     }
 
     public function getMaxCols(): int
     {
-        return Bingo::MAX_COLS;
+        return BingoService::MAX_COLS;
     }
 
     public function isGameStarted(): bool
@@ -70,7 +72,7 @@ final class BingoCard extends AbstractController
 
     public function isSquareVisible(int $row, int $col): bool
     {
-        return Bingo::isSquareVisible($row, $col);
+        return BingoService::isSquareVisible($row, $col);
     }
 
     public function isSquareRevealed(int $squareId): bool
@@ -92,15 +94,8 @@ final class BingoCard extends AbstractController
 
     private function refreshBingoCard(Game $game): void
     {
-        $this->dispatchBrowserEvent('bingo-card:updated');
         $bingoDto = $this->bingo->entityToDto($game->getRound());
-        $this->hub->publish(new Update(
-            'bingo-card',
-            $this->renderView('game/card.stream.html.twig', [
-                'game' => $game,
-                'squares' => $bingoDto->squares,
-            ]),
-        ));
+        $this->squares = $bingoDto->squares;
     }
 
     #[LiveAction]

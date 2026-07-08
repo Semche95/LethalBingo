@@ -7,21 +7,24 @@ use App\Entity\Game;
 use App\Repository\BingoSquareCategoryRepository;
 use App\Repository\BingoSquareRepository;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
-use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent]
 final class GameSteps
 {
-    use DefaultActionTrait;
-
     #[LiveProp]
     public ?Game $game = null;
 
     public function __construct(
         private readonly BingoSquareCategoryRepository $categoryRepository,
-        private readonly BingoSquareRepository $squareRepository,
+        private readonly BingoSquareRepository         $squareRepository,
     )
+    {
+    }
+
+    #[LiveListener('gameFrameRefresh')]
+    public function __invoke()
     {
     }
 

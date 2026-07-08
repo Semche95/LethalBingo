@@ -1,5 +1,3 @@
-import type { TurboSubmitStartEvent, TurboSubmitEndEvent } from '@hotwired/turbo'
-
 const nameCheck = /^[-_a-zA-Z0-9]{4,22}$/
 const tokenCheck = /^[-_\/+a-zA-Z0-9]{24,}$/
 
@@ -7,25 +5,6 @@ const tokenCheck = /^[-_\/+a-zA-Z0-9]{24,}$/
 document.addEventListener('submit', function (event: SubmitEvent) {
     generateCsrfToken(event.target as HTMLFormElement)
 }, true)
-
-// When @hotwired/turbo handles form submissions, send the CSRF token in a header in addition to a cookie
-// The `framework.csrf_protection.check_header` config option needs to be enabled for the header to be checked
-document.addEventListener('turbo:submit-start', function (event: TurboSubmitStartEvent) {
-    const h = generateCsrfHeaders(event.detail.formSubmission.formElement)
-    Object.keys(h).forEach(function (k: string) {
-        const headers = event.detail.formSubmission.fetchRequest.headers
-        if (headers instanceof Headers) {
-            headers.set(k, h[k])
-        } else if (typeof headers === 'object') {
-            (headers as Record<string, string>)[k] = h[k]
-        }
-    })
-})
-
-// When @hotwired/turbo handles form submissions, remove the CSRF cookie once a form has been submitted
-document.addEventListener('turbo:submit-end', function (event: TurboSubmitEndEvent) {
-    removeCsrfToken(event.detail.formSubmission.formElement)
-})
 
 export function generateCsrfToken(formElement: HTMLFormElement): void {
     const csrfField = formElement.querySelector<HTMLInputElement>('input[data-controller="csrf-protection"], input[name="_csrf_token"]')

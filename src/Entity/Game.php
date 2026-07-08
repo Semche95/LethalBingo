@@ -53,6 +53,15 @@ class Game
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isPaused = false;
+
+    #[ORM\Column(type: 'integer')]
+    private int $totalPausedSeconds = 0;
+
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $lastPausedAt = null;
+
     public function __construct()
     {
         $this->slug = (string)ByteString::fromRandom(12);
@@ -188,6 +197,42 @@ class Game
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
+        return $this;
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->isPaused;
+    }
+
+    public function setIsPaused(bool $isPaused): static
+    {
+        $this->isPaused = $isPaused;
+
+        return $this;
+    }
+
+    public function getTotalPausedSeconds(): int
+    {
+        return $this->totalPausedSeconds;
+    }
+
+    public function setTotalPausedSeconds(int $totalPausedSeconds): static
+    {
+        $this->totalPausedSeconds = $totalPausedSeconds;
+
+        return $this;
+    }
+
+    public function getLastPausedAt(): ?DateTimeImmutable
+    {
+        return $this->lastPausedAt;
+    }
+
+    public function setLastPausedAt(?DateTimeImmutable $lastPausedAt): static
+    {
+        $this->lastPausedAt = $lastPausedAt;
 
         return $this;
     }

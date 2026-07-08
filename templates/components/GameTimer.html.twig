@@ -1,0 +1,41 @@
+<div{{ attributes }} data-poll="delay(500)|$render">
+    <div class="vcenter">
+        <div class="me-3">
+            {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
+        </div>
+        <div class="text-center">
+            <h3 class="m-0">Temps restant</h3>
+            <div class="fs-1 fw-bold" id="timer-display">
+                <span>{{ this.timerDisplay }}</span>
+                {% if this.game.isPaused %}
+                    <span class="badge text-bg-warning ms-2">PAUSE</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if is_granted('ROLE_REFEREE') and this.game.startedAt and not this.game.finishedAt %}
+            <div class="ms-3">
+                {% if this.game.isPaused %}
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-success"
+                            data-bs-toggle="tooltip"
+                            title="Reprendre la partie"
+                            data-action="live#action"
+                            data-live-action-param="resumeGame">
+                        {{ ux_icon('mdi:play', {height: '24', width: '24'}) }}
+                    </button>
+                {% else %}
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-primary"
+                            data-bs-toggle="tooltip"
+                            title="Mettre en pause"
+                            data-action="live#action"
+                            data-live-action-param="pauseGame">
+                        {{ ux_icon('mdi:pause', {height: '24', width: '24'}) }}
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>

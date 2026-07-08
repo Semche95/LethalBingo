@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-class Utils
+readonly class Utils
 {
     public static function num2alpha(int $n): string
     {
