@@ -1,4 +1,9 @@
-<div{{ attributes }} data-poll="delay(500)|$render">
+<div {{ attributes.defaults(stimulus_controller('game--game-timer', {
+    isHighlighted: this.isHighlighted,
+    cancelSounds: this.cancelSounds,
+    timerReachedZero: this.timerReachedZero,
+    isGameFinished: this.game.finishedAt ? true : false
+})) }} data-poll="delay(500)|$render">
     <div class="vcenter">
         <div class="me-3">
             {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
@@ -6,14 +11,96 @@
         <div class="text-center">
             <h3 class="m-0">Temps restant</h3>
             <div class="fs-1 fw-bold" id="timer-display">
-                <span>{{ this.timerDisplay }}</span>
+                <span class="{{ this.isHighlighted ? 'text-' ~ this.highlightType ~ ' animate-pulse' : '' }}">{{ this.timerDisplay }}</span>
                 {% if this.game.isPaused %}
                     <span class="badge text-bg-warning ms-2">PAUSE</span>
                 {% endif %}
             </div>
         </div>
         {% if is_granted('ROLE_REFEREE') and this.game.startedAt and not this.game.finishedAt %}
-            <div class="ms-3">
+            <div class="ms-3 d-flex">
+                <button
+                        type="button"
+                        class="btn btn-icon btn-danger me-2"
+                        data-bs-toggle="tooltip"
+                        title="Retirer 1 minute"
+                        data-action="live#action"
+                        data-live-action-param="decreaseTimer">
+                    {{ ux_icon('mdi:minus', {height: '24', width: '24'}) }}
+                </button>
+
+                <button
+                        type="button"
+                        class="btn btn-icon btn-success me-2"
+                        data-bs-toggle="tooltip"
+                        title="Ajouter 1 minute"
+                        data-action="live#action"
+                        data-live-action-param="increaseTimer">
+                    {{ ux_icon('mdi:plus', {height: '24', width: '24'}) }}
+                </button>
+
+                {% if is_granted('ROLE_ADMIN') and app.request.server.get('DEBUG_TIMER') == 'true' %}
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:20:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo2003">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:10:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo1003">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:05:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo0503">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:03:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo0303">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:01:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo0103">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+
+                    <button
+                            type="button"
+                            class="btn btn-icon btn-info me-2"
+                            data-bs-toggle="tooltip"
+                            title="Définir à 00:00:03"
+                            data-action="live#action"
+                            data-live-action-param="setTimerTo0003">
+                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
+                    </button>
+                {% endif %}
+
                 {% if this.game.isPaused %}
                     <button
                             type="button"
