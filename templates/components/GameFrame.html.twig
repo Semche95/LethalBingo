@@ -55,8 +55,8 @@
                                     <button
                                             type="button"
                                             class="btn btn-warning"
-                                            data-action="live#action"
-                                            data-live-action-param="stopGame"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#stop-game-modal"
                                     >
                                         Arrêter la partie
                                     </button>
@@ -100,6 +100,25 @@
                         data-bs-dismiss="modal"
                         data-action="live#action"
                         data-live-action-param="resetGame"
+                >
+                    Confirmer
+                </button>
+            {% endblock %}
+        {% endcomponent %}
+
+        {% component BootstrapModal with {id: 'stop-game-modal', status: 'warning'} %}
+            {% block modal_title %}Confirmation de l'arrêt de la partie{% endblock %}
+            {% block modal_body %}
+                Arrêter la partie&nbsp;? Cette action terminera la partie en cours.
+            {% endblock %}
+            {% block modal_footer %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button
+                        type="button"
+                        class="btn btn-warning ms-auto"
+                        data-bs-dismiss="modal"
+                        data-action="live#action"
+                        data-live-action-param="stopGame"
                 >
                     Confirmer
                 </button>
