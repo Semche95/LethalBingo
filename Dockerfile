@@ -87,14 +87,19 @@ RUN set -eux; \
 # copy sources
 COPY --link . ./
 RUN rm -Rf \
-	frankenphp/ \
+    .git/ \
+    .idea/ \
 	.junie/ \
 	assets/ \
 	docs/ \
+	frankenphp/ \
 	node_modules/ \
 	tests/ \
 	tmp/ \
+	.env \
 	.env.dev* \
+	.env.test* \
+	.gitignore \
 	.phpunit.result.cache \
 	compose.* \
 	deploy.php \

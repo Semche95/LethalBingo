@@ -24,7 +24,7 @@ dev: install up
 
 # Docker
 build: ## Builds the Docker images
-	@{{dockercomp}} build --pull --no-cache
+	@COMPOSE_FILE=compose.yaml:compose.prod.yaml {{dockercomp}} build --pull --no-cache
 
 up *cmd='': ## Start the docker hub in detached mode (no logs)
 	@{{dockercomp}} up --build --detach {{cmd}}
@@ -50,7 +50,6 @@ prod: install vendor assets && build
 	@echo 'APP_SECRET={{`openssl rand -hex 32`}}' >> .env.prod.local
 	@echo 'CADDY_MERCURE_JWT_SECRET={{`openssl rand -hex 32`}}' >> .env.prod.local
 	@echo 'POSTGRES_PASSWORD={{`openssl rand -hex 16`}}' >> .env.prod.local
-	@echo 'COMPOSE_FILE=compose.yaml:compose.prod.yaml' >> .env.prod.local
 	@echo 'SERVER_NAME=bingo.semche.ovh' >> .env.prod.local
 	@echo 'DATABASE_URL="postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8"' >> .env.prod.local
 
