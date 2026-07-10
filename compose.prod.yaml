@@ -6,3 +6,4 @@ services:
       target: frankenphp_prod
     env_file:
       - .env.prod.local
+    ports: !reset []
