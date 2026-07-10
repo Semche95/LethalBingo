@@ -96,7 +96,6 @@ RUN rm -Rf \
 	node_modules/ \
 	tests/ \
 	tmp/ \
-	.env \
 	.env.dev* \
 	.env.test* \
 	.gitignore \
