@@ -7,3 +7,5 @@ services:
     env_file:
       - .env.prod.local
     ports: !reset []
+    volumes:
+      - ./var:/app/var
