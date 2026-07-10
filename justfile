@@ -13,10 +13,13 @@ default:
 	@just --list
 
 # npm
-install:
+npm-install:
 	@npm install
 
-dev: install up
+npm-build:
+	@npm run build
+
+dev: npm-install up
 	@npm run dev
 
 # Docker
