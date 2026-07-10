@@ -6,20 +6,20 @@ phpcont := dockercomp + " exec php"
 
 # Executables
 php      := phpcont + " php"
-composer := phpcont + " composer"
+composer := "composer"
 symfony  := php + " bin/console"
 
 default:
 	@just --list
 
 # npm
-npm-install:
+install:
 	@npm install
 
-npm-build:
+assets:
 	@npm run build
 
-dev: npm-install up
+dev: install up
 	@npm run dev
 
 # Docker
@@ -43,6 +43,16 @@ bash: ## Connect to the FrankenPHP container via bash so up and down arrows go t
 
 test *cmd='': ## Start tests with phpunit, pass the parameter "c=" to add options to phpunit, example: make test c="--group e2e --stop-on-failure"
 	@{{dockercomp}} exec -e APP_ENV=test php bin/phpunit {{cmd}}
+
+prod: install vendor assets && build
+	@echo 'APP_ENV=prod' > .env.prod.local
+	@echo 'APP_DEBUG=0' >> .env.prod.local
+	@echo 'APP_SECRET={{`openssl rand -hex 32`}}' >> .env.prod.local
+	@echo 'CADDY_MERCURE_JWT_SECRET={{`openssl rand -hex 32`}}' >> .env.prod.local
+	@echo 'POSTGRES_PASSWORD={{`openssl rand -hex 16`}}' >> .env.prod.local
+	@echo 'COMPOSE_FILE=compose.yaml:compose.prod.yaml' >> .env.prod.local
+	@echo 'SERVER_NAME=bingo.semche.ovh' >> .env.prod.local
+	@echo 'DATABASE_URL="postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8"' >> .env.prod.local
 
 ## Composer
 composer *cmd='': ## Run composer

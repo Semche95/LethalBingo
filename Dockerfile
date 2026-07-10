@@ -86,7 +86,23 @@ RUN set -eux; \
 
 # copy sources
 COPY --link . ./
-RUN rm -Rf frankenphp/
+RUN rm -Rf \
+	frankenphp/ \
+	.junie/ \
+	assets/ \
+	docs/ \
+	node_modules/ \
+	tests/ \
+	tmp/ \
+	.env.dev* \
+	.phpunit.result.cache \
+	compose.* \
+	deploy.php \
+	package*.json \
+	phpunit.xml.dist \
+	tsconfig.json \
+	vite.config.ts \
+	;
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
