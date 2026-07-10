@@ -9,3 +9,11 @@ services:
     ports: !reset []
     volumes:
       - ./var:/app/var
+    labels:
+      caddy: bingo.semche.ovh
+      caddy_ingress_network: lcbingo
+      caddy.reverse_proxy: "{{upstreams http}}"
+
+networks:
+  default:
+    name: lcbingo

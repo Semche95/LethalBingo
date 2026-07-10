@@ -48,15 +48,15 @@ prod: install vendor assets && build
 	#!/usr/bin/env bash
 	set -euo pipefail
 	CADDY_MERCURE_JWT_SECRET=$(openssl rand -hex 32)
-	echo 'APP_ENV=prod' > .env.prod.local
-	echo 'APP_DEBUG=0' >> .env.prod.local
-	echo 'APP_SECRET=$(openssl rand -hex 32)' >> .env.prod.local
-	echo 'CADDY_MERCURE_JWT_SECRET=$(openssl rand -hex 32)' >> .env.prod.local
-	echo 'POSTGRES_PASSWORD=$(openssl rand -hex 16)' >> .env.prod.local
-	echo 'SERVER_NAME=bingo.semche.ovh' >> .env.prod.local
-	echo 'DATABASE_URL="postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8"' >> .env.prod.local
-	echo 'MERCURE_PUBLISHER_JWT_KEY=$(CADDY_MERCURE_JWT_SECRET)' >> .env.prod.local
-	echo 'MERCURE_SUBSCRIBER_JWT_KEY=$(CADDY_MERCURE_JWT_SECRET)' >> .env.prod.local
+	echo "APP_ENV=prod" > .env.prod.local
+	echo "APP_DEBUG=0" >> .env.prod.local
+	echo "APP_SECRET=$(openssl rand -hex 32)" >> .env.prod.local
+	echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env.prod.local
+	echo "SERVER_NAME=bingo.semche.ovh:80" >> .env.prod.local
+	echo "DATABASE_URL=\"postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8\"" >> .env.prod.local
+	echo "MERCURE_PUBLISHER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
+	echo "MERCURE_SUBSCRIBER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
+	echo "TRUSTED_PROXIES=" >> .env.prod.local
 
 ## Composer
 composer *cmd='': ## Run composer
