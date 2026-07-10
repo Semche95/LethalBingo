@@ -54,9 +54,20 @@ prod: install vendor assets && build
 	echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env.prod.local
 	echo "SERVER_NAME=bingo.semche.ovh:80" >> .env.prod.local
 	echo "DATABASE_URL=\"postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8\"" >> .env.prod.local
+	echo "CADDY_MERCURE_URL=http://php/.well-known/mercure" >> .env.prod.local
+	echo "CADDY_MERCURE_PUBLIC_URL=https://bingo.semche.ovh/.well-known/mercure" >> .env.prod.local
+	echo "MERCURE_URL=http://php/.well-known/mercure" >> .env.prod.local
+	echo "MERCURE_PUBLIC_URL=https://bingo.semche.ovh/.well-known/mercure" >> .env.prod.local
 	echo "MERCURE_PUBLISHER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
 	echo "MERCURE_SUBSCRIBER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
 	echo "TRUSTED_PROXIES=" >> .env.prod.local
+
+deploy: prod
+	@docker image save app-php | zstd > /tmp/bingo-app-php.tar.zst
+	@scp /tmp/bingo-app-php.tar.zst akhilleus:
+	@ssh akhilleus "docker image load < /home/robin/bingo-app-php.tar.zst"
+	@ssh akhilleus "rm /home/robin/bingo-app-php.tar.zst"
+	@ssh akhilleus "cd /home/robin/lcbingo && docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod.local up -d"
 
 ## Composer
 composer *cmd='': ## Run composer

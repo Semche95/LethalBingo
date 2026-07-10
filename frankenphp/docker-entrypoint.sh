@@ -44,6 +44,7 @@ if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
     if [ "$APP_ENV" = 'dev' ]; then
         php bin/console ux:icons:lock
     fi
+    php bin/console ux:icons:warm-cache
 
     setfacl -R -m u:www-data:rwX -m u:"$(whoami)":rwX var
     setfacl -dR -m u:www-data:rwX -m u:"$(whoami)":rwX var
