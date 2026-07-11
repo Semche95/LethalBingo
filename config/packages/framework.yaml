@@ -13,13 +13,6 @@ framework:
     assets:
         version_strategy: 'Pentatrion\ViteBundle\Asset\ViteAssetVersionStrategy'
 
-when@dev:
-    framework:
-        http_client:
-            default_options:
-                verify_peer: true
-                cafile: ./frankenphp/certs/tls.pem
-
 when@test:
     framework:
         test: true

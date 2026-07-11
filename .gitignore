@@ -21,7 +21,3 @@
 /.vite/
 /.junie/
 /.output.txt
-
-# Ignore all files in frankenphp/certs
-/frankenphp/certs/*
-!/frankenphp/certs/.gitkeep
