@@ -68,6 +68,7 @@ deploy: prod
 	@ssh akhilleus "docker image load < /home/robin/bingo-app-php.tar.zst"
 	@ssh akhilleus "rm /home/robin/bingo-app-php.tar.zst"
 	@ssh akhilleus "cd /home/robin/lcbingo && docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod.local up -d"
+	@ssh akhilleus "cd /home/robin/lcbingo && docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod.local exec php bin/console cache:clear"
 
 ## Composer
 composer *cmd='': ## Run composer
