@@ -1,4 +1,6 @@
-<div {{ attributes.defaults({class: 'table-responsive'}|merge(stimulus_controller('component--datatable').toArray())) }}>
+<div {{ attributes.defaults({class: 'table-responsive'}|merge(stimulus_controller('component--datatable', {
+    id: id|default('datatable-' ~ random())
+}).toArray())) }}>
     <table class="{{ table_classes }}">
         {% if columns is not empty and (show_header is not defined or show_header) %}
             <thead>
