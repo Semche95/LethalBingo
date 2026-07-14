@@ -7,7 +7,8 @@ export default class extends Controller<HTMLDivElement> {
         gameFinishedAt: Number,
         gameTotalPausedSeconds: Number,
         gameLastPausedAt: Number,
-        gameIsPaused: Boolean
+        gameIsPaused: Boolean,
+        serverTime: Number,
     }
 
     static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton']
@@ -17,6 +18,7 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly gameTotalPausedSecondsValue: number
     declare readonly gameLastPausedAtValue: number | null
     declare readonly gameIsPausedValue: boolean
+    declare readonly serverTimeValue: number
 
     declare readonly timerDisplayTarget: HTMLElement
     declare readonly pauseBadgeTarget: HTMLElement
@@ -29,6 +31,7 @@ export default class extends Controller<HTMLDivElement> {
     private isHighlighted: boolean = false
     private highlightUntil: number | null = null
     private timerReachedZero: boolean = false
+    private clientConnectTime: number = 0
 
     override connect() {
         // Load audio files
@@ -36,6 +39,9 @@ export default class extends Controller<HTMLDivElement> {
         const endSoundURL = new URL('/assets/sounds/end.mp3', import.meta.url)
         this.notificationAudio = new Audio(notificationSoundURL.href)
         this.endAudio = new Audio(endSoundURL.href)
+
+        // Initialize time synchronization
+        this.clientConnectTime = Date.now()
 
         // Start the timer update interval
         this.startTimerInterval()
@@ -143,20 +149,20 @@ export default class extends Controller<HTMLDivElement> {
             }
             // Check if we're at 3 minutes exactly
             else if (this.isAtThreeMinutesExactly(remainingSeconds)) {
-                this.setHighlighting(true, 'danger', Date.now() + 3000)
+                this.setHighlighting(true, 'danger', this.getCurrentServerTime() + 3000)
             }
             // Check if we're at 5 minutes exactly
             else if (this.isAtFiveMinutesExactly(remainingSeconds)) {
-                this.setHighlighting(true, 'danger', Date.now() + 3000)
+                this.setHighlighting(true, 'danger', this.getCurrentServerTime() + 3000)
             }
             // Check if we're at a 10-minute interval
             else if (this.isAtTenMinuteInterval(remainingSeconds)) {
-                this.setHighlighting(true, 'warning', Date.now() + 3000)
+                this.setHighlighting(true, 'warning', this.getCurrentServerTime() + 3000)
             }
-            // Remove highlight if time has passed (except for the last minute)
+                // Remove highlight if time has passed (except for the last minute)
             // or if there's no highlightUntil timestamp and we're not at a specific threshold
             else if (this.isHighlighted && (
-                (this.highlightUntil && Date.now() > this.highlightUntil) || 
+                (this.highlightUntil && this.getCurrentServerTime() > this.highlightUntil) ||
                 !this.highlightUntil
             )) {
                 this.setHighlighting(false, 'warning', null)
@@ -181,6 +187,17 @@ export default class extends Controller<HTMLDivElement> {
         }
     }
 
+    /**
+     * Gets the current server time in milliseconds
+     * This calculates what the server time should be based on:
+     * 1. The initial server time we received
+     * 2. How much client time has elapsed since we connected
+     */
+    private getCurrentServerTime(): number {
+        const clientElapsedTime = Date.now() - this.clientConnectTime
+        return (this.serverTimeValue * 1000) + clientElapsedTime
+    }
+
     private calculateRemainingSeconds(): number {
         if (!this.gameStartedAtValue) {
             return 3600 // Default to 1 hour
@@ -188,15 +205,20 @@ export default class extends Controller<HTMLDivElement> {
             return 0
         }
 
+        // Get current server time and game start time in milliseconds
+        const serverNow = this.getCurrentServerTime()
+        const gameStartedAt = this.gameStartedAtValue * 1000
+
         // Calculate elapsed seconds since game started
-        const elapsedSeconds = Math.floor(Date.now() / 1000) - this.gameStartedAtValue
+        const elapsedSeconds = Math.floor((serverNow - gameStartedAt) / 1000)
 
         // Subtract total paused time
         let adjustedElapsedSeconds = elapsedSeconds - this.gameTotalPausedSecondsValue
 
         // If the game is currently paused, subtract the time since it was paused
         if (this.gameIsPausedValue && this.gameLastPausedAtValue) {
-            const pausedSeconds = Math.floor(Date.now() / 1000) - this.gameLastPausedAtValue
+            const lastPausedAt = this.gameLastPausedAtValue * 1000
+            const pausedSeconds = Math.floor((serverNow - lastPausedAt) / 1000)
             adjustedElapsedSeconds -= pausedSeconds
         }
 

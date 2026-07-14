@@ -3,7 +3,8 @@
     gameFinishedAt: this.game.finishedAt ? this.game.finishedAt.timestamp : null,
     gameTotalPausedSeconds: this.game.totalPausedSeconds,
     gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.timestamp : null,
-    gameIsPaused: this.game.isPaused ? true : false
+    gameIsPaused: this.game.isPaused,
+    serverTime: date().timestamp
 })) }}>
     <div class="vcenter">
         <div class="me-3">
