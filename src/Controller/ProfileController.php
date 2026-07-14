@@ -2,13 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\ChangePasswordFormType;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/user')]
@@ -28,6 +31,11 @@ class ProfileController extends AbstractController
         // Get the current user
         $user = $this->getUser();
 
+        // Ensure user is authenticated and implements PasswordAuthenticatedUserInterface
+        if (!$user instanceof PasswordAuthenticatedUserInterface) {
+            throw new LogicException('User must implement PasswordAuthenticatedUserInterface.');
+        }
+
         // Create the change password form
         $form = $this->createForm(ChangePasswordFormType::class);
         $form->handleRequest($request);
@@ -37,8 +45,13 @@ class ProfileController extends AbstractController
 
             // Verify current password
             if (!$this->passwordHasher->isPasswordValid($user, $data['currentPassword'])) {
-                $this->addFlash('error', 'Le mot de passe actuel est incorrect.');
+                $this->addFlash('danger', 'Le mot de passe actuel est incorrect.');
                 return $this->redirectToRoute('app_user_profile');
+            }
+
+            // Ensure user is an instance of User before calling setPassword
+            if (!$user instanceof User) {
+                throw new LogicException(sprintf('User must be an instance of %s.', User::class));
             }
 
             // Encode the new password
