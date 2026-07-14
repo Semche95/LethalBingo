@@ -64,7 +64,7 @@ class Game
 
     public function __construct()
     {
-        $this->slug = (string)ByteString::fromRandom(12);
+        $this->generateSlug();
         $this->bingoSquareValidated = new ArrayCollection();
         $this->bingoSquareRevealed = new ArrayCollection();
     }
@@ -82,6 +82,13 @@ class Game
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function generateSlug(): static
+    {
+        $this->slug = (string)ByteString::fromRandom(12);
 
         return $this;
     }

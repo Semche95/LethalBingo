@@ -63,7 +63,7 @@ class GameController extends AbstractController
 
             $this->addFlash('success', 'Partie enregistrée');
 
-            return $this->redirectToRoute('app_referee_bingo_edit', [
+            return $this->redirectToRoute('app_referee_game_edit', [
                 'id' => $game->getId(),
             ]);
         }
@@ -97,5 +97,29 @@ class GameController extends AbstractController
         $this->addFlash('success', 'Partie supprimée');
 
         return $this->redirectToRoute('app_referee_game');
+    }
+
+    #[Route(
+        '/regenerate-slug/{id}',
+        name: 'app_referee_game_regenerate_slug',
+        requirements: ['id' => '\d+'],
+        methods: [Request::METHOD_POST]
+    )]
+    public function regenerateSlug(Request $request, EntityManagerInterface $em, Game $game): RedirectResponse
+    {
+        $submittedToken = $request->getPayload()->get('token');
+        if (!$this->isCsrfTokenValid('regenerate-slug', $submittedToken)) {
+            throw new BadRequestHttpException('Token invalid');
+        }
+
+        $game->generateSlug();
+        $em->persist($game);
+        $em->flush();
+
+        $this->addFlash('success', 'Lien de la partie regénéré');
+
+        return $this->redirectToRoute('app_referee_game_edit', [
+            'id' => $game->getId(),
+        ]);
     }
 }
