@@ -17,8 +17,8 @@ export default class extends Controller<HTMLDivElement> {
     private saveTimeout: number | null = null
     private heightSaveTimeout: number | null = null
     private resizeObserver: ResizeObserver | null = null
-    private readonly debounceTime = 500 // 500ms debounce for notes
-    private readonly heightDebounceTime = 100 // 100ms debounce for height
+    private readonly debounceTime = 100 // 100ms debounce for notes
+    private readonly heightDebounceTime = 50 // 50ms debounce for height
 
     saveNotes(): void {
         // Clear any existing timeout
