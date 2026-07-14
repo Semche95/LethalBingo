@@ -1,0 +1,34 @@
+<div {{ attributes }}>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Bingos</h3>
+            <div class="card-actions">
+                <a href="{{ path('app_referee_bingo_add') }}" class="btn btn-primary">
+                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouveau bingo
+                </a>
+            </div>
+        </div>
+
+        {{ component('Filter', {
+            dataModel: 'round:round season:season'
+        }) }}
+
+        {{ component('DataTable', {
+            columns: ['Round', 'Saison', ''],
+            data: this.bingos|map(b => [
+                'Round ' ~ b.number,
+                'Saison ' ~ b.season,
+                _self.edit_button(b.id)
+            ]),
+            options: [null, null, {class: 'text-end'}],
+            empty_data: 'Aucun bingo créé',
+            id: 'bingo-list-datatable-'~this.bingos|length~this.round|default(0)~this.season|default(0)
+        }) }}
+    </div>
+</div>
+
+{% macro edit_button(id) %}
+    <a href="{{ path('app_referee_bingo_edit', {id: id}) }}" class="btn btn-primary">
+        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+    </a>
+{% endmacro %}

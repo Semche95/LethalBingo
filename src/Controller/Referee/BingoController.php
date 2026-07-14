@@ -7,7 +7,6 @@ namespace App\Controller\Referee;
 use App\Dto\BingoDto;
 use App\Entity\GameRound;
 use App\Form\BingoFormType;
-use App\Repository\GameRoundRepository;
 use App\Service\BingoService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,12 +20,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class BingoController extends AbstractController
 {
     #[Route('', name: 'app_referee_bingo')]
-    public function index(GameRoundRepository $repository): Response
+    public function index(): Response
     {
-        $gameRounds = $repository->findAll();
-        return $this->render('referee/bingo/index.html.twig', [
-            'gameRounds' => $gameRounds,
-        ]);
+        return $this->render('referee/bingo/index.html.twig');
     }
 
     #[Route('/add', name: 'app_referee_bingo_add')]

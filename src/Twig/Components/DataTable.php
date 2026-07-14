@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent]
@@ -19,6 +20,7 @@ final class DataTable
      */
     public array $columns = [];
 
+    #[LiveProp(useSerializerForHydration: true)]
     public array $data = [];
 
     public array $options = [];

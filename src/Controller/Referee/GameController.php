@@ -6,7 +6,6 @@ namespace App\Controller\Referee;
 
 use App\Entity\Game;
 use App\Form\GameFormType;
-use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -19,12 +18,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class GameController extends AbstractController
 {
     #[Route('', name: 'app_referee_game')]
-    public function index(GameRepository $repository): Response
+    public function index(): Response
     {
-        $games = $repository->findAllSorted();
-        return $this->render('referee/game/index.html.twig', [
-            'games' => $games,
-        ]);
+        return $this->render('referee/game/index.html.twig');
     }
 
     #[Route('/add', name: 'app_referee_game_add')]

@@ -1,0 +1,49 @@
+<div {{ attributes.defaults({class: 'px-3 py-2 border-bottom'}|merge(stimulus_controller('component--filter').toArray())) }}>
+    <div class="d-flex align-items-center flex-wrap flex-md-nowrap gap-3">
+        <div class="d-flex align-items-center">
+            <span class="text-body-secondary me-3">{{ ux_icon('tabler:filter', {height: '18', width: '18'}) }} Filtres&nbsp;:</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <label for="filter-round" class="form-label mb-0 me-2 text-nowrap">Round</label>
+            <select
+                    id="filter-round"
+                    class="form-select"
+                    data-model="round"
+                    data-component--filter-target="round"
+            >
+                <option value="">Tous</option>
+                {% for roundNumber in this.rounds %}
+                    <option value="{{ roundNumber }}" {% if this.round == roundNumber %}selected{% endif %}>
+                        {{ roundNumber }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-flex align-items-center">
+            <label for="filter-season" class="form-label mb-0 me-2 text-nowrap">Saison</label>
+            <select
+                    id="filter-season"
+                    class="form-select"
+                    data-model="season"
+                    data-component--filter-target="season"
+            >
+                <option value="">Toutes</option>
+                {% for seasonNumber in this.seasons %}
+                    <option value="{{ seasonNumber }}" {% if this.season == seasonNumber %}selected{% endif %}>
+                        {{ seasonNumber }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="d-flex align-items-center">
+            <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-action="component--filter#reset"
+            >
+                {{ ux_icon('tabler:filter-off', {height: '18', width: '18'}) }}
+                Réinitialiser
+            </button>
+        </div>
+    </div>
+</div>

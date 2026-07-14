@@ -1,0 +1,36 @@
+<div {{ attributes }}>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Parties</h3>
+            <div class="card-actions">
+                <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
+                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
+                </a>
+            </div>
+        </div>
+
+        {{ component('Filter', {
+            dataModel: 'round:round season:season'
+        }) }}
+
+        {{ component('DataTable', {
+            columns: ['Round', 'Équipe', 'Démarrée', 'Terminée', ''],
+            data: this.games|map(g => [
+                'Round ' ~ g.round_number ~ ' Saison ' ~ g.round_season,
+                g.team_name,
+                g.startedAt ? g.startedAt|date('d/m/Y H:i:s') : 'Non',
+                g.finishedAt ? g.finishedAt|date('d/m/Y H:i:s') : 'Non',
+                _self.edit_button(g.id)
+            ]),
+            options: [null, null, null, null, {class: 'text-end'}],
+            empty_data: 'Aucune partie créée',
+            id: 'game-list-datatable-'~this.games|length~this.round|default(0)~this.season|default(0)
+        }) }}
+    </div>
+</div>
+
+{% macro edit_button(id) %}
+    <a href="{{ path('app_referee_game_edit', {id: id}) }}" class="btn btn-primary">
+        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+    </a>
+{% endmacro %}

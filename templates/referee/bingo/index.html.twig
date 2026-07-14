@@ -2,27 +2,6 @@
 
 {% block content %}
     {{ parent() }}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Bingos</h3>
-            <div class="card-actions">
-                <a href="{{ path('app_referee_bingo_add') }}" class="btn btn-primary">
-                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouveau bingo
-                </a>
-            </div>
-        </div>
-        {{ component('DataTable', {
-            columns: ['', ''],
-            data: gameRounds|map(gr => [gr, _self.add_button(gr.id)]),
-            options: [null, {class: 'text-end'}],
-            empty_data: 'Aucun bingo créé',
-            show_header: false
-        }) }}
-    </div>
-{% endblock %}
 
-{% macro add_button(id) %}
-    <a href="{{ path('app_referee_bingo_edit', {id: id}) }}" class="btn btn-primary">
-        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-    </a>
-{% endmacro %}
+    {{ component('BingoList') }}
+{% endblock %}
