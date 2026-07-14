@@ -1,6 +1,8 @@
 import '@hotwired/turbo'
 import { startStimulusApp, registerControllers } from 'vite-plugin-symfony/stimulus/helpers'
 
+Turbo.setProgressBarDelay(10)
+
 const app = startStimulusApp()
 registerControllers(
     app,
