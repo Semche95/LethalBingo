@@ -1,0 +1,25 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Erreur serveur | {{ parent() }}{% endblock %}
+
+{% block body_classes %}d-flex flex-column min-vh-100 justify-content-center align-items-center{% endblock %}
+
+{% block body %}
+    <div class="container text-center">
+        <div class="empty">
+            <div class="empty-header">500</div>
+            <p class="empty-title">Erreur serveur</p>
+            <p class="empty-subtitle text-body-secondary">
+                Une erreur inattendue s'est produite sur le serveur. Veuillez réessayer ultérieurement.
+            </p>
+            <p class="empty-action">
+                <img src="{{ asset('assets/img/gifs/dropship.gif') }}" alt="" class="img-fluid rounded">
+            </p>
+            <div class="empty-action">
+                <a href="{{ path('app_home') }}" class="btn btn-primary">
+                    Retour à l'accueil
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

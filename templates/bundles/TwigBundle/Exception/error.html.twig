@@ -1,0 +1,25 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Erreur {{ status_code }} | {{ parent() }}{% endblock %}
+
+{% block body_classes %}d-flex flex-column min-vh-100 justify-content-center align-items-center{% endblock %}
+
+{% block body %}
+    <div class="container text-center">
+        <div class="empty">
+            <div class="empty-header">{{ status_code }}</div>
+            <p class="empty-title">{{ status_text }}</p>
+            <p class="empty-subtitle text-body-secondary">
+                Une erreur inconnue s'est produite lors du traitement de votre requête.
+            </p>
+            <p class="empty-action">
+                <img src="{{ asset('assets/img/gifs/minor-inconvenience.gif') }}" alt="" class="img-fluid rounded">
+            </p>
+            <div class="empty-action">
+                <a href="{{ path('app_home') }}" class="btn btn-primary">
+                    Retour à l'accueil
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
