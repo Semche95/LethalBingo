@@ -31,6 +31,45 @@
     color: var(--tblr-body-color);
 }
 
+/* ===================== */
+/* Referee Tabs          */
+/* ===================== */
+
+.referee-tabs {
+    background: var(--tblr-bg-surface);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 0.5rem;
+    padding: 0.375rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.referee-tabs .nav-pills {
+    gap: 0.25rem;
+}
+
+.referee-tabs .nav-link {
+    color: var(--tblr-muted-fg);
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.referee-tabs .nav-link:hover {
+    color: var(--tblr-body-color);
+    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+}
+
+.referee-tabs .nav-link.active {
+    color: #fff;
+    background-color: var(--tblr-primary);
+    font-weight: 600;
+}
+
+[data-bs-theme="dark"] .referee-tabs .nav-link:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+}
+
 .modal {
     --tblr-modal-margin: 6rem;
 }
