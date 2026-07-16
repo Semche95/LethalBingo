@@ -7,11 +7,6 @@ just test                    # Tests PHPUnit dans le conteneur Docker
 just sf lint:container       # Vérification du conteneur de services
 ```
 
-Si la commande de lint n'existe pas, utiliser :
-```bash
-just sf debug:container --isValid
-```
-
 ## Prérequis
 
 - PHP 8.4+
@@ -36,6 +31,7 @@ just up         # Uniquement les conteneurs Docker
 - **Early returns** préférés aux conditions imbriquées profondément
 - **Pas de variables globales** sauf nécessité absolue
 - **Pas de parenthèses** autour des `new` quand on chaîne des méthodes : `$var = new ClassName()->method()`
+  *(syntaxe valide depuis PHP 8.4 — vérifier que PHPStan/PHP-CS-Fixer sont configurés pour l'accepter et ne pas la signaler comme erreur)*
 
 ## Conventions de code TypeScript / Frontend
 
@@ -43,6 +39,7 @@ just up         # Uniquement les conteneurs Docker
 - **Bootstrap 5.3 + Tabler** pour le styling
 - **Hotwired Turbo + Stimulus** pour l'interactivité
 - **Symfony UX Live Components** pour les composants serveur interactifs
+- **Auto-Validating Form** : pour les formulaires, utiliser le pattern Live Component avec `ComponentWithFormTrait` + `DefaultActionTrait` — la validation côté PHP (constraints Assert) est la seule source de vérité, pas de validation JS dupliquée
 - **Pas de `console.log`** dans le code produit
 - **Pas de JavaScript inline** dans les templates Twig — tout dans les fichiers JS/Stimulus
 - **Toujours appeler `removeEventListener`** quand on utilise `addEventListener` (même référence bindée dans `connect()` / `disconnect()`)
@@ -52,6 +49,15 @@ just up         # Uniquement les conteneurs Docker
 - **Pas de style inline** (`style="..."`) — utiliser les classes CSS Bootstrap/Tabler ou créer des classes dédiées dans `app.css`
 - Utiliser les macros Twig partagées (`macros.html.twig`)
 - Les composants Live Components ont leur template dans `templates/components/`
+- **Pattern Auto-Validating Form** : `ComponentWithFormTrait` + `DefaultActionTrait` — `instantiateForm()` crée le formulaire, `hasValidationErrors()` vérifie l'état, `save()` appelle `submitForm()` puis traite les données
+- **Nom des LiveProp** : `fieldName: 'formData'` pour l'entité liée au formulaire, `writable: true` pour les champs modifiables par le client
+- **Validation temps réel** : `data-model="on(change)|*"` (défaut du trait) — validation au blur/change, pas à chaque frappe
+- Privilégier les fonctions form_* (form_start, form_row, form_widget, form_label, form_errors, etc.) plutôt que de créer les champs de formulaire à la main
+
+## Tests
+
+- **Test obligatoire** : toute nouvelle classe ajoutée dans `src/Service/`, `src/Controller/` ou `src/Repository/` doit être accompagnée d'un test dans le dossier correspondant (`tests/Service/`, `tests/Controller/`, `tests/Repository/`) avant d'être considérée terminée
+- `just test` doit passer sans erreur avant tout commit
 
 ## Base de données
 
@@ -94,6 +100,16 @@ assets/
 - Messages de commit au format : `feat(scope): description` ou `chore(scope): description`
 - Scopes courants : `game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`
 
+## Workflow Git (branches)
+
+- `main` reste toujours stable et déployable
+- Nommage des branches : `<type>/<scope>-description-courte`
+  - Types : `feature`, `fix`, `chore`, `hotfix`
+  - Scopes : les mêmes que pour les commits (`game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`)
+  - Exemples : `feature/bingo-scoring-rules`, `fix/timer-drift`, `chore/config-docker-secrets`
+- Réécriture d'historique (`rebase`, `amend`, `force-push`) autorisée librement sur les branches de travail tant qu'elles ne sont pas mergées dans `main`
+- Merge dans `main` via pull request, même en solo — garde un point de passage clair avant intégration
+
 ## Sécurité
 
 - Tokens Mercure dans `.env.local` (jamais commité)
@@ -106,15 +122,3 @@ assets/
 
 - Pages d'erreur personnalisées dans `templates/bundles/TwigBundle/Exception/`
 - Ne jamais exposer les détails d'erreur en production
-
-## Règles du jeu (contexte métier)
-
-Le bingo Lethal Company suit ces règles :
-- Pas de mods, vanilla uniquement
-- Pas de remake (sauf crash au démarrage)
-- Pas de communication hors jeu
-- Chaque jour (sauf vente), tuer l'admin avec une pelle et la laisser sur le vaisseau
-- Timer par défaut : 1h, countdown avec pause possible
-- Grille 5×5 avec catégories de cases
-- Workflow : case visible → dévoilée → validée/invalidée
-- Scoring prévu : jours max (x100), argent terminal (x1), temps restant 1min = 20 points
