@@ -8,7 +8,7 @@ framework:
     #esi: true
     #fragments: true
 
-    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
 
     assets:
         version_strategy: 'Pentatrion\ViteBundle\Asset\ViteAssetVersionStrategy'

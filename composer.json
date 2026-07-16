@@ -13,6 +13,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.1",
         "pentatrion/vite-bundle": "^8.2",
+        "pentiminax/ux-datatables": "^0.12.3",
         "phpdocumentor/reflection-docblock": "^5.4",
         "phpstan/phpdoc-parser": "^1.28",
         "runtime/frankenphp-symfony": "^0.2.0",
@@ -100,12 +101,11 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.2.*",
+            "require": "7.4.*",
             "docker": true
         }
     },
     "require-dev": {
-        "deployer/deployer": "^7.4",
         "doctrine/doctrine-fixtures-bundle": "^3.6",
         "fakerphp/faker": "^1.23",
         "phpunit/phpunit": "^9.5",

@@ -11,17 +11,35 @@
                 </a>
             </div>
         </div>
-        {{ component('DataTable', {
-            columns: ['Nom', 'Membres', ''],
-            data: teams|map(t => [t.name, t.members, _self.add_button(t.id)]),
-            options: [null, null, {class: 'text-end'}],
-            empty_data: 'Aucune équipe créée'
-        }) }}
+        <div class="table-responsive">
+            <table class="table card-table table-vcenter table-hover text-nowrap datatable">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Membres</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if teams is empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-body-secondary">Aucune équipe créée</td>
+                    </tr>
+                {% else %}
+                    {% for t in teams %}
+                        <tr>
+                            <td>{{ t.name }}</td>
+                            <td>{{ t.members }}</td>
+                            <td class="text-end">
+                                <a href="{{ path('app_referee_team_edit', {id: t.id}) }}" class="btn btn-primary">
+                                    {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}
-
-{% macro add_button(id) %}
-    <a href="{{ path('app_referee_team_edit', {id: id}) }}" class="btn btn-primary">
-        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-    </a>
-{% endmacro %}

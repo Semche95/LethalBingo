@@ -1,19 +1,14 @@
-name: bingo
+---
+# Production environment override
 services:
   php:
     build:
       context: .
       target: frankenphp_prod
     env_file:
-      - .env.prod.local
-    ports: !reset []
-    volumes:
-      - ./var:/app/var
-    labels:
-      caddy: bingo.semche.ovh
-      caddy_ingress_network: lcbingo
-      caddy.reverse_proxy: "{{upstreams http}}"
-
-networks:
-  default:
-    name: lcbingo
+      - .env
+      - .env.local
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}

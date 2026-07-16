@@ -1,85 +1,88 @@
-# Executables (local)
-dockercomp := "docker compose"
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
-# Docker containers
-phpcont := dockercomp + " exec php"
+# ==============================
+# Justfile LC Bingo (développement)
+# ------------------------------
+# Raccourcis pour le workflow local décrit dans les guidelines.
+# Astuce: `just` sans argument liste toutes les commandes.
+# ==============================
 
-# Executables
-php      := phpcont + " php"
-composer := "composer"
-symfony  := php + " bin/console"
+# Cible par défaut: afficher la liste des commandes
+# Permet à `just` (sans argument) de lister toutes les recettes disponibles
+default: help
 
-default:
-	@just --list
+# Démarre les conteneurs Docker en arrière-plan
+up *args:
+    @docker compose up -d {{args}}
 
-# npm
+# Arrête et supprime les conteneurs, réseaux…
+down *args:
+    @docker compose down {{args}}
+
+# Affiche les logs des services (ajoutez -f pour suivre en continu)
+logs *args:
+    @docker compose logs {{args}}
+
+# Construit / reconstruit les images Docker
+build *args:
+    @docker compose build {{args}}
+
+# Liste l'état des services
+ps *args:
+    @docker compose ps {{args}}
+
+# Redémarre un ou plusieurs services
+restart *args:
+    @docker compose restart {{args}}
+
+# Installe les dépendances npm (privilégie npm ci si un lockfile est présent)
 install:
-	@npm install
+    if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-assets:
-	@npm run build
+# Proxy pour exécuter des commandes Composer, ex: `just composer install`
+composer +args:
+    @composer {{args}}
 
-dev: install up
-	@npm run dev
+# Ouvre un shell dans le conteneur PHP (busybox/ash ou sh)
+sh:
+    @docker compose exec php sh
 
-# Docker
-build: ## Builds the Docker images
-	@COMPOSE_FILE=compose.yaml:compose.prod.yaml {{dockercomp}} build --pull --no-cache
+# Ouvre un shell bash dans le conteneur PHP (si disponible)
+bash:
+    @docker compose exec php bash
 
-up *cmd='': ## Start the docker hub in detached mode (no logs)
-	@{{dockercomp}} up --build --detach {{cmd}}
+# Proxy pour exécuter des commandes Symfony, ex: `just sf cache:clear`
+sf *args:
+    @docker compose exec php bin/console {{args}}
 
-down *cmd='': ## Stop the docker hub
-	@{{dockercomp}} down --remove-orphans {{cmd}}
+# Vide le cache Symfony
+cc:
+    @just sf cache:clear --no-warmup
 
-logs: ## Show live logs
-	@{{dockercomp}} logs --tail=0 --follow
+# Exécute la suite de tests PHPUnit dans le conteneur PHP
+test *args:
+    @docker compose exec php ./vendor/bin/phpunit {{args}}
 
-sh: ## Connect to the FrankenPHP container
-	@{{phpcont}} sh
+# Exécute les migrations en base
+migrate:
+    @just sf doctrine:migrations:migrate --no-interaction
 
-bash: ## Connect to the FrankenPHP container via bash so up and down arrows go to previous commands
-	@{{phpcont}} bash
+# Génère une migration à partir des entités
+diff:
+    @just sf doctrine:migrations:diff
 
-test *cmd='': ## Start tests with phpunit, pass the parameter "c=" to add options to phpunit, example: make test c="--group e2e --stop-on-failure"
-	@{{dockercomp}} exec -e APP_ENV=test php bin/phpunit {{cmd}}
+# Recharge les fixtures (si le bundle fixtures est installé)
+fixtures:
+    @just sf doctrine:fixtures:load --no-interaction --purge-with-truncate
 
-prod: install vendor assets && build
-	#!/usr/bin/env bash
-	set -euo pipefail
-	CADDY_MERCURE_JWT_SECRET=$(openssl rand -hex 32)
-	echo "APP_ENV=prod" > .env.prod.local
-	echo "APP_DEBUG=0" >> .env.prod.local
-	echo "APP_SECRET=$(openssl rand -hex 32)" >> .env.prod.local
-	echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env.prod.local
-	echo "SERVER_NAME=bingo.semche.ovh:80" >> .env.prod.local
-	echo "DATABASE_URL=\"postgresql://app:%env(POSTGRES_PASSWORD)%@database:5432/app?serverVersion=16&charset=utf8\"" >> .env.prod.local
-	echo "CADDY_MERCURE_URL=http://php/.well-known/mercure" >> .env.prod.local
-	echo "CADDY_MERCURE_PUBLIC_URL=https://bingo.semche.ovh/.well-known/mercure" >> .env.prod.local
-	echo "MERCURE_URL=http://php/.well-known/mercure" >> .env.prod.local
-	echo "MERCURE_PUBLIC_URL=https://bingo.semche.ovh/.well-known/mercure" >> .env.prod.local
-	echo "MERCURE_PUBLISHER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
-	echo "MERCURE_SUBSCRIBER_JWT_KEY=${CADDY_MERCURE_JWT_SECRET}" >> .env.prod.local
-	echo "TRUSTED_PROXIES=" >> .env.prod.local
+# Lance les conteneurs Docker puis le serveur de dev (Vite) côté frontend
+dev: up
+    @npm run dev
 
-deploy: prod
-	@docker image save app-php | zstd > /tmp/bingo-app-php.tar.zst
-	@scp /tmp/bingo-app-php.tar.zst akhilleus:
-	@ssh akhilleus "docker image load < /home/robin/bingo-app-php.tar.zst"
-	@ssh akhilleus "rm /home/robin/bingo-app-php.tar.zst"
-	@ssh akhilleus "cd /home/robin/lcbingo && docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod.local up -d"
-	@ssh akhilleus "cd /home/robin/lcbingo && docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod.local exec php bin/console cache:clear"
+# Build des assets pour la production
+build-assets:
+    @npm run build
 
-## Composer
-composer *cmd='': ## Run composer
-	@{{composer}} {{cmd}}
-
-vendor: && (composer 'install --prefer-dist --no-dev --no-progress --no-scripts --no-interaction') ## Install vendors according to the current composer.lock file
-
-# Symfony
-sf *cmd='': ## List all Symfony commands or pass the parameter "c=" to run a given command, example: make sf c=about
-	@{{symfony}} {{cmd}}
-
-cc: && (sf 'c:c') ## Clear the cache
-
-migrate: && (sf '--no-interaction d:m:m')
+# Affiche l'aide de ce justfile
+help:
+    @just --list

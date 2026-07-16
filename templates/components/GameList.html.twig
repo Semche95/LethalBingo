@@ -10,7 +10,8 @@
         </div>
 
         {{ component('Filter', {
-            dataModel: 'round:round season:season'
+            dataModel: 'round:round season:season team:team started:started ended:ended',
+            context: 'game'
         }) }}
 
         {{ component('DataTable', {
@@ -24,7 +25,7 @@
             ]),
             options: [null, null, null, null, {class: 'text-end'}],
             empty_data: 'Aucune partie créée',
-            id: 'game-list-datatable-'~this.games|length~this.round|default(0)~this.season|default(0)
+            id: 'game-list-datatable-'~this.round|default(0)~this.season|default(0)~this.team|default(0)~this.started|default('-1')~this.ended|default('-1')
         }) }}
     </div>
 </div>

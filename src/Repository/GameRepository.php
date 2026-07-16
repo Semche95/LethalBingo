@@ -34,14 +34,22 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find games filtered by round and/or season
+     * Find games filtered by round, season, team, started status, and ended status
      *
      * @param int|null $round Round number to filter by
      * @param int|null $season Season number to filter by
+     * @param int|null $team Team ID to filter by
+     * @param bool|null $started Filter by started status (true = started, false = not started)
+     * @param bool|null $ended Filter by ended status (true = ended, false = not ended)
      * @return array<string> List of games
      */
-    public function findByRoundAndSeason(?int $round = null, ?int $season = null): array
-    {
+    public function findByFilters(
+        ?int $round = null,
+        ?int $season = null,
+        ?int $team = null,
+        ?bool $started = null,
+        ?bool $ended = null
+    ): array {
         $queryBuilder = $this->createQueryBuilder('g')
             ->select('g.id, r.number as round_number, r.season as round_season, t.name as team_name, g.startedAt, g.finishedAt')
             ->join('g.round', 'r')
@@ -55,6 +63,27 @@ class GameRepository extends ServiceEntityRepository
         if ($season !== null) {
             $queryBuilder->andWhere('r.season = :season')
                 ->setParameter('season', $season);
+        }
+
+        if ($team !== null) {
+            $queryBuilder->andWhere('t.id = :team')
+                ->setParameter('team', $team);
+        }
+
+        if ($started !== null) {
+            if ($started) {
+                $queryBuilder->andWhere('g.startedAt IS NOT NULL');
+            } else {
+                $queryBuilder->andWhere('g.startedAt IS NULL');
+            }
+        }
+
+        if ($ended !== null) {
+            if ($ended) {
+                $queryBuilder->andWhere('g.finishedAt IS NOT NULL');
+            } else {
+                $queryBuilder->andWhere('g.finishedAt IS NULL');
+            }
         }
 
         return $queryBuilder

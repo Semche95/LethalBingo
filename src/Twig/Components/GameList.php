@@ -22,6 +22,15 @@ final class GameList
     #[LiveProp(writable: true, onUpdated: 'loadGames')]
     public ?int $season = null;
 
+    #[LiveProp(writable: true, onUpdated: 'loadGames')]
+    public ?int $team = null;
+
+    #[LiveProp(writable: true, onUpdated: 'loadGames')]
+    public ?bool $started = null;
+
+    #[LiveProp(writable: true, onUpdated: 'loadGames')]
+    public ?bool $ended = null;
+
     #[LiveProp]
     public array $games = [];
 
@@ -38,6 +47,12 @@ final class GameList
 
     public function loadGames(): void
     {
-        $this->games = $this->gameRepository->findByRoundAndSeason($this->round, $this->season);
+        $this->games = $this->gameRepository->findByFilters(
+            $this->round,
+            $this->season,
+            $this->team,
+            $this->started,
+            $this->ended
+        );
     }
 }

@@ -6,45 +6,47 @@
             <div class="container-xl">
                 <h1 class="navbar-brand d-none-navbar-horizontal pe-0 pe-md-3">
                     <a href="{{ path('app_home') }}">
-                        <img src="{{ asset('assets/img/logo.png') }}" width="32" height="32"
-                             alt="Bingo Lethal Company"
-                             class="navbar-brand-image">
+                        <img src="{{ asset('assets/img/logo.png') }}" width="32" height="32" alt="Bingo Lethal Company" class="navbar-brand-image">
                     </a>
                 </h1>
                 <div class="navbar-nav flex-row order-md-last">
                     {% if is_granted('IS_AUTHENTICATED') %}
-                        <div class="nav-item {{ app.request.attributes.get('_route') == 'app_user_profile' ? 'active' : '' }}" {{ stimulus_controller('navbar-user') }}>
-                            <a href="{{ path('app_user_profile') }}" class="nav-link d-flex lh-1 text-reset">
+                        <div class="nav-item {{ app.request.attributes.get('_route') == 'app_user_profile' ? 'active' : '' }}">
+                            <a href="{{ path('app_user_profile') }}" class="nav-link d-flex lh-1 text-reset" title="Profil">
                                 <span class="avatar avatar-sm">{{ ux_icon('tabler:user', {class: 'w-4 h-4'}) }}</span>
                                 <div class="d-none d-xl-block ps-2">{{ app.user }}</div>
                             </a>
                         </div>
-                        {{ component('NavbarItem', {label: '', tooltip: 'Déconnexion', route: 'app_logout', icon: 'tabler:logout'}) }}
+                        <div class="nav-item">
+                            <a href="{{ path('app_logout') }}" class="nav-link" title="Déconnexion">
+                                {{ ux_icon('tabler:logout', {class: 'w-4 h-4'}) }}
+                            </a>
+                        </div>
                     {% else %}
-                        {{ component('NavbarItem', {
-                            label: 'Connexion',
-                            route: 'app_login',
-                            icon: 'tabler:user',
-                            class: app.request.attributes.get('_route') == 'app_login' ? 'active' : ''
-                        }) }}
+                        <div class="nav-item {{ app.request.attributes.get('_route') == 'app_login' ? 'active' : '' }}">
+                            <a href="{{ path('app_login') }}" class="nav-link">
+                                {{ ux_icon('tabler:user', {class: 'w-4 h-4'}) }}
+                                <span class="nav-link-title">Connexion</span>
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
                 <div class="collapse navbar-collapse" id="navbar-menu">
                     <div class="d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center">
                         <div class="navbar-nav">
-                            {{ component('NavbarItem', {
-                                label: 'Accueil',
-                                route: 'app_home',
-                                icon: 'tabler:home',
-                                class: app.request.attributes.get('_route') == 'app_home' ? 'active' : ''
-                            }) }}
+                            <div class="nav-item {{ app.request.attributes.get('_route') == 'app_home' ? 'active' : '' }}">
+                                <a class="nav-link" href="{{ path('app_home') }}">
+                                    {{ ux_icon('tabler:home', {class: 'w-4 h-4'}) }}
+                                    <span class="nav-link-title">Accueil</span>
+                                </a>
+                            </div>
                             {% if is_granted('ROLE_REFEREE') %}
-                                {{ component('NavbarItem', {
-                                    label: 'Tableau de bord',
-                                    route: 'app_referee_dashboard',
-                                    icon: 'tabler:layout-dashboard',
-                                    class: app.request.attributes.get('_route') starts with 'app_referee' ? 'active' : ''
-                                }) }}
+                                <div class="nav-item {{ app.request.attributes.get('_route') starts with 'app_referee' ? 'active' : '' }}">
+                                    <a class="nav-link" href="{{ path('app_referee_dashboard') }}">
+                                        {{ ux_icon('tabler:layout-dashboard', {class: 'w-4 h-4'}) }}
+                                        <span class="nav-link-title">Tableau de bord</span>
+                                    </a>
+                                </div>
                             {% endif %}
                         </div>
                     </div>

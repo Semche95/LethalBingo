@@ -9,6 +9,10 @@
     --bingo-border-color: var(--tblr-light);
 }
 
+.nav-link-title {
+    padding-left: 2px;
+}
+
 .modal {
     --tblr-modal-margin: 6rem;
 }
