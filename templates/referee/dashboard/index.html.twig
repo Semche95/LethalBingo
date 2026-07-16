@@ -3,88 +3,70 @@
 {% block content %}
     {{ parent() }}
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h3 class="card-title">Bienvenue dans le tableau de bord d'arbitre</h3>
-        </div>
-        <div class="card-body">
-            <p class="lead">
-                Ce tableau de bord vous permet de gérer tous les aspects des compétitions de Bingo Lethal Company.
-            </p>
-            <p>
-                En tant qu'arbitre, vous avez accès à toutes les fonctionnalités nécessaires pour organiser
-                et suivre les parties, créer des bingos, et gérer les équipes participantes.
-            </p>
-        </div>
+    <div class="dashboard-welcome mb-4">
+        <h1 class="dashboard-title">Tableau de bord</h1>
+        <p class="dashboard-subtitle">Gérez vos compétitions Bingo Lethal Company</p>
     </div>
 
-    <div class="container p-0">
-        <div class="row row-cards">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Gestion des parties</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>Dans la section <strong>Parties</strong>, vous pouvez :</p>
-                        <ul>
-                            <li>Consulter la liste des parties existantes</li>
-                            <li>Créer de nouvelles parties</li>
-                            <li>Modifier les détails des parties</li>
-                            <li>Supprimer des parties</li>
-                        </ul>
-                        <div class="mt-3">
-                            <a href="{{ path('app_referee_game') }}" class="btn btn-primary">
-                                Gérer les parties
-                            </a>
-                        </div>
-                    </div>
+    <div class="row g-4">
+        <!-- Parties -->
+        <div class="col-md-4">
+            <a href="{{ path('app_referee_game') }}" class="dashboard-card dashboard-card-game">
+                <div class="dashboard-card-icon">
+                    {{ ux_icon('tabler:clipboard-text', {height: '28', width: '28'}) }}
                 </div>
-            </div>
+                <h3 class="dashboard-card-title">Parties</h3>
+                <ul class="dashboard-card-list">
+                    <li>Consulter la liste des parties</li>
+                    <li>Créer de nouvelles parties</li>
+                    <li>Modifier les détails</li>
+                    <li>Supprimer des parties</li>
+                </ul>
+                <span class="dashboard-card-link">
+                    Gérer les parties
+                    {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
+                </span>
+            </a>
+        </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Gestion des bingos</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>Dans la section <strong>Bingos</strong>, vous pouvez :</p>
-                        <ul>
-                            <li>Consulter tous les bingos créés</li>
-                            <li>Créer de nouveaux bingos pour les parties</li>
-                            <li>Modifier les configurations des bingos</li>
-                            <li>Supprimer des bingos</li>
-                        </ul>
-                        <div class="mt-3">
-                            <a href="{{ path('app_referee_bingo') }}" class="btn btn-primary">
-                                Gérer les bingos
-                            </a>
-                        </div>
-                    </div>
+        <!-- Bingos -->
+        <div class="col-md-4">
+            <a href="{{ path('app_referee_bingo') }}" class="dashboard-card dashboard-card-bingo">
+                <div class="dashboard-card-icon">
+                    {{ ux_icon('tabler:grid-3x3', {height: '28', width: '28'}) }}
                 </div>
-            </div>
+                <h3 class="dashboard-card-title">Bingos</h3>
+                <ul class="dashboard-card-list">
+                    <li>Consulter tous les bingos</li>
+                    <li>Créer de nouveaux bingos</li>
+                    <li>Modifier les grilles</li>
+                    <li>Supprimer des bingos</li>
+                </ul>
+                <span class="dashboard-card-link">
+                    Gérer les bingos
+                    {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
+                </span>
+            </a>
+        </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Gestion des équipes</h3>
-                    </div>
-                    <div class="card-body">
-                        <p>Dans la section <strong>Équipes</strong>, vous pouvez :</p>
-                        <ul>
-                            <li>Consulter la liste des équipes participantes</li>
-                            <li>Ajouter de nouvelles équipes</li>
-                            <li>Modifier les informations des équipes</li>
-                            <li>Supprimer des équipes</li>
-                        </ul>
-                        <div class="mt-3">
-                            <a href="{{ path('app_referee_team') }}" class="btn btn-primary">
-                                Gérer les équipes
-                            </a>
-                        </div>
-                    </div>
+        <!-- Équipes -->
+        <div class="col-md-4">
+            <a href="{{ path('app_referee_team') }}" class="dashboard-card dashboard-card-team">
+                <div class="dashboard-card-icon">
+                    {{ ux_icon('tabler:user', {height: '28', width: '28'}) }}
                 </div>
-            </div>
+                <h3 class="dashboard-card-title">Équipes</h3>
+                <ul class="dashboard-card-list">
+                    <li>Consulter les équipes</li>
+                    <li>Ajouter de nouvelles équipes</li>
+                    <li>Modifier les informations</li>
+                    <li>Supprimer des équipes</li>
+                </ul>
+                <span class="dashboard-card-link">
+                    Gérer les équipes
+                    {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
+                </span>
+            </a>
         </div>
     </div>
 {% endblock %}
