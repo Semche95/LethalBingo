@@ -14,28 +14,21 @@
 {% block content %}
     <div class="row">
         <div class="col-md-3 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        {{ ux_icon('tabler:user', {height: '18', width: '18'}) }}
-                        Mon profil
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-3">
-                        <span class="avatar avatar-xl">{{ ux_icon('tabler:user', {class: 'w-6 h-6'}) }}</span>
+            <div class="card profile-card border-0 shadow-sm">
+                <div class="profile-cover"></div>
+                <div class="card-body text-center pt-0 pb-4">
+                    <div class="profile-avatar">
+                        <span class="avatar avatar-xl avatar-rounded">{{ ux_icon('tabler:user', {class: 'w-6 h-6'}) }}</span>
                     </div>
-                    <div class="text-center mb-3">
-                        <h3>{{ user }}</h3>
-                        <div class="mt-2">
-                            {% if 'ROLE_ADMIN' in user.roles %}
-                                <span class="badge text-bg-danger">Administrateur</span>
-                            {% elseif 'ROLE_REFEREE' in user.roles %}
-                                <span class="badge text-bg-success">Arbitre</span>
-                            {% else %}
-                                <span class="badge text-bg-primary">Joueur</span>
-                            {% endif %}
-                        </div>
+                    <h3 class="profile-name mt-3 mb-2">{{ user }}</h3>
+                    <div class="mt-3">
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <span class="badge text-bg-danger rounded-pill">{{ ux_icon('tabler:shield-star', {class: 'w-3 h-3 me-1'}) }}Administrateur</span>
+                        {% elseif 'ROLE_REFEREE' in user.roles %}
+                            <span class="badge text-bg-success rounded-pill">{{ ux_icon('tabler:gavel', {class: 'w-3 h-3 me-1'}) }}Arbitre</span>
+                        {% else %}
+                            <span class="badge text-bg-primary rounded-pill">{{ ux_icon('tabler:user', {class: 'w-3 h-3 me-1'}) }}Joueur</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
