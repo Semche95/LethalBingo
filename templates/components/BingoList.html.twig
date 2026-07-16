@@ -17,16 +17,20 @@
         {{ component('DataTable', {
             columns: ['Round', 'Saison', ''],
             data: this.bingos|map(b => [
-                'Round ' ~ b.number,
+                _self.round_badge(b.number),
                 'Saison ' ~ b.season,
                 _self.edit_button(b.id)
             ]),
-            options: [null, null, {class: 'text-end'}],
+            options: [{class: 'cell-name'}, {class: 'cell-secondary'}, {class: 'text-end'}],
             empty_data: 'Aucun bingo créé',
             id: 'bingo-list-datatable-'~this.bingos|length~this.round|default(0)~this.season|default(0)
         }) }}
     </div>
 </div>
+
+{% macro round_badge(number) %}
+    <span class="badge bg-secondary-lt">Round {{ number }}</span>
+{% endmacro %}
 
 {% macro edit_button(id) %}
     <a href="{{ path('app_referee_bingo_edit', {id: id}) }}" class="btn btn-primary">

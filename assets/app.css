@@ -144,11 +144,103 @@ ul#rules > li:before {
     border-color: var(--tblr-gray-600);
 }
 
-.table thead th {
-    font-size: 0.825rem;
-    padding: 0.75rem;
-    color: var(--tblr-light);
-    text-transform: none;
+.table.card-table thead th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tblr-muted-fg);
+    background: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.03));
+    border-bottom: 2px solid var(--tblr-border-color);
+    padding: 0.6rem 0.75rem;
+}
+
+.table.card-table tbody td {
+    padding: 0.5rem 0.75rem;
+}
+
+[data-bs-theme="dark"] .table.card-table thead th {
+    background: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.table.card-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.table.card-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.015);
+}
+
+[data-bs-theme="dark"] .table.card-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.table.card-table tbody tr:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+}
+
+[data-bs-theme="dark"] .table.card-table tbody tr:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+}
+
+.table.card-table .cell-name {
+    font-weight: 500;
+    color: var(--tblr-body-color);
+}
+
+.table.card-table .cell-secondary {
+    font-weight: 400;
+    color: var(--tblr-muted-fg);
+}
+
+.table.card-table tbody .btn {
+    background: rgba(51, 154, 240, 0.1);
+    border-color: transparent;
+    color: #339af0;
+    box-shadow: none;
+}
+
+.table.card-table tbody .btn:hover {
+    background: var(--tblr-primary);
+    border-color: var(--tblr-primary);
+    color: #fff;
+}
+
+.table.card-table tbody td .badge {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.3em 0.6em;
+}
+
+.table.card-table tbody td .badge.bg-blue-lt {
+    background: rgba(51, 154, 240, 0.2) !important;
+    color: #74c0fc !important;
+}
+
+.table.card-table tbody td .badge.bg-secondary-lt {
+    background: rgba(134, 142, 150, 0.25) !important;
+    color: #ced4da !important;
+}
+
+.table.card-table tbody td .badge.bg-green-lt {
+    background: rgba(81, 207, 102, 0.2) !important;
+    color: #8ce99a !important;
+}
+
+.table.card-table tbody td .badge svg {
+    vertical-align: -0.125em;
+    margin-right: 0.2em;
+}
+
+.card:has(.table-responsive) {
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+[data-bs-theme="dark"] .card:has(.table-responsive) {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .form-check {

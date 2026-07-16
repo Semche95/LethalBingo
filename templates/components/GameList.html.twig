@@ -17,18 +17,38 @@
         {{ component('DataTable', {
             columns: ['Round', 'Équipe', 'Démarrée', 'Terminée', ''],
             data: this.games|map(g => [
-                'Round ' ~ g.round_number ~ ' Saison ' ~ g.round_season,
+                _self.round_badge(g.round_number, g.round_season),
                 g.team_name,
-                g.startedAt ? g.startedAt|date('d/m/Y H:i:s') : 'Non',
-                g.finishedAt ? g.finishedAt|date('d/m/Y H:i:s') : 'Non',
+                _self.started_badge(g.startedAt),
+                _self.finished_badge(g.finishedAt),
                 _self.edit_button(g.id)
             ]),
-            options: [null, null, null, null, {class: 'text-end'}],
+            options: [{class: 'cell-name'}, {class: 'cell-name'}, null, null, {class: 'text-end'}],
             empty_data: 'Aucune partie créée',
             id: 'game-list-datatable-'~this.round|default(0)~this.season|default(0)~this.team|default(0)~this.started|default('-1')~this.ended|default('-1')
         }) }}
     </div>
 </div>
+
+{% macro round_badge(round, season) %}
+    <span class="badge bg-secondary-lt">Round {{ round }} Saison {{ season }}</span>
+{% endmacro %}
+
+{% macro started_badge(date) %}
+    {% if date %}
+        <span class="badge bg-blue-lt">{{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ date|date('d/m/Y H:i:s') }}</span>
+    {% else %}
+        <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}Non</span>
+    {% endif %}
+{% endmacro %}
+
+{% macro finished_badge(date) %}
+    {% if date %}
+        <span class="badge bg-green-lt">{{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ date|date('d/m/Y H:i:s') }}</span>
+    {% else %}
+        <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}Non</span>
+    {% endif %}
+{% endmacro %}
 
 {% macro edit_button(id) %}
     <a href="{{ path('app_referee_game_edit', {id: id}) }}" class="btn btn-primary">

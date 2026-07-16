@@ -28,8 +28,8 @@
                 {% else %}
                     {% for t in teams %}
                         <tr>
-                            <td>{{ t.name }}</td>
-                            <td>{{ t.members }}</td>
+                            <td class="cell-name">{{ t.name }}</td>
+                            <td class="cell-secondary">{{ t.members }}</td>
                             <td class="text-end">
                                 <a href="{{ path('app_referee_team_edit', {id: t.id}) }}" class="btn btn-primary">
                                     {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
