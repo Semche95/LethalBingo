@@ -93,4 +93,20 @@ class GameRepository extends ServiceEntityRepository
             ->getQuery()
             ->getScalarResult();
     }
+
+    /**
+     * Find the most recently created games
+     *
+     * @return Game[]
+     */
+    public function findRecent(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('g')
+            ->join('g.round', 'r')
+            ->join('g.team', 't')
+            ->orderBy('g.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

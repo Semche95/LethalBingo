@@ -27,4 +27,18 @@ class TeamRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * Find the most recently created teams
+     *
+     * @return Team[]
+     */
+    public function findRecent(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('t')
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

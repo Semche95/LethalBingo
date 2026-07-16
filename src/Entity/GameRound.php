@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\GameRoundRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -35,8 +36,12 @@ class GameRound implements Stringable
     #[ORM\Column]
     private ?int $season = null;
 
+    #[ORM\Column]
+    private ?DateTimeImmutable $createdAt = null;
+
     public function __construct()
     {
+        $this->createdAt = new DateTimeImmutable();
         $this->season = 1;
         $this->bingoSquares = new ArrayCollection();
         $this->games = new ArrayCollection();
@@ -45,6 +50,18 @@ class GameRound implements Stringable
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCreatedAt(): ?DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     public function getNumber(): ?int

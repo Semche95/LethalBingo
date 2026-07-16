@@ -80,4 +80,18 @@ class GameRoundRepository extends ServiceEntityRepository
 
         return $queryBuilder->getQuery()->getScalarResult();
     }
+
+    /**
+     * Find the most recently created game rounds
+     *
+     * @return GameRound[]
+     */
+    public function findRecent(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('gr')
+            ->orderBy('gr.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

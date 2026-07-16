@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\TeamRepository;
 use App\Validator as AppAssert;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,6 +26,9 @@ class Team implements Stringable
     #[Assert\NotBlank]
     private ?string $name = null;
 
+    #[ORM\Column]
+    private ?DateTimeImmutable $createdAt = null;
+
     /**
      * @var Collection<int, TeamMember>
      */
@@ -42,6 +46,7 @@ class Team implements Stringable
 
     public function __construct()
     {
+        $this->createdAt = new DateTimeImmutable();
         $this->members = new ArrayCollection();
         $this->games = new ArrayCollection();
     }
@@ -49,6 +54,18 @@ class Team implements Stringable
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCreatedAt(): ?DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     public function getName(): ?string

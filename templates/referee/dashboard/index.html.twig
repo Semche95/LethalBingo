@@ -16,12 +16,7 @@
                     {{ ux_icon('tabler:clipboard-text', {height: '28', width: '28'}) }}
                 </div>
                 <h3 class="dashboard-card-title">Parties</h3>
-                <ul class="dashboard-card-list">
-                    <li>Consulter la liste des parties</li>
-                    <li>Créer de nouvelles parties</li>
-                    <li>Modifier les détails</li>
-                    <li>Supprimer des parties</li>
-                </ul>
+                <p class="dashboard-card-desc">Créez et gérez vos parties de bingo</p>
                 <span class="dashboard-card-link">
                     Gérer les parties
                     {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
@@ -36,12 +31,7 @@
                     {{ ux_icon('tabler:grid-3x3', {height: '28', width: '28'}) }}
                 </div>
                 <h3 class="dashboard-card-title">Bingos</h3>
-                <ul class="dashboard-card-list">
-                    <li>Consulter tous les bingos</li>
-                    <li>Créer de nouveaux bingos</li>
-                    <li>Modifier les grilles</li>
-                    <li>Supprimer des bingos</li>
-                </ul>
+                <p class="dashboard-card-desc">Créez et personnalisez vos grilles de bingo</p>
                 <span class="dashboard-card-link">
                     Gérer les bingos
                     {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
@@ -56,17 +46,85 @@
                     {{ ux_icon('tabler:user', {height: '28', width: '28'}) }}
                 </div>
                 <h3 class="dashboard-card-title">Équipes</h3>
-                <ul class="dashboard-card-list">
-                    <li>Consulter les équipes</li>
-                    <li>Ajouter de nouvelles équipes</li>
-                    <li>Modifier les informations</li>
-                    <li>Supprimer des équipes</li>
-                </ul>
+                <p class="dashboard-card-desc">Organisez et gérez vos équipes</p>
                 <span class="dashboard-card-link">
                     Gérer les équipes
                     {{ ux_icon('tabler:arrow-right', {height: '16', width: '16'}) }}
                 </span>
             </a>
+        </div>
+    </div>
+
+    <h2 class="dashboard-section-title">Activité récente</h2>
+
+    <div class="row g-4">
+        <!-- Dernières parties -->
+        <div class="col-md-4">
+            <div class="activity-card">
+                <h3 class="activity-card-title activity-card-game">Dernières parties</h3>
+                {% if recent_games is not empty %}
+                    <ul class="activity-list">
+                        {% for game in recent_games %}
+                            <li>
+                                <a href="{{ path('app_referee_game_edit', {id: game.id}) }}" class="activity-item">
+                                    <span class="activity-item-name">{{ game.team }} — Round {{ game.round.number }} Saison {{ game.round.season }}</span>
+                                    <span class="activity-item-date">{{ game.createdAt|date('d/m/Y') }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="activity-empty">Aucune partie créée pour l'instant.
+                        <a href="{{ path('app_referee_game_add') }}">Créer une partie</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Derniers bingos -->
+        <div class="col-md-4">
+            <div class="activity-card">
+                <h3 class="activity-card-title activity-card-bingo">Derniers bingos</h3>
+                {% if recent_game_rounds is not empty %}
+                    <ul class="activity-list">
+                        {% for round in recent_game_rounds %}
+                            <li>
+                                <a href="{{ path('app_referee_bingo_edit', {id: round.id}) }}" class="activity-item">
+                                    <span class="activity-item-name">Round {{ round.number }} Saison {{ round.season }}</span>
+                                    <span class="activity-item-date">{{ round.createdAt|date('d/m/Y') }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="activity-empty">Aucun bingo créé pour l'instant.
+                        <a href="{{ path('app_referee_bingo_add') }}">Créer un bingo</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dernières équipes -->
+        <div class="col-md-4">
+            <div class="activity-card">
+                <h3 class="activity-card-title activity-card-team">Dernières équipes</h3>
+                {% if recent_teams is not empty %}
+                    <ul class="activity-list">
+                        {% for team in recent_teams %}
+                            <li>
+                                <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="activity-item">
+                                    <span class="activity-item-name">{{ team.name }}</span>
+                                    <span class="activity-item-date">{{ team.createdAt|date('d/m/Y') }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="activity-empty">Aucune équipe créée pour l'instant.
+                        <a href="{{ path('app_referee_team_add') }}">Créer une équipe</a>
+                    </p>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}
