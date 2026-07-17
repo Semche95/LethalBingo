@@ -109,7 +109,10 @@ ul#rules > li:before {
     grid-template-columns: auto repeat(5, 1fr);
     grid-template-rows: auto repeat(5, 1fr);
     gap: 0;
-    aspect-ratio: 3 / 2;
+}
+
+.bingo-grid > * {
+    min-width: 0;
 }
 
 .bingo-row {
@@ -907,4 +910,3 @@ li.sidebar-category > span {
 .activity-empty a {
     color: var(--tblr-primary);
 }
-
