@@ -2,44 +2,6 @@
 
 {% block content %}
     {{ parent() }}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Équipes</h3>
-            <div class="card-actions">
-                <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary">
-                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
-                </a>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table card-table table-vcenter table-hover text-nowrap datatable">
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Membres</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% if teams is empty %}
-                    <tr>
-                        <td colspan="3" class="text-center text-body-secondary">Aucune équipe créée</td>
-                    </tr>
-                {% else %}
-                    {% for t in teams %}
-                        <tr>
-                            <td class="cell-name">{{ t.name }}</td>
-                            <td class="cell-secondary">{{ t.members }}</td>
-                            <td class="text-end">
-                                <a href="{{ path('app_referee_team_edit', {id: t.id}) }}" class="btn btn-primary">
-                                    {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+
+    {{ component('TeamList') }}
 {% endblock %}

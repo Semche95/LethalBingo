@@ -1,14 +1,12 @@
 <div {{ attributes }}>
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Parties</h3>
-            <div class="card-actions">
-                <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
-                    {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
-                </a>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="dashboard-title">Parties</h1>
+        <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
+            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
+        </a>
+    </div>
 
+    <div class="card">
         {{ component('Filter', {
             dataModel: 'round:round season:season team:team started:started ended:ended',
             context: 'game'

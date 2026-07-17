@@ -1,0 +1,32 @@
+<div {{ attributes }}>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="dashboard-title">Équipes</h1>
+        <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary">
+            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
+        </a>
+    </div>
+
+    <div class="card">
+        {{ component('DataTable', {
+            columns: ['Nom', 'Membres', ''],
+            data: this.teams|map(t => [
+                _self.team_name(t.name),
+                t.members,
+                _self.edit_button(t.id)
+            ]),
+            options: [{class: 'cell-name'}, {class: 'cell-secondary'}, {class: 'text-end'}],
+            empty_data: 'Aucune équipe créée',
+            id: 'team-list-datatable-'~this.teams|length
+        }) }}
+    </div>
+</div>
+
+{% macro team_name(name) %}
+    <span class="cell-name">{{ name }}</span>
+{% endmacro %}
+
+{% macro edit_button(id) %}
+    <a href="{{ path('app_referee_team_edit', {id: id}) }}" class="btn btn-primary">
+        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+    </a>
+{% endmacro %}

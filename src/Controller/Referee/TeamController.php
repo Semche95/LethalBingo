@@ -19,12 +19,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class TeamController extends AbstractController
 {
     #[Route('', name: 'app_referee_team')]
-    public function index(TeamRepository $repository): Response
+    public function index(): Response
     {
-        $teams = $repository->findAllWithMembers();
-        return $this->render('referee/team/index.html.twig', [
-            'teams' => $teams,
-        ]);
+        return $this->render('referee/team/index.html.twig');
     }
 
     #[Route('/add', name: 'app_referee_team_add')]
