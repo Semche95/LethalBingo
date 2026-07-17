@@ -521,7 +521,7 @@ li.sidebar-category > span {
     align-items: center;
     gap: 0.5rem;
     padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #e8590c, #d9480f);
+    background: linear-gradient(135deg, #475569, #334155);
     color: #fff;
     opacity: 0.85;
 }
