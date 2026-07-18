@@ -17,6 +17,9 @@ final class TeamList
 {
     use DefaultActionTrait;
 
+    #[LiveProp(writable: true, onUpdated: 'loadTeams')]
+    public string $search = '';
+
     /** @var Team[] */
     #[LiveProp]
     public array $teams = [];
@@ -34,6 +37,8 @@ final class TeamList
 
     public function loadTeams(): void
     {
-        $this->teams = $this->teamRepository->findBy([], ['name' => 'ASC']);
+        $this->teams = '' !== $this->search
+            ? $this->teamRepository->findBySearchTerm($this->search)
+            : $this->teamRepository->findBy([], ['name' => 'ASC']);
     }
 }

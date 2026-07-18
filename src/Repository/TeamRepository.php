@@ -29,6 +29,26 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find teams matching a search term on team name or member name (accent-insensitive).
+     *
+     * @return Team[]
+     */
+    public function findBySearchTerm(string $term): array
+    {
+        $normalizedTerm = '%' . mb_strtolower($term) . '%';
+
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.members', 'm')
+            ->where('unaccent(LOWER(t.name)) LIKE unaccent(:term)')
+            ->orWhere('unaccent(LOWER(m.name)) LIKE unaccent(:term)')
+            ->setParameter('term', $normalizedTerm)
+            ->distinct(true)
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Find the most recently created teams
      *
      * @return Team[]

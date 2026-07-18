@@ -513,6 +513,11 @@ li.sidebar-category > span {
     resize: vertical;
 }
 
+.team-search {
+    max-width: 300px;
+    min-width: 0;
+}
+
 /* ===================== */
 /* Homepage Modern Design */
 /* ===================== */

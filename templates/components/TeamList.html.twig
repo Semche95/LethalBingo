@@ -1,13 +1,30 @@
 <div {{ attributes }}>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="dashboard-title">Équipes</h1>
-        <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary">
-            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
-        </a>
+        <div class="d-flex align-items-center gap-3">
+            <div class="team-search input-icon">
+                {{ ux_icon('tabler:search', {class: 'input-icon-svg'}) }}
+                <input
+                    type="search"
+                    class="form-control"
+                    placeholder="Rechercher une équipe ou un membre"
+                    title="Rechercher une équipe ou un membre"
+                    data-model="on(input)|search"
+                    data-live-debounce="300"
+                >
+            </div>
+            <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary flex-shrink-0">
+                {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
+            </a>
+        </div>
     </div>
 
     {% if this.teams is empty %}
-        <p class="text-center text-body-secondary py-5">Aucune équipe pour le moment.</p>
+        {% if this.search is not empty %}
+            <p class="text-center text-body-secondary py-5">Aucune équipe ne correspond à votre recherche.</p>
+        {% else %}
+            <p class="text-center text-body-secondary py-5">Aucune équipe pour le moment.</p>
+        {% endif %}
     {% else %}
         <div class="team-grid">
             {% for team in this.teams %}
