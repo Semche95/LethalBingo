@@ -54,6 +54,30 @@ just up         # Uniquement les conteneurs Docker
 - **Validation temps réel** : `data-model="on(change)|*"` (défaut du trait) — validation au blur/change, pas à chaque frappe
 - Privilégier les fonctions form_* (form_start, form_row, form_widget, form_label, form_errors, etc.) plutôt que de créer les champs de formulaire à la main
 
+## UI/UX – Conventions boutons et actions destructives
+
+Ces règles s'appliquent à tous les formulaires et écrans de gestion (équipes, membres, parties, bingos, etc.).
+
+### Hiérarchie des boutons
+- Un seul bouton **plein/solid** par écran : réservé à l'action principale (ex. `Enregistrer`).
+- Les actions secondaires (`Retour`, `Nouveau membre`, etc.) utilisent un style **outline/ghost**.
+- Ne jamais avoir deux boutons pleins de même poids visuel sur un même écran.
+
+### Actions destructives
+- Toute action de suppression irréversible (ex. suppression d'une équipe) doit :
+  - être visuellement isolée des autres actions (espacement, zone dédiée type "zone dangereuse") pour éviter les clics accidentels ;
+  - déclencher une confirmation obligatoire (modal ou double confirmation) avant exécution.
+- Les icônes de suppression mineures (ex. suppression d'un membre dans une liste) :
+  - sont **grises/neutres** par défaut ;
+  - passent en rouge uniquement au **survol (hover)** ou au **focus**.
+
+### Usage de la couleur rouge
+- Réserver le rouge aux vrais points de non-retour.
+- Éviter de multiplier les éléments rouges sur un même écran : plus il y en a, moins le signal d'alerte est efficace.
+
+### Cohérence
+- Respecter ces conventions sur l'ensemble de l'application, en s'appuyant sur les composants du design system existant (variants `solid` / `outline` des boutons, etc.).
+
 ## Tests
 
 - **Test obligatoire** : toute nouvelle classe ajoutée dans `src/Service/`, `src/Controller/` ou `src/Repository/` doit être accompagnée d'un test dans le dossier correspondant (`tests/Service/`, `tests/Controller/`, `tests/Repository/`) avant d'être considérée terminée

@@ -9,7 +9,7 @@ use Twig\TwigFunction;
 
 final class TeamColorExtension extends AbstractExtension
 {
-    private const TEAM_COLORS = ['#378ADD', '#639922', '#7F77DD', '#D85A30', '#D4537E'];
+    private const TEAM_COLORS = ['#C57B57', '#C4A24A', '#7A9470', '#5A9088', '#8B6B8F', '#9C6B4F'];
 
     public function getFunctions(): array
     {

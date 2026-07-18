@@ -14,7 +14,7 @@
                 <div class="team-card" style="border-top: 3px solid {{ team_color(team.id) }};">
                     <div class="team-card-header">
                         <span class="team-card-name">{{ team.name }}</span>
-                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon">
+                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon" title="Modifier l'équipe">
                             {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
                         </a>
                     </div>

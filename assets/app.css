@@ -294,6 +294,19 @@ ul#rules > li:before {
     color: #fff;
 }
 
+.btn-ghost-danger {
+    color: #fff;
+    background: transparent;
+    border: 1px solid var(--tblr-border-color);
+}
+
+.btn-ghost-danger:hover,
+.btn-ghost-danger:focus {
+    color: var(--tblr-danger);
+    border-color: var(--tblr-danger);
+    background: rgba(255, 64, 64, 0.1);
+}
+
 .team-card-members {
     display: flex;
     flex-wrap: wrap;
@@ -353,7 +366,9 @@ ul#rules > li:before {
 }
 
 .btn-captain:hover {
-    background: var(--tblr-bg-surface-2);
+    background: var(--tblr-warning-bg-subtle);
+    color: var(--tblr-warning);
+    border-color: var(--tblr-warning);
 }
 
 .btn-captain-active {

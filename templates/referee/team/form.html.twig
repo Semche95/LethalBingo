@@ -2,6 +2,9 @@
 
 {% block content %}
     {{ parent() }}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="dashboard-title">{{ mode == 'edit' ? 'Modifier l\'équipe' : 'Nouvelle équipe' }}</h1>
+    </div>
     <div class="card" style="border-top: 3px solid {{ team.id ? team_color(team.id) : '#378ADD' }};">
         {{ component('TeamForm', {team: team, mode: mode}) }}
     </div>
