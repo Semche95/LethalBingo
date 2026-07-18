@@ -1,4 +1,4 @@
-<div {{ attributes.defaults({class: 'px-3 py-2 border-bottom'}|merge(stimulus_controller('component--filter').toArray())) }}>
+<div {{ attributes.defaults({class: 'px-3 py-2 border-bottom'}) }}>
     <div class="d-flex align-items-center flex-wrap flex-md-nowrap gap-3">
         <div class="d-flex align-items-center">
             <span class="text-body-secondary me-3">{{ ux_icon('tabler:filter', {height: '18', width: '18'}) }} Filtres&nbsp;:</span>
@@ -9,7 +9,6 @@
                     id="filter-round"
                     class="form-select"
                     data-model="round"
-                    data-component--filter-target="round"
             >
                 <option value="">Tous</option>
                 {% for roundNumber in this.rounds %}
@@ -25,7 +24,6 @@
                     id="filter-season"
                     class="form-select"
                     data-model="season"
-                    data-component--filter-target="season"
             >
                 <option value="">Toutes</option>
                 {% for seasonNumber in this.seasons %}
@@ -42,7 +40,6 @@
                         id="filter-team"
                         class="form-select"
                         data-model="team"
-                        data-component--filter-target="team"
                 >
                     <option value="">Toutes</option>
                     {% for team in this.teams %}
@@ -58,7 +55,6 @@
                         id="filter-started"
                         class="form-select"
                         data-model="started"
-                        data-component--filter-target="started"
                 >
                     <option value="null">Tous</option>
                     <option value="true" {% if this.started == true %}selected{% endif %}>Oui</option>
@@ -71,7 +67,6 @@
                         id="filter-ended"
                         class="form-select"
                         data-model="ended"
-                        data-component--filter-target="ended"
                 >
                     <option value="null">Tous</option>
                     <option value="true" {% if this.ended == true %}selected{% endif %}>Oui</option>
@@ -83,7 +78,8 @@
             <button
                     type="button"
                     class="btn btn-outline-secondary"
-                    data-action="component--filter#reset"
+                    data-controller="component--filter-reset"
+                    data-action="click->component--filter-reset#reset"
             >
                 {{ ux_icon('tabler:filter-off', {height: '18', width: '18'}) }}
                 Réinitialiser

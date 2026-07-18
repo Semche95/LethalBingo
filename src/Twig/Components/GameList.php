@@ -7,6 +7,7 @@ namespace App\Twig\Components;
 use App\Repository\GameRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -54,5 +55,16 @@ final class GameList
             $this->started,
             $this->ended
         );
+    }
+
+    #[LiveAction]
+    public function resetFilters(): void
+    {
+        $this->round = null;
+        $this->season = null;
+        $this->team = null;
+        $this->started = null;
+        $this->ended = null;
+        $this->loadGames();
     }
 }

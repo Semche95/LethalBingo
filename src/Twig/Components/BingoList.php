@@ -7,6 +7,7 @@ namespace App\Twig\Components;
 use App\Repository\GameRoundRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -39,5 +40,13 @@ final class BingoList
     public function loadBingos(): void
     {
         $this->bingos = $this->gameRoundRepository->findByRoundAndSeason($this->round, $this->season);
+    }
+
+    #[LiveAction]
+    public function resetFilters(): void
+    {
+        $this->round = null;
+        $this->season = null;
+        $this->loadBingos();
     }
 }

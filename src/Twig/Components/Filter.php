@@ -14,19 +14,19 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 #[IsGranted('ROLE_REFEREE')]
 final class Filter
 {
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, updateFromParent: true)]
     public ?int $round = null;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, updateFromParent: true)]
     public ?int $season = null;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, updateFromParent: true)]
     public ?int $team = null;
 
-    #[LiveProp(writable: true, onUpdated: 'updateStarted')]
+    #[LiveProp(writable: true, updateFromParent: true, onUpdated: 'updateStarted')]
     public ?bool $started = null;
 
-    #[LiveProp(writable: true, onUpdated: 'updateEnded')]
+    #[LiveProp(writable: true, updateFromParent: true, onUpdated: 'updateEnded')]
     public ?bool $ended = null;
 
     #[LiveProp]
@@ -55,17 +55,17 @@ final class Filter
         $this->teams = $this->teamRepository->findAllWithMembers();
     }
 
-    public function updateStarted(string $value): void
+    public function updateStarted(?string $value): void
     {
         $this->started = $this->convertStringToBool($value);
     }
 
-    public function updateEnded(string $value): void
+    public function updateEnded(?string $value): void
     {
         $this->ended = $this->convertStringToBool($value);
     }
 
-    private function convertStringToBool(string $value): ?bool
+    private function convertStringToBool(?string $value): ?bool
     {
         return match($value) {
             'true' => true,
