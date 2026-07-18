@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
+use App\Entity\Team;
 use App\Repository\TeamRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -16,6 +17,7 @@ final class TeamList
 {
     use DefaultActionTrait;
 
+    /** @var Team[] */
     #[LiveProp]
     public array $teams = [];
 
@@ -32,6 +34,6 @@ final class TeamList
 
     public function loadTeams(): void
     {
-        $this->teams = $this->teamRepository->findAllWithMembers();
+        $this->teams = $this->teamRepository->findBy([], ['name' => 'ASC']);
     }
 }

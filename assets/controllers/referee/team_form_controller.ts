@@ -1,14 +1,14 @@
 import { Component, getComponent } from '@symfony/ux-live-component'
-import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
 import { Controller } from '@hotwired/stimulus'
 import { Context } from '@hotwired/stimulus/dist/types/core/context'
 import { focusFirstInput } from '../../utils'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
-    static override targets = ['captain']
+    static override targets = ['checkbox', 'button']
 
-    declare readonly captainTargets: HTMLInputElement[]
+    declare readonly checkboxTargets: HTMLInputElement[]
+    declare readonly buttonTargets: HTMLButtonElement[]
 
     private component!: Component
     private rowCount: number = 0
@@ -20,24 +20,20 @@ export default class extends Controller<HTMLDivElement> {
     override async initialize() {
         this.component = await getComponent(this.element)
 
-        // Focus the first input field in the form
         focusFirstInput(this.element)
 
-        // Get initial row count
         const tableBody = this.element.querySelector('tbody')
         if (tableBody) {
             this.rowCount = tableBody.querySelectorAll('tr').length
         }
 
         this.component.on('render:finished', () => {
-            // Check if a new row was added
             if (!tableBody) {
                 return
             }
 
             const currentRowCount = tableBody.querySelectorAll('tr').length
 
-            // If we have more rows than before, focus on the last added input
             if (currentRowCount > this.rowCount) {
                 const rows = tableBody.querySelectorAll('tr')
                 const lastRow = rows[rows.length - 1]
@@ -48,16 +44,30 @@ export default class extends Controller<HTMLDivElement> {
                 }
             }
 
-            // Update row count for next render
             this.rowCount = currentRowCount
         })
     }
 
-    async selectCaptain(event: ActionEvent) {
-        for (const checkbox of this.captainTargets) {
-            checkbox.checked = event.currentTarget === checkbox
-            checkbox.dispatchEvent(new Event('change', { bubbles: true }))
+    selectCaptain(event: Event): void {
+        const clickedButton = event.currentTarget as HTMLButtonElement
+        const index = this.buttonTargets.indexOf(clickedButton)
+        if (index === -1) return
+
+        if (this.checkboxTargets[index].checked) {
+            return
         }
-        await this.component.render()
+
+        this.checkboxTargets.forEach((checkbox, i) => {
+            const checked = i === index
+
+            if (checkbox.checked !== checked) {
+                checkbox.checked = checked
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }))
+            }
+        })
+
+        this.buttonTargets.forEach((button, i) => {
+            button.classList.toggle('btn-captain-active', i === index)
+        })
     }
 }

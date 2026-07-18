@@ -22,8 +22,8 @@ class TeamMember implements Stringable
     #[Assert\NotBlank]
     private ?string $name = null;
 
-    #[ORM\Column]
-    private ?bool $captain = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $captain = false;
 
     #[ORM\ManyToOne(inversedBy: 'members')]
     #[ORM\JoinColumn(nullable: false)]
@@ -39,19 +39,19 @@ class TeamMember implements Stringable
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(?string $name): static
     {
         $this->name = $name;
 
         return $this;
     }
 
-    public function isCaptain(): ?bool
+    public function isCaptain(): bool
     {
         return $this->captain;
     }
 
-    public function setCaptain(bool $captain): static
+    public function setCaptain(bool $captain = false): static
     {
         $this->captain = $captain;
 

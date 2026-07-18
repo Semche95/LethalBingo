@@ -7,87 +7,78 @@
     }) }}
     {{ form_errors(form) }}
     <div class="card-body">
-        <div class="row mb-3">
-            {{ form_label(form.name) }}
-            <div class="col-sm-4">
-                {{ form_widget(form.name) }}
-            </div>
-            <div class="offset-sm-2 col-sm-10">
-                {{ form_errors(form.name) }}
-            </div>
+        <div class="mb-3">
+            {{ form_label(form.name, 'Nom de l\'équipe', {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.name) }}
+            {{ form_errors(form.name) }}
         </div>
-        <div class="row row-cards">
-            <div class="col-md">
-                <div class="card">
-                    <div class="card-status-top bg-blue"></div>
-                    <div class="card-header">
-                        <h3 class="card-title">Membres</h3>
-                        <div class="card-actions">
-                            {{ form_widget(form.members.vars.button_add, {
-                                label: ux_icon('tabler:plus', {height: '18', width: '18'})~'&nbsp;Nouveau membre',
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="form-label mb-0">Membres</span>
+            {{ form_widget(form.members.vars.button_add, {
+                label: ux_icon('tabler:plus', {height: '18', width: '18'})~'&nbsp;Nouveau membre',
+                label_html: true,
+                attr: {
+                    class: 'btn-primary',
+                    'data-action': 'live#action',
+                    'data-live-action-param': 'addCollectionItem',
+                    'data-live-arg-name-param': 'members'
+                }
+            }) }}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 member-table">
+                <tbody>
+                {% for member_form in form.members %}
+                    <tr>
+                        <td>
+                            {{ form_widget(member_form.name) }}
+                            {{ form_errors(member_form.name) }}
+                        </td>
+                        <td class="align-middle td-shrink px-3">
+                            <div class="d-none">
+                                {{ form_widget(member_form.captain, {attr: {'data-referee--team-form-target': 'checkbox'}}) }}
+                            </div>
+                            <button type="button"
+                                    class="btn-captain {% if member_form.captain.vars.data %}btn-captain-active{% endif %}"
+                                    data-referee--team-form-target="button"
+                                    data-action="click->referee--team-form#selectCaptain"
+                                    title="{% if not member_form.captain.vars.data %}Faire de ce membre le capitaine{% endif %}"
+                                    aria-label="{% if not member_form.captain.vars.data %}Faire de ce membre le capitaine{% endif %}">
+                                {{ ux_icon('tabler:crown', {height: '18', width: '18'}) }}
+                            </button>
+                        </td>
+                        <td class="text-end td-shrink">
+                            {{ form_widget(member_form.vars.button_delete, {
+                                label: ux_icon('tabler:trash', {height: '18', width: '18'}),
                                 label_html: true,
                                 attr: {
-                                    class: 'btn-primary',
-                                    'data-action': 'live#action',
-                                    'data-live-action-param': 'addCollectionItem',
-                                    'data-live-arg-name-param': 'members'
+                                    class: 'btn-danger'
                                 }
                             }) }}
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <tbody>
-                                {% for member_form in form.members %}
-                                    <tr>
-                                        <td>
-                                            {{ form_widget(member_form.name) }}
-                                            {{ form_errors(member_form.name) }}
-                                        </td>
-                                        <td class="align-middle">
-                                            {{ form_widget(member_form.captain, {attr: {}
-                                                |merge(stimulus_target('referee--team-form', 'captain').toArray())
-                                                |merge(stimulus_action('referee--team-form', 'selectCaptain').toArray())
-                                            }) }}
-                                        </td>
-                                        <td class="text-end">
-                                            {{ form_widget(member_form.vars.button_delete, {
-                                                label: ux_icon('tabler:trash', {height: '18', width: '18'}),
-                                                label_html: true,
-                                                attr: {
-                                                    class: 'btn-danger',
-                                                    'data-action': 'live#action',
-                                                    'data-live-action-param': 'removeCollectionItem',
-                                                    'data-live-arg-name-param': 'members',
-                                                    'data-live-arg-index-param': member_form.vars.name|replace({'members[': '', ']': ''})
-                                                }
-                                            }) }}
-                                        </td>
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="3">Aucun membre</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-body-secondary text-center">Aucun membre pour l'instant.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     <div class="card-footer">
-        <div class="d-flex">
-            <a href="{{ path('app_referee_team') }}" class="btn btn-secondary">Retour</a>
-            {% if mode == 'edit' %}
-                <div class="vr mx-3"></div>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-team-modal">
-                    {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                </button>
-            {% endif %}
-            <button type="submit" class="btn btn-success ms-auto">Enregistrer</button>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_referee_team') }}" class="btn btn-outline-secondary">Retour</a>
+                {% if mode == 'edit' %}
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-team-modal">
+                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                    </button>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
         </div>
     </div>
     {{ form_end(form) }}

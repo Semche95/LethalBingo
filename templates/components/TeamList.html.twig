@@ -6,27 +6,34 @@
         </a>
     </div>
 
-    <div class="card">
-        {{ component('DataTable', {
-            columns: ['Nom', 'Membres', ''],
-            data: this.teams|map(t => [
-                _self.team_name(t.name),
-                t.members,
-                _self.edit_button(t.id)
-            ]),
-            options: [{class: 'cell-name'}, {class: 'cell-secondary'}, {class: 'text-end'}],
-            empty_data: 'Aucune équipe créée',
-            id: 'team-list-datatable-'~this.teams|length
-        }) }}
-    </div>
+    {% if this.teams is empty %}
+        <p class="text-center text-body-secondary py-5">Aucune équipe pour le moment.</p>
+    {% else %}
+        <div class="team-grid">
+            {% for team in this.teams %}
+                <div class="team-card" style="border-top: 3px solid {{ team_color(team.id) }};">
+                    <div class="team-card-header">
+                        <span class="team-card-name">{{ team.name }}</span>
+                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon">
+                            {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+                        </a>
+                    </div>
+                    {% if team.members|length > 0 %}
+                        <div class="team-card-members">
+                            {% for member in team.members %}
+                                {% if member.captain %}
+                                    <span class="member-pill member-pill-captain">
+                                        {{ ux_icon('tabler:crown', {height: '12', width: '12'}) }}
+                                        <span class="member-pill-text">{{ member.name }}</span>
+                                    </span>
+                                {% else %}
+                                    <span class="member-pill"><span class="member-pill-text">{{ member.name }}</span></span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
-
-{% macro team_name(name) %}
-    <span class="cell-name">{{ name }}</span>
-{% endmacro %}
-
-{% macro edit_button(id) %}
-    <a href="{{ path('app_referee_team_edit', {id: id}) }}" class="btn btn-primary">
-        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-    </a>
-{% endmacro %}

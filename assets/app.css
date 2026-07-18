@@ -246,8 +246,144 @@ ul#rules > li:before {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(max(320px, calc((100% - 3 * 12px) / 4)), 1fr));
+    gap: 12px;
+}
+
+.team-card {
+    background: var(--tblr-bg-surface);
+    border: 0.5px solid var(--tblr-border-color);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.team-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.team-card-name {
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.btn-primary-icon {
+    background: rgba(51, 154, 240, 0.1);
+    border-color: transparent;
+    color: #339af0;
+    box-shadow: none;
+    padding: 8px 10px;
+}
+
+.btn-primary-icon:hover {
+    background: var(--tblr-primary);
+    border-color: var(--tblr-primary);
+    color: #fff;
+}
+
+.team-card-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+.member-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.2em 0.6em;
+    font-size: 0.8rem;
+    font-weight: 400;
+    border-radius: 999px;
+    background: rgba(134, 142, 150, 0.15);
+    color: var(--tblr-muted-fg);
+    max-width: 100%;
+    min-width: 0;
+}
+
+.member-pill-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.member-pill-captain {
+    background: rgba(210, 153, 34, 0.15);
+    color: #fcc419;
+}
+
+.member-pill svg {
+    vertical-align: -0.125em;
+}
+
 .form-check {
     margin-bottom: 0;
+}
+
+.btn-captain {
+    background: transparent;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    color: var(--tblr-muted-fg);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.btn-captain:hover {
+    background: var(--tblr-bg-surface-2);
+}
+
+.btn-captain-active {
+    background: var(--tblr-warning-bg-subtle);
+    color: var(--tblr-warning);
+    border-color: var(--tblr-warning);
+}
+
+.btn-captain-active:hover {
+    background: var(--tblr-warning-bg-subtle);
+    color: var(--tblr-warning);
+}
+
+.member-table td {
+    padding: 0.25rem 0;
+    border: none;
+}
+
+.member-table tr + tr {
+    border-top: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.td-shrink {
+    width: 1px;
+    white-space: nowrap;
 }
 
 .toast-container {
