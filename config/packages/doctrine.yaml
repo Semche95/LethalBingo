@@ -28,6 +28,8 @@ doctrine:
             auto_mapping: true
         dql:
             string_functions:
+                json_agg: App\Dql\JsonAgg
+                json_build_object: App\Dql\JsonBuildObject
                 string_agg: DoctrineExtensions\Query\Postgresql\StringAgg
                 unaccent: App\Dql\Unaccent
 

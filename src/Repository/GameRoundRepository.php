@@ -55,30 +55,19 @@ class GameRoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find game rounds filtered by round number and/or season
+     * Find game rounds grouped by season, aggregated as JSON
      *
-     * @param int|null $round Round number to filter by
-     * @param int|null $season Season number to filter by
-     * @return array<string, mixed> List of game rounds
+     * @return list<array{season: int, rounds: string}>
      */
-    public function findByRoundAndSeason(?int $round = null, ?int $season = null): array
+    public function findGroupedBySeason(): array
     {
-        $queryBuilder = $this->createQueryBuilder('gr')
-            ->select('gr.id, gr.number, gr.season')
-            ->orderBy('gr.number', 'ASC')
-            ->addOrderBy('gr.season', 'ASC');
-
-        if ($round !== null) {
-            $queryBuilder->andWhere('gr.number = :round')
-                ->setParameter('round', $round);
-        }
-
-        if ($season !== null) {
-            $queryBuilder->andWhere('gr.season = :season')
-                ->setParameter('season', $season);
-        }
-
-        return $queryBuilder->getQuery()->getScalarResult();
+        return $this->createQueryBuilder('r')
+            ->select('r.season AS season')
+            ->addSelect("JSON_AGG(JSON_BUILD_OBJECT('id', r.id, 'number', r.number) ORDER BY r.number) AS rounds")
+            ->groupBy('r.season')
+            ->orderBy('r.season', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
     }
 
     /**

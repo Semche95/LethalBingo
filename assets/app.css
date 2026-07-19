@@ -1066,3 +1066,61 @@ li.sidebar-category > span {
 .activity-empty a {
     color: var(--tblr-primary);
 }
+
+/* ===================== */
+/* Bingo Round Pills     */
+/* ===================== */
+
+.round-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.35em 0.75em;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 999px;
+    background: rgba(134, 142, 150, 0.2);
+    color: var(--tblr-body-color);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.round-pill:hover {
+    background: var(--tblr-primary);
+    color: #fff;
+    text-decoration: none;
+}
+
+.round-pill:hover svg {
+    color: #fff;
+}
+
+.round-pill svg {
+    color: var(--tblr-primary);
+    transition: color 0.15s;
+}
+
+/* ===================== */
+/* Season Accent Colors  */
+/* ===================== */
+
+.season-accent {
+    border-left: 3px solid var(--season-border);
+    padding-left: 1rem;
+    border-radius: 0;
+}
+
+.season-accent-1 { --season-border: #CECBF6; }
+.season-accent-2 { --season-border: #9FE1CB; }
+.season-accent-3 { --season-border: #F5C4B3; }
+.season-accent-4 { --season-border: #F4C0D1; }
+.season-accent-5 { --season-border: #B5D4F4; }
+.season-accent-6 { --season-border: #FAC775; }
+
+.season-accent-1 .season-count-badge { background: #EEEDFE; color: #3C3489; }
+.season-accent-2 .season-count-badge { background: #E1F5EE; color: #085041; }
+.season-accent-3 .season-count-badge { background: #FAECE7; color: #712B13; }
+.season-accent-4 .season-count-badge { background: #FBEAF0; color: #72243E; }
+.season-accent-5 .season-count-badge { background: #E6F1FB; color: #0C447C; }
+.season-accent-6 .season-count-badge { background: #FAEEDA; color: #633806; }

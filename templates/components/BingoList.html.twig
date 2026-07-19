@@ -1,37 +1,32 @@
 <div {{ attributes }}>
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-3 mb-5">
         <h1 class="dashboard-title">Bingos</h1>
         <a href="{{ path('app_referee_bingo_add') }}" class="btn btn-primary">
             {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouveau bingo
         </a>
     </div>
 
-    <div class="card">
-        {{ component('Filter', {
-            dataModel: 'round:round season:season',
-            context: 'bingo'
-        }) }}
-
-        {{ component('DataTable', {
-            columns: ['Round', 'Saison', ''],
-            data: this.bingos|map(b => [
-                _self.round_badge(b.number),
-                'Saison ' ~ b.season,
-                _self.edit_button(b.id)
-            ]),
-            options: [{class: 'cell-name'}, {class: 'cell-secondary'}, {class: 'text-end'}],
-            empty_data: 'Aucun bingo créé',
-            id: 'bingo-list-datatable-'~this.bingos|length~this.round|default(0)~this.season|default(0)
-        }) }}
-    </div>
+    {% if this.bingosBySeason is empty %}
+        <p class="text-secondary">Aucun bingo créé</p>
+    {% else %}
+        {% for row in this.bingosBySeason %}
+            {% set rounds = row.rounds|json_decode %}
+            <div class="{% if not loop.first %}mt-4{% endif %}">
+                <div class="season-accent season-accent-{{ loop.index0 % 6 + 1 }}">
+                    <div class="d-flex align-items-center mb-2">
+                        <h3 class="card-title mb-2">Saison {{ row.season }}</h3>
+                        <span class="badge season-count-badge ms-2">{{ rounds|length }} rounds</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for bingo in rounds %}
+                            <a href="{{ path('app_referee_bingo_edit', {id: bingo.id}) }}" class="round-pill">
+                                Round {{ bingo.number }}
+                                {{ ux_icon('tabler:pencil', {height: '16', width: '16'}) }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
-
-{% macro round_badge(number) %}
-    <span class="badge bg-secondary-lt">Round {{ number }}</span>
-{% endmacro %}
-
-{% macro edit_button(id) %}
-    <a href="{{ path('app_referee_bingo_edit', {id: id}) }}" class="btn btn-primary">
-        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-    </a>
-{% endmacro %}

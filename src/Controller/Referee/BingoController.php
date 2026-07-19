@@ -7,11 +7,9 @@ namespace App\Controller\Referee;
 use App\Dto\BingoDto;
 use App\Entity\GameRound;
 use App\Form\BingoFormType;
-use App\Repository\GameRoundRepository;
 use App\Service\BingoService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,29 +25,6 @@ class BingoController extends AbstractController
     public function index(): Response
     {
         return $this->render('referee/bingo/index.html.twig');
-    }
-
-    #[Route('/api/filters', name: 'app_referee_bingo_api_filters', methods: [Request::METHOD_GET])]
-    public function apiFilters(GameRoundRepository $rounds): JsonResponse
-    {
-        $roundNumbers = $rounds->findDistinctRoundNumbers();
-        $seasons = $rounds->findDistinctSeasons();
-
-        return $this->json([
-            'rounds' => array_map(fn($n) => (int)$n, $roundNumbers),
-            'seasons' => array_map(fn($s) => (int)$s, $seasons),
-        ]);
-    }
-
-    #[Route('/api/bingos', name: 'app_referee_bingo_api_bingos', methods: [Request::METHOD_GET])]
-    public function apiBingos(Request $request, GameRoundRepository $rounds): JsonResponse
-    {
-        $round = $request->query->has('round') ? $request->query->getInt('round') : null;
-        $season = $request->query->has('season') ? $request->query->getInt('season') : null;
-
-        $list = $rounds->findByRoundAndSeason($round, $season);
-
-        return $this->json($list);
     }
 
     #[Route('/add', name: 'app_referee_bingo_add')]

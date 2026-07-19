@@ -1,5 +1,10 @@
 {% extends 'layouts/referee.html.twig' %}
 
+{% form_theme form _self %}
+
+{% block form_label_class -%}
+{%- endblock form_label_class %}
+
 {% block content %}
     {{ parent() }}
     <div class="card" {{ stimulus_controller('referee--bingo-form') }}>
@@ -21,21 +26,15 @@
         {{ form_errors(form) }}
         {{ form_errors(form.squares) }}
         <div class="card-body" id="bingo-form">
-            <div class="row mb-3">
-                {{ form_label(form.round) }}
-                <div class="col-sm-2">
+            <div class="d-flex gap-3 mb-3">
+                <div>
+                    {{ form_label(form.round) }}
                     {{ form_widget(form.round) }}
-                </div>
-                <div class="offset-sm-2 col-sm-10">
                     {{ form_errors(form.round) }}
                 </div>
-            </div>
-            <div class="row mb-3">
-                {{ form_label(form.season) }}
-                <div class="col-sm-2">
+                <div>
+                    {{ form_label(form.season) }}
                     {{ form_widget(form.season) }}
-                </div>
-                <div class="offset-sm-2 col-sm-10">
                     {{ form_errors(form.season) }}
                 </div>
             </div>
@@ -48,15 +47,15 @@
 
         <div class="card-footer">
             <div class="d-flex">
-                <a href="{{ path('app_referee_bingo') }}" class="btn btn-secondary">Retour</a>
+                <a href="{{ path('app_referee_bingo') }}" class="btn btn-outline-secondary">Retour</a>
                 {% if mode == 'edit' %}
                     <div class="vr mx-3"></div>
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
                             data-bs-target="#delete-bingo-modal">
                         {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
                     </button>
                 {% endif %}
-                <button type="submit" class="btn btn-success ms-auto">Enregistrer</button>
+                <button type="submit" class="btn btn-primary ms-auto">Enregistrer</button>
             </div>
         </div>
         {{ form_widget(form._token) }}
