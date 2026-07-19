@@ -16,6 +16,40 @@ class TeamRepository extends ServiceEntityRepository
         parent::__construct($registry, Team::class);
     }
 
+    /**
+     * Find teams with their members aggregated as JSON, optionally filtered by search term.
+     *
+     * @return list<array{id: int, name: string, members: string}>
+     */
+    public function findWithMembers(?string $search = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('t.id AS id, t.name AS name')
+            ->addSelect("JSON_AGG(JSON_BUILD_OBJECT('name', m.name, 'captain', m.captain) ORDER BY m.captain DESC, m.name ASC) FILTER (WHERE m.id IS NOT NULL) AS members")
+            ->leftJoin('t.members', 'm')
+            ->groupBy('t.id, t.name')
+            ->orderBy('t.name', 'ASC');
+
+        if ($search !== null && $search !== '') {
+            $normalizedTerm = '%' . mb_strtolower($search) . '%';
+
+            $subDql = $this->createQueryBuilder('t2')
+                ->select('t2.id')
+                ->leftJoin('t2.members', 'm2')
+                ->where('unaccent(LOWER(t2.name)) LIKE unaccent(:term)')
+                ->orWhere('unaccent(LOWER(m2.name)) LIKE unaccent(:term)')
+                ->getDQL();
+
+            $qb->andWhere("t.id IN ($subDql)")
+                ->setParameter('term', $normalizedTerm);
+        }
+
+        return $qb->getQuery()->getScalarResult();
+    }
+
+    /**
+     * @return array<array-key, array{id: int, name: string, members: string}>
+     */
     public function findAllWithMembers(): array
     {
         return $this->createQueryBuilder('t')
@@ -26,26 +60,6 @@ class TeamRepository extends ServiceEntityRepository
             ->orderBy('t.name', 'ASC')
             ->getQuery()
             ->getArrayResult();
-    }
-
-    /**
-     * Find teams matching a search term on team name or member name (accent-insensitive).
-     *
-     * @return Team[]
-     */
-    public function findBySearchTerm(string $term): array
-    {
-        $normalizedTerm = '%' . mb_strtolower($term) . '%';
-
-        return $this->createQueryBuilder('t')
-            ->leftJoin('t.members', 'm')
-            ->where('unaccent(LOWER(t.name)) LIKE unaccent(:term)')
-            ->orWhere('unaccent(LOWER(m.name)) LIKE unaccent(:term)')
-            ->setParameter('term', $normalizedTerm)
-            ->distinct(true)
-            ->orderBy('t.name', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 
     /**

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Twig\Components;
 
-use App\Entity\Team;
 use App\Repository\TeamRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -20,7 +19,7 @@ final class TeamList
     #[LiveProp(writable: true, onUpdated: 'loadTeams')]
     public string $search = '';
 
-    /** @var Team[] */
+    /** @var list<array{id: int, name: string, members: string}> */
     #[LiveProp]
     public array $teams = [];
 
@@ -37,8 +36,6 @@ final class TeamList
 
     public function loadTeams(): void
     {
-        $this->teams = '' !== $this->search
-            ? $this->teamRepository->findBySearchTerm($this->search)
-            : $this->teamRepository->findBy([], ['name' => 'ASC']);
+        $this->teams = $this->teamRepository->findWithMembers($this->search !== '' ? $this->search : null);
     }
 }

@@ -28,6 +28,7 @@
     {% else %}
         <div class="team-grid">
             {% for team in this.teams %}
+                {% set members = team.members|json_decode %}
                 <div class="team-card" style="border-top: 3px solid {{ team_color(team.id) }};">
                     <div class="team-card-header">
                         <span class="team-card-name">{{ team.name }}</span>
@@ -35,9 +36,9 @@
                             {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
                         </a>
                     </div>
-                    {% if team.members|length > 0 %}
+                    {% if members|length > 0 %}
                         <div class="team-card-members">
-                            {% for member in team.members %}
+                            {% for member in members %}
                                 {% if member.captain %}
                                     <span class="member-pill member-pill-captain">
                                         {{ ux_icon('tabler:crown', {height: '12', width: '12'}) }}
