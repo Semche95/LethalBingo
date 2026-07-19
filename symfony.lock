@@ -56,9 +56,6 @@
             "ref": "3a6673f248f8fc1dd364dadfef4c5b381d1efab6"
         }
     },
-    "pentiminax/ux-datatables": {
-        "version": "v0.12.3"
-    },
     "phpunit/phpunit": {
         "version": "9.6",
         "recipe": {

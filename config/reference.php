@@ -1620,28 +1620,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  *     default_transport?: scalar|Param|null, // Default: "default"
  * }
- * @psalm-type DataTablesConfig = array{
- *     options?: array{
- *         language?: scalar|Param|null, // Default: "en-GB"
- *         layout?: array{
- *             topStart?: scalar|Param|null, // Default: "pageLength"
- *             topEnd?: scalar|Param|null, // Default: "search"
- *             bottomStart?: scalar|Param|null, // Default: "info"
- *             bottomEnd?: scalar|Param|null, // Default: "paging"
- *         },
- *         lengthMenu?: list<scalar|Param|null>,
- *         pageLength?: int|Param,
- *     },
- *     template_parameters?: array{
- *         class?: scalar|Param|null, // Default: "table"
- *     },
- *     extensions?: array{
- *         buttons?: list<scalar|Param|null>,
- *         select?: array{
- *             style?: scalar|Param|null, // Default: "single"
- *         },
- *     },
- * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1660,7 +1638,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     live_component?: LiveComponentConfig,
  *     pentatrion_vite?: PentatrionViteConfig,
  *     turbo?: TurboConfig,
- *     data_tables?: DataTablesConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1682,7 +1659,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         pentatrion_vite?: PentatrionViteConfig,
  *         turbo?: TurboConfig,
- *         data_tables?: DataTablesConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1702,7 +1678,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         pentatrion_vite?: PentatrionViteConfig,
  *         turbo?: TurboConfig,
- *         data_tables?: DataTablesConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1723,7 +1698,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         live_component?: LiveComponentConfig,
  *         pentatrion_vite?: PentatrionViteConfig,
  *         turbo?: TurboConfig,
- *         data_tables?: DataTablesConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

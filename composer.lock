@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e33d871d44c47ec8423b6ef8a307e8f3",
+    "content-hash": "ad60785d50f6a77be57a7811649c2a14",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -1493,72 +1493,6 @@
                 "source": "https://github.com/lhapaipai/vite-bundle/tree/v8.2.4"
             },
             "time": "2026-03-22T11:41:50+00:00"
-        },
-        {
-            "name": "pentiminax/ux-datatables",
-            "version": "v0.12.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pentiminax/ux-datatables.git",
-                "reference": "a8eb033354978893123526f4d1f5f775e50cd983"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pentiminax/ux-datatables/zipball/a8eb033354978893123526f4d1f5f775e50cd983",
-                "reference": "a8eb033354978893123526f4d1f5f775e50cd983",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.2",
-                "symfony/config": "^7.0|^8.0",
-                "symfony/dependency-injection": "^7.0|^8.0",
-                "symfony/http-kernel": "^7.0|^8.0",
-                "symfony/stimulus-bundle": "^2.22"
-            },
-            "conflict": {
-                "symfony/flex": "<1.13"
-            },
-            "require-dev": {
-                "doctrine/orm": "^3.0",
-                "friendsofphp/php-cs-fixer": "^3.89",
-                "phpunit/phpunit": "^11.5",
-                "symfony/framework-bundle": "^7.0|^8.0",
-                "symfony/phpunit-bridge": "^7.0|^8.0",
-                "symfony/twig-bundle": "^7.0|^8.0",
-                "symfony/var-dumper": "^7.0|^8.0"
-            },
-            "type": "symfony-bundle",
-            "extra": {
-                "thanks": {
-                    "url": "https://github.com/symfony/ux",
-                    "name": "symfony/ux"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Pentiminax\\UX\\DataTables\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Tanguy Lemarié",
-                    "email": "tanguy.lemarie6@gmail.com"
-                }
-            ],
-            "description": "DataTables.net integration for Symfony",
-            "homepage": "https://github.com/pentiminax/ux-datatables",
-            "keywords": [
-                "symfony-ux"
-            ],
-            "support": {
-                "issues": "https://github.com/pentiminax/ux-datatables/issues",
-                "source": "https://github.com/pentiminax/ux-datatables/tree/v0.12.3"
-            },
-            "time": "2025-11-18T20:30:28+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
