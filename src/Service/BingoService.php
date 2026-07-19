@@ -17,7 +17,6 @@ use App\Repository\GameRoundRepository;
 use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Exception\ValidatorException;
 
 readonly class BingoService
 {
@@ -76,11 +75,6 @@ readonly class BingoService
 
     public function create(BingoDto $bingoDto): GameRound
     {
-        $gameRound = $this->gameRoundRepository->findByNumberAndSeason($bingoDto->round, $bingoDto->season);
-        if ($gameRound instanceof GameRound) {
-            throw new ValidatorException(sprintf('Le round %d existe déjà pour la saison %d.', $bingoDto->round, $bingoDto->season));
-        }
-
         $gameRound = new GameRound()
             ->setNumber($bingoDto->round)
             ->setSeason($bingoDto->season);
@@ -101,6 +95,62 @@ readonly class BingoService
 
         $this->fillCollection($bingoDto, $gameRound);
         $this->em->flush();
+    }
+
+    public function createEmptyRound(int $season, int $round): GameRound
+    {
+        $gameRound = new GameRound()
+            ->setNumber($round)
+            ->setSeason($season);
+        $this->em->persist($gameRound);
+        $this->em->flush();
+
+        return $gameRound;
+    }
+
+    public function findMaxRoundForSeason(int $season): int
+    {
+        $result = $this->gameRoundRepository->createQueryBuilder('gr')
+            ->select('COALESCE(MAX(gr.number), 0)')
+            ->where('gr.season = :season')
+            ->setParameter('season', $season)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $result;
+    }
+
+    public function findMaxSeason(): int
+    {
+        $result = $this->gameRoundRepository->createQueryBuilder('gr')
+            ->select('COALESCE(MAX(gr.season), 0)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $result;
+    }
+
+    public function fillSeasonGaps(int $season): void
+    {
+        $numbers = $this->gameRoundRepository->createQueryBuilder('gr')
+            ->select('gr.number')
+            ->where('gr.season = :season')
+            ->setParameter('season', $season)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        if ($numbers === []) {
+            return;
+        }
+
+        $existing = array_flip($numbers);
+        $max = max($numbers);
+
+        for ($i = 1; $i < $max; ++$i) {
+            if (!isset($existing[$i])) {
+                $this->createEmptyRound($season, $i);
+            }
+        }
     }
 
     private function fillCollection(BingoDto $bingoDto, GameRound $gameRound): void

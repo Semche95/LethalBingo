@@ -1101,6 +1101,15 @@ li.sidebar-category > span {
     transition: color 0.15s;
 }
 
+.round-pill--duplicate {
+    border: 1.5px solid var(--tblr-warning);
+    background: rgba(255, 193, 68, 0.08);
+}
+
+.round-pill--duplicate svg {
+    color: var(--tblr-warning);
+}
+
 /* ===================== */
 /* Season Accent Colors  */
 /* ===================== */

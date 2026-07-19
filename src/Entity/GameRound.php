@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 
 #[ORM\Entity(repositoryClass: GameRoundRepository::class)]
-#[ORM\UniqueConstraint(fields: ['number', 'season'])]
 class GameRound implements Stringable
 {
     #[ORM\Id]

@@ -51,6 +51,48 @@ class BingoController extends AbstractController
         ]);
     }
 
+    #[Route('/add-round/{season}', name: 'app_referee_bingo_add_round', requirements: ['season' => '\d+'])]
+    public function addRound(int $season, BingoService $bingo): RedirectResponse
+    {
+        $maxRound = $bingo->findMaxRoundForSeason($season);
+        $gameRound = $bingo->createEmptyRound($season, $maxRound + 1);
+
+        $this->addFlash('success', sprintf('Round %d de la saison %d créé', $gameRound->getNumber(), $season));
+
+        return $this->redirectToRoute('app_referee_bingo_edit', [
+            'id' => $gameRound->getId(),
+        ]);
+    }
+
+    #[Route('/add-season', name: 'app_referee_bingo_add_season')]
+    public function addSeason(BingoService $bingo): RedirectResponse
+    {
+        $maxSeason = $bingo->findMaxSeason();
+        $newSeason = $maxSeason + 1;
+        $gameRound = $bingo->createEmptyRound($newSeason, 1);
+
+        $this->addFlash('success', sprintf('Saison %d créée (round 1)', $newSeason));
+
+        return $this->redirectToRoute('app_referee_bingo_edit', [
+            'id' => $gameRound->getId(),
+        ]);
+    }
+
+    #[Route('/fill-gaps/{season}', name: 'app_referee_bingo_fill_gaps', requirements: ['season' => '\d+'], methods: [Request::METHOD_POST])]
+    public function fillGaps(Request $request, int $season, BingoService $bingo): RedirectResponse
+    {
+        $submittedToken = $request->getPayload()->get('token');
+        if (!$this->isCsrfTokenValid('fill-gaps-' . $season, $submittedToken)) {
+            throw new BadRequestHttpException('Token invalid');
+        }
+
+        $bingo->fillSeasonGaps($season);
+
+        $this->addFlash('success', sprintf('Les rounds manquants de la saison %d ont été ajoutés', $season));
+
+        return $this->redirectToRoute('app_referee_bingo');
+    }
+
     #[Route('/edit/{id}', name: 'app_referee_bingo_edit', requirements: ['id' => '\d+'])]
     public function edit(Request $request, BingoService $bingo, GameRound $gameRound): Response
     {
