@@ -39,7 +39,7 @@ class GameRoundRepository extends ServiceEntityRepository
             ->select('r.season AS season')
             ->addSelect("JSON_AGG(JSON_BUILD_OBJECT('id', r.id, 'number', r.number) ORDER BY r.number) AS rounds")
             ->groupBy('r.season')
-            ->orderBy('r.season', 'ASC')
+            ->orderBy('r.season', 'DESC')
             ->getQuery()
             ->getScalarResult();
     }

@@ -1,5 +1,10 @@
 <div {{ attributes }}>
-    <h1 class="dashboard-title mb-5">Bingos</h1>
+    <div class="d-flex align-items-center gap-2 mb-5">
+        <h1 class="dashboard-title mb-0">Bingos</h1>
+        <a href="{{ path('app_referee_bingo_add_season') }}" class="btn btn-outline-primary px-2">
+            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }} Nouvelle saison
+        </a>
+    </div>
 
     {% if this.bingosBySeason is empty %}
         <p class="text-secondary">Aucun bingo créé</p>
@@ -51,10 +56,5 @@
             </div>
         {% endfor %}
 
-        <div class="mt-4">
-            <a href="{{ path('app_referee_bingo_add_season') }}" class="btn btn-outline-primary">
-                {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle saison
-            </a>
-        </div>
     {% endif %}
 </div>

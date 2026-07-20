@@ -73,9 +73,7 @@ class BingoController extends AbstractController
 
         $this->addFlash('success', sprintf('Saison %d créée (round 1)', $newSeason));
 
-        return $this->redirectToRoute('app_referee_bingo_edit', [
-            'id' => $gameRound->getId(),
-        ]);
+        return $this->redirectToRoute('app_referee_bingo');
     }
 
     #[Route('/fill-gaps/{season}', name: 'app_referee_bingo_fill_gaps', requirements: ['season' => '\d+'], methods: [Request::METHOD_POST])]
