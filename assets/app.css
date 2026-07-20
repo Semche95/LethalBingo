@@ -401,9 +401,111 @@ ul#rules > li:before {
     white-space: nowrap;
 }
 
-.toast-container {
-    top: 3.5rem;
-    right: 45%;
+.toast-container.toast-outline {
+    top: 4rem;
+    right: 1rem;
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast.toast-outline {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: var(--bs-toast-max-width, 350px);
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast.toast-outline.toast-visible {
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.toast.toast-outline.toast-slide-out {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.toast-progress-bar {
+    height: 100%;
+    width: 100%;
+    transform-origin: left;
+    animation: toast-progress-shrink 4s linear forwards;
+}
+
+@keyframes toast-progress-shrink {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+.toast.toast-outline-success {
+    border-color: #51cf66;
+    background-color: #e6f9e8;
+    color: #2b8a3e;
+}
+
+.toast.toast-outline-error {
+    border-color: #ff6b6b;
+    background-color: #fde8e8;
+    color: #c92a2a;
+}
+
+.toast.toast-outline-warning {
+    border-color: #fcc419;
+    background-color: #fef3cd;
+    color: #e67700;
+}
+
+.toast.toast-outline-info {
+    border-color: #339af0;
+    background-color: #e7f1fe;
+    color: #1971c2;
+}
+
+.toast-outline .btn-close {
+    filter: none;
+}
+
+.toast-progress-bar-success { background-color: #51cf66; }
+.toast-progress-bar-error { background-color: #ff6b6b; }
+.toast-progress-bar-warning { background-color: #fcc419; }
+.toast-progress-bar-info { background-color: #339af0; }
+
+[data-bs-theme="dark"] .toast.toast-outline-success {
+    border-color: #3a7d54;
+    background-color: #0d3117;
+    color: #69db7c;
+}
+
+[data-bs-theme="dark"] .toast.toast-outline-error {
+    border-color: #ff6b6b;
+    background-color: #3b1515;
+    color: #ffa8a8;
+}
+
+[data-bs-theme="dark"] .toast.toast-outline-warning {
+    border-color: #fcc419;
+    background-color: #3b2e0a;
+    color: #ffe066;
+}
+
+[data-bs-theme="dark"] .toast.toast-outline-info {
+    border-color: #339af0;
+    background-color: #0d2744;
+    color: #74c0fc;
 }
 
 .tooltip {

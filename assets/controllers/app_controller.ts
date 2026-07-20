@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { initToasts, initTooltips } from '../utils'
-import { Toast, Tooltip } from 'bootstrap'
+import { Tooltip } from 'bootstrap'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLBodyElement> {
@@ -37,18 +37,9 @@ export default class extends Controller<HTMLBodyElement> {
         })
     }
 
-    private disposeToasts(): void {
-        document.querySelectorAll<HTMLElement>('.toast').forEach((element) => {
-            const instance = Toast.getInstance(element)
-            if (instance) {
-                instance.dispose()
-            }
-        })
-    }
-
     private onBeforeCache(): void {
         this.disposeTooltips()
-        this.disposeToasts()
+        document.querySelectorAll<HTMLElement>('.toast').forEach(el => el.remove())
     }
 
     private onRender(): void {
