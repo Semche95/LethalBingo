@@ -32,10 +32,11 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true
   },
-  "include": [
-    "assets/**/*.ts",
-    "assets/**/*.tsx"
-  ],
+   "include": [
+     "assets/**/*.ts",
+     "assets/**/*.tsx",
+     "vitest.config.ts"
+   ],
   "exclude": [
     "node_modules"
   ]

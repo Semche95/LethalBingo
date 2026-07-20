@@ -1,4 +1,12 @@
 import { Controller } from '@hotwired/stimulus'
+import {
+    calculateRemainingSeconds,
+    formatGameDuration,
+    isAtTenMinuteInterval,
+    isAtFiveMinutesExactly,
+    isAtThreeMinutesExactly,
+    isOneMinuteOrLess,
+} from './game_timer_math'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -61,15 +69,16 @@ export default class extends Controller<HTMLDivElement> {
         // Start the timer update interval
         this.startTimerInterval()
 
-        // Periodically re-sync with the server clock to avoid drift
-        this.startSyncInterval()
+        // Periodically re-sync with the server clock to avoid drift, but only
+        // while the timer is actually running (started, not finished, not paused).
+        this.startSyncIntervalIfRunning()
 
         // Initial update
         this.updateTimerDisplay()
 
         // Check if timer is already at zero when the page loads
         if (this.hasPauseButtonTarget) {
-            const formattedTime = this.formatGameDuration()
+            const formattedTime = this.formatGameDisplay()
             if (formattedTime === '00:00:00') {
                 this.timerReachedZero = true
                 this.pauseButtonTarget.classList.add('d-none')
@@ -98,14 +107,17 @@ export default class extends Controller<HTMLDivElement> {
     gameIsPausedValueChanged() {
         this.updatePauseBadge()
         this.updateTimerDisplay()
+        this.syncIntervalForTimerState()
     }
 
     gameStartedAtValueChanged() {
         this.updateTimerDisplay()
+        this.syncIntervalForTimerState()
     }
 
     gameFinishedAtValueChanged() {
         this.updateTimerDisplay()
+        this.syncIntervalForTimerState()
     }
 
     gameTotalPausedSecondsValueChanged() {
@@ -139,7 +151,48 @@ export default class extends Controller<HTMLDivElement> {
         }, 60000)
     }
 
+    // The sync interval should only run while the timer is actually running:
+    // the game has started, is not finished, and is not paused. When paused or
+    // stopped there is nothing to track, so we avoid needless server calls.
+    private isTimerRunning(): boolean {
+        return !!this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue
+    }
+
+    private startSyncIntervalIfRunning() {
+        if (this.isTimerRunning()) {
+            this.startSyncInterval()
+        }
+    }
+
+    private stopSyncInterval() {
+        if (this.syncInterval !== null) {
+            window.clearInterval(this.syncInterval)
+            this.syncInterval = null
+        }
+    }
+
+    // Starts or stops the sync interval to match the current timer state. When
+    // the timer resumes, we also trigger an immediate re-sync so the client
+    // estimate is re-anchored right away instead of waiting up to 60s.
+    private syncIntervalForTimerState() {
+        if (this.isTimerRunning()) {
+            if (this.syncInterval === null) {
+                this.startSyncInterval()
+                void this.syncServerTime()
+            }
+        } else {
+            this.stopSyncInterval()
+        }
+    }
+
     private async syncServerTime() {
+        // The timer is paused or stopped: stop syncing and skip the fetch
+        // entirely (no point polling the server while nothing is counting).
+        if (!this.isTimerRunning()) {
+            this.stopSyncInterval()
+            return
+        }
+
         try {
             const response = await fetch(this.serverTimeUrlValue)
             if (!response.ok) {
@@ -156,7 +209,7 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private updateTimerDisplay() {
-        const formattedTime = this.formatGameDuration()
+        const formattedTime = this.formatGameDisplay()
         this.timerDisplayTarget.textContent = formattedTime
 
         // Check if timer has reached zero
@@ -197,22 +250,22 @@ export default class extends Controller<HTMLDivElement> {
         // Only check highlighting if the game is active
         if (this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue) {
             // Calculate remaining seconds
-            const remainingSeconds = this.calculateRemainingSeconds()
+            const remainingSeconds = this.computeRemainingSeconds()
 
             // Check if we're in the last minute (red text for the entire last minute)
-            if (this.isOneMinuteOrLess(remainingSeconds)) {
+            if (isOneMinuteOrLess(remainingSeconds)) {
                 this.setHighlighting(true, 'danger', null)
             }
             // Check if we're at 3 minutes exactly
-            else if (this.isAtThreeMinutesExactly(remainingSeconds)) {
+            else if (isAtThreeMinutesExactly(remainingSeconds)) {
                 this.setHighlighting(true, 'danger', this.getCurrentServerTime() + 3000)
             }
             // Check if we're at 5 minutes exactly
-            else if (this.isAtFiveMinutesExactly(remainingSeconds)) {
+            else if (isAtFiveMinutesExactly(remainingSeconds)) {
                 this.setHighlighting(true, 'danger', this.getCurrentServerTime() + 3000)
             }
             // Check if we're at a 10-minute interval
-            else if (this.isAtTenMinuteInterval(remainingSeconds)) {
+            else if (isAtTenMinuteInterval(remainingSeconds)) {
                 this.setHighlighting(true, 'warning', this.getCurrentServerTime() + 3000)
             }
                 // Remove highlight if time has passed (except for the last minute)
@@ -267,95 +320,23 @@ export default class extends Controller<HTMLDivElement> {
         return (this.syncedServerTime * 1000) + clientElapsedTime
     }
 
-    private calculateRemainingSeconds(): number {
-        if (!this.gameStartedAtValue) {
-            return 3600 // Default to 1 hour
-        } else if (this.gameFinishedAtValue) {
-            return 0
-        }
-
-        // Get current server time and game start time in milliseconds
-        const serverNow = this.getCurrentServerTime()
-        const gameStartedAt = this.gameStartedAtValue * 1000
-
-        // Calculate elapsed seconds since game started
-        const elapsedSeconds = Math.floor((serverNow - gameStartedAt) / 1000)
-
-        // Subtract total paused time
-        let adjustedElapsedSeconds = elapsedSeconds - this.gameTotalPausedSecondsValue
-
-        // If the game is currently paused, subtract the time since it was paused
-        if (this.gameIsPausedValue && this.gameLastPausedAtValue) {
-            const lastPausedAt = this.gameLastPausedAtValue * 1000
-            const pausedSeconds = Math.floor((serverNow - lastPausedAt) / 1000)
-            adjustedElapsedSeconds -= pausedSeconds
-        }
-
-        // Calculate remaining seconds (don't go below zero)
-        return Math.max(0, 3600 - adjustedElapsedSeconds)
+    private computeRemainingSeconds(): number {
+        return calculateRemainingSeconds({
+            gameStartedAt: this.gameStartedAtValue,
+            gameFinishedAt: this.gameFinishedAtValue,
+            gameTotalPausedSeconds: this.gameTotalPausedSecondsValue,
+            gameLastPausedAt: this.gameLastPausedAtValue,
+            gameIsPaused: this.gameIsPausedValue,
+            currentServerTime: this.getCurrentServerTime(),
+        })
     }
 
-    private formatGameDuration(): string {
-        if (!this.gameStartedAtValue) {
-            return '01:00:00'
-        } else if (this.gameFinishedAtValue) {
-            return '00:00:00'
-        }
-
-        const remainingSeconds = this.calculateRemainingSeconds()
-
-        // If time is up, return 00:00:00
-        if (remainingSeconds <= 0) {
-            return '00:00:00'
-        }
-
-        // Convert remaining seconds to hours, minutes, seconds
-        const hours = Math.floor(remainingSeconds / 3600)
-        const minutes = Math.floor((remainingSeconds % 3600) / 60)
-        const seconds = remainingSeconds % 60
-
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    }
-
-    // Checks if the remaining time is at a 10-minute interval (50, 40, 30, 20, 10 minutes)
-    private isAtTenMinuteInterval(remainingSeconds: number): boolean {
-        // Convert to minutes
-        const remainingMinutes = Math.floor(remainingSeconds / 60)
-        const remainingSecondsInMinute = remainingSeconds % 60
-
-        // Check if it's exactly at a 10-minute mark (50, 40, 30, 20, 10 minutes)
-        // Require exactly 0 seconds to ensure precise timing
-        return remainingMinutes > 0 && remainingMinutes <= 50 && remainingMinutes % 10 === 0 && remainingSecondsInMinute === 0
-    }
-
-    // Checks if the remaining time is at 5 minutes (00:05:00)
-    private isAtFiveMinutesExactly(remainingSeconds: number): boolean {
-        // Convert to minutes
-        const remainingMinutes = Math.floor(remainingSeconds / 60)
-        const remainingSecondsInMinute = remainingSeconds % 60
-
-        // Check if it's exactly at 5 minutes (00:05:00)
-        return remainingMinutes === 5 && remainingSecondsInMinute === 0
-    }
-
-    // Checks if the remaining time is at 3 minutes (00:03:00)
-    private isAtThreeMinutesExactly(remainingSeconds: number): boolean {
-        // Convert to minutes
-        const remainingMinutes = Math.floor(remainingSeconds / 60)
-        const remainingSecondsInMinute = remainingSeconds % 60
-
-        // Check if it's exactly at 3 minutes (00:03:00)
-        return remainingMinutes === 3 && remainingSecondsInMinute === 0
-    }
-
-    // Checks if the remaining time is exactly 1 minute (00:01:00) or less
-    private isOneMinuteOrLess(remainingSeconds: number): boolean {
-        // Convert to minutes
-        const remainingMinutes = Math.floor(remainingSeconds / 60)
-        const remainingSecondsInMinute = remainingSeconds % 60
-
-        // Check if it's exactly 1 minute (00:01:00) or less
-        return (remainingMinutes === 1 && remainingSecondsInMinute === 0) || remainingMinutes === 0
+    private formatGameDisplay(): string {
+        return formatGameDuration(
+            this.gameStartedAtValue,
+            this.gameFinishedAtValue,
+            this.computeRemainingSeconds(),
+        )
     }
 
     private resetAudio(cleanup = false) {
