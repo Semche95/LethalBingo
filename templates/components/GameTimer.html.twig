@@ -4,7 +4,8 @@
     gameTotalPausedSeconds: this.game.totalPausedSeconds,
     gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.timestamp : null,
     gameIsPaused: this.game.isPaused,
-    serverTime: date().timestamp
+    serverTime: date().timestamp,
+    serverTimeUrl: path('app_game_server_time')
 })) }}>
     <div class="vcenter">
         <div class="me-3">
