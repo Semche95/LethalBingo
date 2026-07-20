@@ -68,7 +68,6 @@
                             <li>
                                 <a href="{{ path('app_referee_game_edit', {id: game.id}) }}" class="activity-item">
                                     <span class="activity-item-name">{{ game.team }} — Round {{ game.round.number }} Saison {{ game.round.season }}</span>
-                                    <span class="activity-item-date">{{ game.createdAt|date('d/m/Y') }}</span>
                                 </a>
                             </li>
                         {% endfor %}
@@ -91,7 +90,6 @@
                             <li>
                                 <a href="{{ path('app_referee_bingo_edit', {id: round.id}) }}" class="activity-item">
                                     <span class="activity-item-name">Round {{ round.number }} Saison {{ round.season }}</span>
-                                    <span class="activity-item-date">{{ round.createdAt|date('d/m/Y') }}</span>
                                 </a>
                             </li>
                         {% endfor %}
@@ -114,7 +112,6 @@
                             <li>
                                 <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="activity-item">
                                     <span class="activity-item-name">{{ team.name }}</span>
-                                    <span class="activity-item-date">{{ team.createdAt|date('d/m/Y') }}</span>
                                 </a>
                             </li>
                         {% endfor %}

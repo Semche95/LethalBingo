@@ -71,7 +71,7 @@ class GameRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('g')
             ->join('g.round', 'r')
             ->join('g.team', 't')
-            ->orderBy('g.createdAt', 'DESC')
+            ->orderBy('g.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

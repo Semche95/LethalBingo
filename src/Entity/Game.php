@@ -44,9 +44,6 @@ class Game
     #[ORM\OneToMany(targetEntity: BingoSquareRevealed::class, mappedBy: 'game')]
     private Collection $bingoSquareRevealed;
 
-    #[ORM\Column]
-    private ?DateTimeImmutable $createdAt = null;
-
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $startedAt = null;
 
@@ -67,7 +64,6 @@ class Game
 
     public function __construct()
     {
-        $this->createdAt = new DateTimeImmutable();
         $this->generateSlug();
         $this->bingoSquareValidated = new ArrayCollection();
         $this->bingoSquareRevealed = new ArrayCollection();
@@ -76,18 +72,6 @@ class Game
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getCreatedAt(): ?DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 
     public function getSlug(): ?string

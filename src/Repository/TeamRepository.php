@@ -55,7 +55,7 @@ class TeamRepository extends ServiceEntityRepository
     public function findRecent(int $limit = 5): array
     {
         return $this->createQueryBuilder('t')
-            ->orderBy('t.createdAt', 'DESC')
+            ->orderBy('t.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

@@ -52,7 +52,7 @@ class GameRoundRepository extends ServiceEntityRepository
     public function findRecent(int $limit = 5): array
     {
         return $this->createQueryBuilder('gr')
-            ->orderBy('gr.createdAt', 'DESC')
+            ->orderBy('gr.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
