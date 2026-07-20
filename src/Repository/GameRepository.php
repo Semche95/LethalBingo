@@ -34,62 +34,29 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find games filtered by round, season, team, started status, and ended status
+     * All existing games with their round and team info for the grid.
+     * Only returns rows where a game exists — seasons, rounds and teams
+     * are all derived from games, never from game_round or team directly.
      *
-     * @param int|null $round Round number to filter by
-     * @param int|null $season Season number to filter by
-     * @param int|null $team Team ID to filter by
-     * @param bool|null $started Filter by started status (true = started, false = not started)
-     * @param bool|null $ended Filter by ended status (true = ended, false = not ended)
-     * @return array<string> List of games
+     * @return list<array{season: int, round_number: int, team_id: int, team_name: string, game_id: int, startedAt: ?string, finishedAt: ?string}>
      */
-    public function findByFilters(
-        ?int $round = null,
-        ?int $season = null,
-        ?int $team = null,
-        ?bool $started = null,
-        ?bool $ended = null
-    ): array {
-        $queryBuilder = $this->createQueryBuilder('g')
-            ->select('g.id, r.number as round_number, r.season as round_season, t.name as team_name, g.startedAt, g.finishedAt')
+    public function findGamesForGrid(): array
+    {
+        return $this->createQueryBuilder('g')
+            ->select(
+                'r.season AS season',
+                'r.number AS round_number',
+                't.id AS team_id',
+                't.name AS team_name',
+                'g.id AS game_id',
+                'g.startedAt AS startedAt',
+                'g.finishedAt AS finishedAt',
+            )
             ->join('g.round', 'r')
-            ->join('g.team', 't');
-
-        if ($round !== null) {
-            $queryBuilder->andWhere('r.number = :round')
-                ->setParameter('round', $round);
-        }
-
-        if ($season !== null) {
-            $queryBuilder->andWhere('r.season = :season')
-                ->setParameter('season', $season);
-        }
-
-        if ($team !== null) {
-            $queryBuilder->andWhere('t.id = :team')
-                ->setParameter('team', $team);
-        }
-
-        if ($started !== null) {
-            if ($started) {
-                $queryBuilder->andWhere('g.startedAt IS NOT NULL');
-            } else {
-                $queryBuilder->andWhere('g.startedAt IS NULL');
-            }
-        }
-
-        if ($ended !== null) {
-            if ($ended) {
-                $queryBuilder->andWhere('g.finishedAt IS NOT NULL');
-            } else {
-                $queryBuilder->andWhere('g.finishedAt IS NULL');
-            }
-        }
-
-        return $queryBuilder
-            ->orderBy('r.number', 'ASC')
-            ->addOrderBy('r.season', 'ASC')
-            ->addOrderBy('t.name', 'ASC')
+            ->join('g.team', 't')
+            ->orderBy('r.season', 'DESC')
+            ->addOrderBy('r.number', 'ASC')
+            ->addOrderBy('t.id', 'ASC')
             ->getQuery()
             ->getScalarResult();
     }

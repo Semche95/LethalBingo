@@ -1,3 +1,11 @@
+{% set gameIndex = this.games|reduce((acc, g) => acc|merge({
+    (g.season ~ '_' ~ g.round_number ~ '_' ~ g.team_id): g
+}), {}) %}
+
+{% set seasons = this.games|reduce((acc, g) =>
+    g.season in acc ? acc : acc|merge([g.season]),
+[])|sort|reverse %}
+
 <div {{ attributes }}>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="dashboard-title">Parties</h1>
@@ -6,50 +14,101 @@
         </a>
     </div>
 
-    <div class="card">
-        {{ component('Filter', {
-            dataModel: 'round:round season:season team:team started:started ended:ended',
-            context: 'game'
-        }) }}
+    {% if seasons is empty %}
+        <p class="text-secondary">Aucune partie créée</p>
+    {% else %}
+        <div {{ stimulus_controller('referee--game-season-accordion') }}>
+            {% for season in seasons %}
+                {% set seasonId = 'game-season-' ~ season %}
+                {% set isOpen = (season ~ '') in this.seasonsOpen %}
 
-        {{ component('DataTable', {
-            columns: ['Round', 'Équipe', 'Démarrée', 'Terminée', ''],
-            data: this.games|map(g => [
-                _self.round_badge(g.round_number, g.round_season),
-                g.team_name,
-                _self.started_badge(g.startedAt),
-                _self.finished_badge(g.finishedAt),
-                _self.edit_button(g.id)
-            ]),
-            options: [{class: 'cell-name'}, {class: 'cell-name'}, null, null, {class: 'text-end'}],
-            empty_data: 'Aucune partie créée',
-            id: 'game-list-datatable-'~this.round|default(0)~this.season|default(0)~this.team|default(0)~this.started|default('-1')~this.ended|default('-1')
-        }) }}
-    </div>
+                {% set teams = this.games|filter(g => g.season == season)|reduce((acc, g) =>
+                    g.team_id in acc|column('id') ? acc : acc|merge([{id: g.team_id, name: g.team_name}]),
+                []) %}
+
+                {% set roundNumbers = this.games|filter(g => g.season == season)|reduce((acc, g) =>
+                    g.round_number in acc ? acc : acc|merge([g.round_number]),
+                [])|sort %}
+
+                <div class="card mb-3">
+                    <button
+                        class="season-toggle-btn card-header d-flex align-items-center gap-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#{{ seasonId }}"
+                        aria-expanded="{{ isOpen ? 'true' : 'false' }}"
+                        aria-controls="{{ seasonId }}"
+                    >
+                        {{ ux_icon('tabler:chevron-right', {class: 'season-toggle-icon'}) }}
+                        <span class="season-toggle-label">Saison {{ season }}</span>
+                        <span class="badge bg-secondary-lt">{{ roundNumbers|length }} rounds</span>
+                    </button>
+
+                    <div
+                        id="{{ seasonId }}"
+                        class="collapse{{ isOpen ? ' show' : '' }}"
+                        data-season="{{ season }}"
+                        data-referee--game-season-accordion-target="panel"
+                    >
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-vcenter card-table game-grid">
+                                    <thead>
+                                        <tr>
+                                            <th class="game-grid-round-header"></th>
+                                            {% for team in teams %}
+                                                <th class="game-grid-team-header" title="{{ team.name }}">
+                                                    <span
+                                                        class="game-grid-team-dot"
+                                                        style="background-color: {{ team_color(team.id) }}"
+                                                    ></span>
+                                                    {{ team.name }}
+                                                </th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for roundNumber in roundNumbers %}
+                                            <tr>
+                                                <td class="game-grid-round-cell">Round {{ roundNumber }}</td>
+                                                {% for team in teams %}
+                                                    {% set key = season ~ '_' ~ roundNumber ~ '_' ~ team.id %}
+                                                    {% set cell = gameIndex[key] ?? null %}
+                                                    {% if cell is not null and cell.game_id is not null %}
+                                                        <td
+                                                            class="game-grid-cell game-grid-cell--clickable"
+                                                            data-game-url="{{ path('app_referee_game_edit', {id: cell.game_id}) }}"
+                                                        >
+                                                    {% else %}
+                                                        <td class="game-grid-cell">
+                                                    {% endif %}
+                                                            {% if cell is not null and cell.game_id is not null %}
+                                                                {% if cell.finishedAt is not null %}
+                                                                    <span class="badge bg-green-lt">
+                                                                        {{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ cell.finishedAt }}
+                                                                    </span>
+                                                                {% elseif cell.startedAt is not null %}
+                                                                    <span class="badge bg-blue-lt">
+                                                                        {{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ cell.startedAt }}
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary-lt">
+                                                                        {{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}à venir
+                                                                    </span>
+                                                                {% endif %}
+                                                                {{ ux_icon('tabler:pencil', {class: 'game-grid-pencil-icon'}) }}
+                                                            {% endif %}
+                                                        </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
-
-{% macro round_badge(round, season) %}
-    <span class="badge bg-secondary-lt">Round {{ round }} Saison {{ season }}</span>
-{% endmacro %}
-
-{% macro started_badge(date) %}
-    {% if date %}
-        <span class="badge bg-blue-lt">{{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ date|date('d/m/Y H:i:s') }}</span>
-    {% else %}
-        <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}Non</span>
-    {% endif %}
-{% endmacro %}
-
-{% macro finished_badge(date) %}
-    {% if date %}
-        <span class="badge bg-green-lt">{{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ date|date('d/m/Y H:i:s') }}</span>
-    {% else %}
-        <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}Non</span>
-    {% endif %}
-{% endmacro %}
-
-{% macro edit_button(id) %}
-    <a href="{{ path('app_referee_game_edit', {id: id}) }}" class="btn btn-primary">
-        {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-    </a>
-{% endmacro %}

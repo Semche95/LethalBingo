@@ -29,32 +29,6 @@ class GameRoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<int, int> List of distinct round numbers
-     */
-    public function findDistinctRoundNumbers(): array
-    {
-        return $this->createQueryBuilder('gr')
-            ->select('gr.number')
-            ->distinct()
-            ->orderBy('gr.number', 'ASC')
-            ->getQuery()
-            ->getSingleColumnResult();
-    }
-
-    /**
-     * @return array<int, int> List of distinct seasons
-     */
-    public function findDistinctSeasons(): array
-    {
-        return $this->createQueryBuilder('gr')
-            ->select('gr.season')
-            ->distinct()
-            ->orderBy('gr.season', 'ASC')
-            ->getQuery()
-            ->getSingleColumnResult();
-    }
-
-    /**
      * Find game rounds grouped by season, aggregated as JSON
      *
      * @return list<array{season: int, rounds: string}>

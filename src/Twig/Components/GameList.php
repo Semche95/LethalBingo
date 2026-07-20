@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Repository\GameRepository;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
-use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -17,54 +17,44 @@ final class GameList
 {
     use DefaultActionTrait;
 
-    #[LiveProp(writable: true, onUpdated: 'loadGames')]
-    public ?int $round = null;
-
-    #[LiveProp(writable: true, onUpdated: 'loadGames')]
-    public ?int $season = null;
-
-    #[LiveProp(writable: true, onUpdated: 'loadGames')]
-    public ?int $team = null;
-
-    #[LiveProp(writable: true, onUpdated: 'loadGames')]
-    public ?bool $started = null;
-
-    #[LiveProp(writable: true, onUpdated: 'loadGames')]
-    public ?bool $ended = null;
+    private const COOKIE_NAME = 'referee_game_seasons_open';
 
     #[LiveProp]
     public array $games = [];
 
+    /** @var list<string> */
+    public array $seasonsOpen = [];
+
     public function __construct(
         private readonly GameRepository $gameRepository,
-    )
-    {
+        private readonly RequestStack $requestStack,
+    ) {
     }
 
     public function mount(): void
     {
-        $this->loadGames();
+        $this->games = $this->gameRepository->findGamesForGrid();
+        $this->seasonsOpen = $this->resolveOpenSeasons();
     }
 
-    public function loadGames(): void
+    /** @return list<string> */
+    private function resolveOpenSeasons(): array
     {
-        $this->games = $this->gameRepository->findByFilters(
-            $this->round,
-            $this->season,
-            $this->team,
-            $this->started,
-            $this->ended
-        );
-    }
+        $allSeasons = array_values(array_unique(array_column($this->games, 'season')));
+        sort($allSeasons);
 
-    #[LiveAction]
-    public function resetFilters(): void
-    {
-        $this->round = null;
-        $this->season = null;
-        $this->team = null;
-        $this->started = null;
-        $this->ended = null;
-        $this->loadGames();
+        if ($allSeasons === []) {
+            return [];
+        }
+
+        $cookie = $this->requestStack->getCurrentRequest()?->cookies->get(self::COOKIE_NAME);
+
+        if ($cookie === null) {
+            return [(string) max($allSeasons)];
+        }
+
+        $stored = array_values(array_filter(explode(',', $cookie)));
+
+        return array_values(array_intersect($stored, array_map('strval', $allSeasons)));
     }
 }

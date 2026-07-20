@@ -48,21 +48,6 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array<array-key, array{id: int, name: string, members: string}>
-     */
-    public function findAllWithMembers(): array
-    {
-        return $this->createQueryBuilder('t')
-            ->select('t.id, t.name')
-            ->addSelect('STRING_AGG(m.name, \', \' ORDER BY m.captain DESC, m.name) AS members')
-            ->leftJoin('t.members', 'm')
-            ->groupBy('t.id')
-            ->orderBy('t.name', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
-    }
-
-    /**
      * Find the most recently created teams
      *
      * @return Team[]

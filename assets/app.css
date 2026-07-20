@@ -1133,3 +1133,171 @@ li.sidebar-category > span {
 .season-accent-4 .season-count-badge { background: #FBEAF0; color: #72243E; }
 .season-accent-5 .season-count-badge { background: #E6F1FB; color: #0C447C; }
 .season-accent-6 .season-count-badge { background: #FAEEDA; color: #633806; }
+
+/* ===================== */
+/* Game Grid             */
+/* ===================== */
+
+.season-toggle-btn {
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    padding: 0.5rem 0.75rem;
+    transition: background-color 0.15s;
+}
+
+.season-toggle-btn:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+}
+
+[data-bs-theme="dark"] .season-toggle-btn:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+}
+
+.season-toggle-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.season-toggle-btn[aria-expanded="true"] .season-toggle-icon {
+    transform: rotate(90deg);
+}
+
+.season-toggle-label {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.game-grid {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.game-grid thead th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tblr-muted-fg);
+    background: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.03));
+    border-bottom: 2px solid var(--tblr-border-color);
+    padding: 0.6rem 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[data-bs-theme="dark"] .game-grid thead th {
+    background: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.game-grid-round-header {
+    width: 90px;
+    white-space: nowrap;
+}
+
+.game-grid-team-header {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.game-grid-team-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.35em;
+    vertical-align: middle;
+}
+
+.game-grid {
+    --tblr-table-hover-bg: transparent;
+    --tblr-table-accent-bg: transparent;
+}
+
+.game-grid tbody tr {
+    cursor: default !important;
+}
+
+.game-grid tbody td {
+    padding: 0;
+    vertical-align: middle;
+}
+
+.game-grid-round-cell {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--tblr-body-color);
+    white-space: nowrap;
+    background: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.02));
+    padding: 0.5rem 0.75rem;
+}
+
+[data-bs-theme="dark"] .game-grid-round-cell {
+    background: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.03));
+}
+
+.game-grid-cell {
+    text-align: center;
+}
+
+.game-grid-cell--clickable {
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.game-grid-cell--clickable:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+}
+
+[data-bs-theme="dark"] .game-grid-cell--clickable:hover {
+    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+}
+
+.game-grid-cell .badge {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.3em 0.6em;
+}
+
+.game-grid-cell .badge.bg-blue-lt {
+    background: rgba(51, 154, 240, 0.2) !important;
+    color: #74c0fc !important;
+}
+
+.game-grid-cell .badge.bg-secondary-lt {
+    background: rgba(134, 142, 150, 0.25) !important;
+    color: #ced4da !important;
+}
+
+.game-grid-cell .badge.bg-green-lt {
+    background: rgba(81, 207, 102, 0.2) !important;
+    color: #8ce99a !important;
+}
+
+.game-grid-cell .badge svg {
+    vertical-align: -0.125em;
+    margin-right: 0.15em;
+}
+
+.game-grid-pencil-icon {
+    opacity: 0;
+    transition: opacity 0.15s;
+    width: 22px;
+    height: 22px;
+    color: var(--tblr-muted-fg);
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+}
+
+.game-grid-cell--clickable:hover .game-grid-pencil-icon {
+    opacity: 1;
+}
