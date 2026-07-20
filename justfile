@@ -75,6 +75,10 @@ diff:
 fixtures:
     @just sf doctrine:fixtures:load --no-interaction --purge-with-truncate
 
+# Exécute une requête SQL brute, ex: `just sql "SELECT * FROM game"`
+sql sql:
+    @just sf dbal:run-sql -- "{{quote(sql)}}"
+
 # Lance les conteneurs Docker puis le serveur de dev (Vite) côté frontend
 dev: up
     @npm run dev
