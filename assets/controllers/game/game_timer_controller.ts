@@ -8,6 +8,8 @@ export default class extends Controller<HTMLDivElement> {
         gameTotalPausedSeconds: Number,
         gameLastPausedAt: Number,
         gameIsPaused: Boolean,
+        // Server Unix timestamp (seconds) from Twig's date().timestamp at render time.
+        // Used with clientTimeAtRender to estimate the current server time.
         serverTime: Number,
     }
 
@@ -31,17 +33,21 @@ export default class extends Controller<HTMLDivElement> {
     private isHighlighted: boolean = false
     private highlightUntil: number | null = null
     private timerReachedZero: boolean = false
-    private clientConnectTime: number = 0
+    // performance.now() snapshot taken at render time. Used with serverTimeValue
+    // to estimate the current server time: (serverTimeValue * 1000) + (performance.now() - clientTimeAtRender).
+    // Reset on each Live Component re-render via serverTimeValueChanged().
+    private clientTimeAtRender: number = 0
 
     override connect() {
-        // Load audio files
         const notificationSoundURL = new URL('/assets/sounds/interval.mp3', import.meta.url)
         const endSoundURL = new URL('/assets/sounds/end.mp3', import.meta.url)
         this.notificationAudio = new Audio(notificationSoundURL.href)
         this.endAudio = new Audio(endSoundURL.href)
 
-        // Initialize time synchronization
-        this.clientConnectTime = Date.now()
+        // Record the client timestamp at initial render so we can estimate server time later.
+        // serverTimeValue (from Twig's date().timestamp) is the server clock at render time.
+        // We pair it with performance.now() to later compute how much client time has elapsed.
+        this.clientTimeAtRender = performance.now()
 
         // Start the timer update interval
         this.startTimerInterval()
@@ -90,6 +96,14 @@ export default class extends Controller<HTMLDivElement> {
 
     gameLastPausedAtValueChanged() {
         this.updateTimerDisplay()
+    }
+
+    // When the Live Component re-renders (after pause/resume/etc.), Twig re-evaluates
+    // date().timestamp and writes a fresh serverTimeValue into the DOM. We must reset
+    // clientTimeAtRender to match, otherwise the formula adds stale elapsed time to a
+    // server time that already includes it, causing the timer to jump.
+    serverTimeValueChanged() {
+        this.clientTimeAtRender = performance.now()
     }
 
     private startTimerInterval() {
@@ -188,13 +202,23 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     /**
-     * Gets the current server time in milliseconds
-     * This calculates what the server time should be based on:
-     * 1. The initial server time we received
-     * 2. How much client time has elapsed since we connected
+     * Estimates the current server time in milliseconds.
+     *
+     * How it works:
+     * - serverTimeValue is the Unix timestamp (seconds) the server wrote in the HTML
+     *   via Twig's date().timestamp at render time.
+     * - clientTimeAtRender is performance.now() at that same moment.
+     * - performance.now() is a monotonic clock (ms since page load), not a wall clock.
+     *
+     * So: elapsedClientTime = performance.now() - clientTimeAtRender
+     * And: estimatedServerTime = (serverTimeValue * 1000) + elapsedClientTime
+     *
+     * This avoids polling the server every 500ms while staying close to the real
+     * server time. The estimate is re-anchored on each Live Component re-render
+     * via serverTimeValueChanged().
      */
     private getCurrentServerTime(): number {
-        const clientElapsedTime = Date.now() - this.clientConnectTime
+        const clientElapsedTime = performance.now() - this.clientTimeAtRender
         return (this.serverTimeValue * 1000) + clientElapsedTime
     }
 
