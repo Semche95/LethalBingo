@@ -15,7 +15,8 @@ services:
     environment:
       FRANKENPHP_WORKER_CONFIG: watch
       MERCURE_EXTRA_DIRECTIVES: demo
-      SERVER_NAME: lethalbingo.localhost
+      SERVER_NAME: lethalbingo.localhost, php:80
+      MERCURE_PUBLIC_URL: https://lethalbingo.localhost/.well-known/mercure
       # See https://xdebug.org/docs/all_settings#mode
       XDEBUG_MODE: "${XDEBUG_MODE:-off}"
       APP_ENV: "${APP_ENV:-dev}"
