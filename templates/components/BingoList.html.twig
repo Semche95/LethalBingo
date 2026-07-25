@@ -12,6 +12,21 @@
         {% for row in this.bingosBySeason %}
             {% set rounds = row.rounds|json_decode %}
             {% set season = row.season %}
+            {% set numbers = rounds|column('number') %}
+            {% set counts = numbers|reduce((carry, n) => carry|merge({(n): (carry[n] ?? 0) + 1}), {}) %}
+            {% set duplicateNumbers = counts|filter((c) => c > 1)|keys %}
+            {% set maxNum = numbers|reduce((carry, n) => carry > n ? carry : n) %}
+            {% set gaps = [] %}
+            {% for i in 1..maxNum %}
+                {% if i not in numbers %}
+                    {% set gaps = gaps|merge([i]) %}
+                {% endif %}
+            {% endfor %}
+            {% if gaps|length == 1 %}
+                {% set gapLabel = 'Le round ' ~ gaps|join(', ') ~ ' est manquant' %}
+            {% elseif gaps|length > 1 %}
+                {% set gapLabel = 'Les rounds ' ~ gaps|join(', ') ~ ' sont manquants' %}
+            {% endif %}
             <div class="{% if not loop.first %}mt-4{% endif %}">
                 <div class="season-accent season-accent-{{ loop.index0 % 6 + 1 }}">
                     <div class="d-flex align-items-center mb-2 gap-2">
@@ -25,22 +40,31 @@
 
                     <div class="d-flex flex-wrap gap-2 mb-2">
                         {% for bingo in rounds %}
-                            {% set isDuplicate = bingo.number in (this.duplicatesBySeason[season] ?? []) %}
+                            {% set comp = this.completenessIndex[bingo.id] ?? null %}
+                            {% set isDuplicate = bingo.number in duplicateNumbers %}
+                            {% set isIncomplete = (comp ? comp.square_count : 0) < constant('App\\Entity\\GameRound::EXPECTED_SQUARES') or (comp ? comp.incomplete_content : false) %}
+                            {% set tooltipParts = [] %}
+                            {% if isDuplicate %}
+                                {% set tooltipParts = tooltipParts|merge(['Doublon détecté, modifiez le numéro de round sur la fiche pour corriger']) %}
+                            {% endif %}
+                            {% if isIncomplete %}
+                                {% set tooltipParts = tooltipParts|merge(['Bingo incomplet']) %}
+                            {% endif %}
                             <a href="{{ path('app_referee_bingo_edit', {id: bingo.id}) }}"
-                               class="round-pill{% if isDuplicate %} round-pill--duplicate{% endif %}"
-                               {% if isDuplicate %}data-bs-toggle="tooltip" title="Doublon détecté, modifiez le numéro de round sur la fiche pour corriger"{% endif %}>
+                               class="round-pill{% if isDuplicate %} round-pill--duplicate{% endif %}{% if isIncomplete %} round-pill--incomplete{% endif %}"
+                               {% if tooltipParts|length > 0 %}data-bs-toggle="tooltip" title="{{ tooltipParts|join(' — ') }}"{% endif %}>
                                 Round {{ bingo.number }}
                                 {{ ux_icon('tabler:pencil', {height: '16', width: '16'}) }}
-                                {% if isDuplicate %}
+                                {% if isIncomplete or isDuplicate %}
                                     {{ ux_icon('tabler:alert-triangle', {height: '14', width: '14'}) }}
                                 {% endif %}
                             </a>
                         {% endfor %}
                     </div>
 
-                    {% if this.gapsBySeason[season] is defined and this.gapsBySeason[season] is not empty %}
+                    {% if gaps is not empty %}
                         <div class="alert alert-warning py-2 px-3 mb-0 d-flex align-items-center gap-2">
-                            <span>{{ this.gapLabelsBySeason[season] }}.</span>
+                            <span>{{ gapLabel }}.</span>
                             <form method="post"
                                   action="{{ path('app_referee_bingo_fill_gaps', {season: season}) }}"
                                   class="d-inline">

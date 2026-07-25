@@ -21,6 +21,13 @@ just dev        # Démarre Docker + Vite dev server
 just up         # Uniquement les conteneurs Docker
 ```
 
+## Vite et gestion des assets
+
+- **Ne jamais lancer automatiquement de build** des assets après une modification de fichiers frontend (TypeScript, JavaScript, CSS, images, etc.).
+- **Ne jamais lancer automatiquement `npm run dev` ni `just dev`** : le serveur de développement Vite est géré manuellement par l'utilisateur.
+- Après modification de fichiers frontend, **laisser le HMR de Vite gérer la mise à jour** en temps réel.
+- Les commandes de build (`npm run build`, `just build-assets`, `vite build` ou toute commande équivalente) ne doivent être lancées que sur **demande explicite de l'utilisateur** ou dans le cadre d'une vérification de build de production.
+
 ## Conventions de code PHP
 
 - **PHP 8.4+ obligatoire** : constructor promotion, named arguments, union/intersection types, match expressions, nullsafe operator, readonly properties, enums, first-class callable syntax
@@ -32,6 +39,8 @@ just up         # Uniquement les conteneurs Docker
 - **Pas de variables globales** sauf nécessité absolue
 - **Pas de parenthèses** autour des `new` quand on chaîne des méthodes : `$var = new ClassName()->method()`
   *(syntaxe valide depuis PHP 8.4 — vérifier que PHPStan/PHP-CS-Fixer sont configurés pour l'accepter et ne pas la signaler comme erreur)*
+- **Repository — pas de boucles PHP, DQL uniquement** : les méthodes de repository doivent retourner les résultats bruts de la requête DQL sans transformation PHP par boucle (`foreach`, `array_map`, etc.). Si un réarrangement des données est nécessaire, il doit être effectué par le service ou le contrôleur appelant, pas dans le repository. Les requêtes SQL natives (`NativeQuery`, `SQL`) sont interdites — seul le DQL est autorisé.
+- **Pas de fusion PHP quand Twig re-parcourt** : éviter d'empiler des boucles de fusion en PHP (ex. injecter des données de complétude dans un tableau JSON déjà agrégé via `json_decode` / `json_encode`) quand la donnée sera de toute façon re-parcourue en Twig pour l'affichage. Exposer plutôt les deux jeux de données bruts comme propriétés distinctes du composant et faire la jointure/logique dans le template.
 
 ## Conventions de code TypeScript / Frontend
 

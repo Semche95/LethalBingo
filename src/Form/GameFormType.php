@@ -11,7 +11,9 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class GameFormType extends AbstractType
 {
@@ -23,11 +25,41 @@ class GameFormType extends AbstractType
                 'label' => 'Équipe',
                 'placeholder' => '- Choisir -',
                 'constraints' => [new NotBlank()],
+                'attr' => [
+                    'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
+                ],
             ])
             ->add('round', EntityType::class, [
                 'class' => GameRound::class,
                 'placeholder' => '- Choisir -',
-                'constraints' => [new NotBlank()],
+                'choice_label' => function (GameRound $gameRound): string {
+                    $label = (string) $gameRound;
+
+                    if (!$gameRound->isComplete()) {
+                        $label .= ' (incomplet)';
+                    }
+
+                    return $label;
+                },
+                'choice_attr' => function (GameRound $gameRound): array {
+                    if (!$gameRound->isComplete()) {
+                        return ['disabled' => 'disabled'];
+                    }
+
+                    return [];
+                },
+                'constraints' => [
+                    new NotBlank(message: 'Veuillez sélectionner un bingo.'),
+                    new Callback(static function (?GameRound $gameRound, ExecutionContextInterface $context): void {
+                        if ($gameRound !== null && !$gameRound->isComplete()) {
+                            $context->buildViolation('Le bingo sélectionné est incomplet et ne peut pas être utilisé pour une partie.')
+                                ->addViolation();
+                        }
+                    }),
+                ],
+                'attr' => [
+                    'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
+                ],
             ]);
     }
 

@@ -1,5 +1,6 @@
 import '@hotwired/turbo'
 import { startStimulusApp, registerControllers } from 'vite-plugin-symfony/stimulus/helpers'
+import AutocompleteController from '../vendor/symfony/ux-autocomplete/assets/dist/controller.js'
 
 Turbo.setProgressBarDelay(10)
 
@@ -18,3 +19,4 @@ registerControllers(
         },
     ),
 )
+app.register('symfony--ux-autocomplete--autocomplete', AutocompleteController)

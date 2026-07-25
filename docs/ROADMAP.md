@@ -65,6 +65,11 @@
   - possibilité de désactiver complètement le timer
 - [ ] Ajouter un son déclenché au début de la partie
 
+### Gestion des rounds
+
+- [ ] Empêcher le démarrage d'un round suivant tant que le round en cours n'est pas terminé par toutes les équipes
+- [ ] Interdire la modification d'un round ou d'une équipe si une partie associée est en cours ou terminée (mais autoriser la modification pour les parties suivantes)
+
 ### Préparation des parties
 
 - [ ] Pré-remplir les cases des bingos depuis un fichier Excel avec des migrations Symfony

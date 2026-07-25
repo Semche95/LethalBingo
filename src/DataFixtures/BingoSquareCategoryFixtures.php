@@ -25,8 +25,8 @@ class BingoSquareCategoryFixtures extends Fixture
             ['autre', 4],
             ['the company', 2],
         ];
-        foreach ($categories as $i => $category) {
-            [$label, $position] = $category;
+        foreach ($categories as $i => $categoryData) {
+            [$label, $position] = $categoryData;
             $category = new BingoSquareCategory()
                 ->setLabel($label)
                 ->setPosition($position);

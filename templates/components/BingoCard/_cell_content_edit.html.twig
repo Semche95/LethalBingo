@@ -16,12 +16,11 @@
     {{ component('BingoSquareCategorySelector', {
         'name': this.squaresFieldName ~ '[' ~ row ~ '][' ~ col ~ '][category]',
         'value': square.category ?? null,
-        'required': ''
     }) }}
 </p>
 <p class="h-full mb-0">
             <textarea name="{{ this.squaresFieldName }}[{{ row }}][{{ col }}][label]"
-                      class="form-control h-full p-1" required>{{ square.label ?? '' }}</textarea>
+                      class="form-control h-full p-1">{{ square.label ?? '' }}</textarea>
     <input type="hidden"
            name="{{ this.squaresFieldName }}[{{ row }}][{{ col }}][visible]"
            value="{{ this.squareVisible(row, col) ? 1 : 0 }}"/>

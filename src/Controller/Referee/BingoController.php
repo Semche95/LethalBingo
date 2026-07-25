@@ -48,6 +48,7 @@ class BingoController extends AbstractController
             'data' => $bingoDto,
             'form' => $form,
             'mode' => 'add',
+            'duplicateCoords' => $bingoDto->duplicateCoords,
         ]);
     }
 
@@ -113,6 +114,7 @@ class BingoController extends AbstractController
             'gameRound' => $gameRound,
             'form' => $form,
             'mode' => 'edit',
+            'duplicateCoords' => $bingoDto->duplicateCoords,
         ]);
     }
 

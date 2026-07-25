@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class BingoDto
 {
+    public array $duplicateCoords = [];
+
     public function __construct(
         #[Assert\Positive]
         public ?int $season = null,
@@ -22,11 +24,25 @@ class BingoDto
     #[Assert\Callback]
     public function validate(ExecutionContextInterface $context, mixed $payload): void
     {
-        $labels = [];
-        foreach ($this->squares as $square) {
-            array_push($labels, ...array_column($square, 'label'));
+        $seen = [];
+        $duplicates = [];
+        foreach ($this->squares as $row => $cols) {
+            foreach ($cols as $col => $data) {
+                $label = $data['label'] ?? '';
+                if (is_string($label) && trim($label) !== '') {
+                    $normalized = trim($label);
+                    $coord = $row . '-' . $col;
+                    if (isset($seen[$normalized])) {
+                        $duplicates[$coord] = true;
+                        $duplicates[$seen[$normalized]] = true;
+                    } else {
+                        $seen[$normalized] = $coord;
+                    }
+                }
+            }
         }
-        if (count(array_unique($labels)) !== count($labels)) {
+        if ($duplicates !== []) {
+            $this->duplicateCoords = array_keys($duplicates);
             $context->buildViolation('Des labels sont dupliqués dans le bingo.')
                 ->atPath('squares')
                 ->addViolation();

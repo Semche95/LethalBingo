@@ -26,6 +26,8 @@ final class BingoCard extends AbstractController
     #[LiveProp]
     public array $squares;
     #[LiveProp]
+    public array $duplicateCoords = [];
+    #[LiveProp]
     public ?Game $game = null;
 
     public function __construct(

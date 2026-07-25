@@ -139,8 +139,35 @@ ul#rules > li:before {
     background: #5d9010;
 }
 
+.bingo-square-missing {
+    box-shadow: inset 0 0 0 3px var(--tblr-warning);
+}
+
+.missing-category select.form-control {
+    border-color: var(--tblr-warning);
+}
+
+.missing-label textarea.form-control {
+    border-color: var(--tblr-warning);
+}
+
+.bingo-square-duplicate {
+    box-shadow: inset 0 0 0 3px #cc2929;
+}
+
+.bingo-square-duplicate select.form-control,
+.bingo-square-duplicate textarea.form-control {
+    border-color: #cc2929;
+}
+
+#bingo-form .alert-danger {
+    background: rgba(204, 41, 41, 0.14);
+    border-color: rgba(204, 41, 41, 0.30);
+    color: #cc2929;
+}
+
 #bingo-form .bingo .bingo-square {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 3 / 2;
 }
 
 .form-control {
@@ -556,6 +583,86 @@ li.sidebar-category > span {
     100% {
         opacity: 1;
     }
+}
+
+/* ===================== */
+/* TomSelect Overrides   */
+/* ===================== */
+
+/* Match .form-control exactly */
+.ts-control {
+    padding: 0.5625rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    min-height: calc(0.5625rem + 1.25rem + 0.5625rem + var(--tblr-border-width) * 2);
+    border-color: var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    background-color: var(--tblr-bg-forms);
+}
+
+/* Single select: hide input when value is selected — only clear button allows change */
+.ts-wrapper.single.has-items .ts-control > input {
+    display: none;
+}
+
+/* Solid dropdown background */
+.ts-dropdown {
+    background: var(--tblr-body-bg);
+    border: 1px solid var(--tblr-border-color);
+}
+
+/* Visible hover on dropdown items */
+.ts-dropdown [data-selectable].option:hover,
+.ts-dropdown [data-selectable].option.active,
+.ts-dropdown .active {
+    background-color: rgba(var(--tblr-primary-rgb), 0.15) !important;
+    color: var(--tblr-body-color) !important;
+}
+[data-bs-theme="dark"] .ts-dropdown [data-selectable].option:hover,
+[data-bs-theme="dark"] .ts-dropdown [data-selectable].option.active,
+[data-bs-theme="dark"] .ts-dropdown .active {
+    background-color: rgba(var(--tblr-primary-rgb), 0.2) !important;
+    color: var(--tblr-body-color) !important;
+}
+
+/* Fix hardcoded colors from tom-select.bootstrap5.css to use BS5/Tabler variables */
+.ts-dropdown,
+.ts-control,
+.ts-control input {
+    color: var(--tblr-body-color);
+}
+
+.ts-dropdown .optgroup-header {
+    color: var(--tblr-secondary-color);
+}
+
+.ts-dropdown .create {
+    color: rgba(var(--tblr-body-color-rgb), 0.5);
+}
+
+.ts-dropdown .spinner::after {
+    border-color: var(--tblr-border-color) transparent var(--tblr-border-color) transparent;
+}
+
+.ts-wrapper.multi .ts-control > div {
+    background: var(--tblr-tertiary-bg);
+    color: var(--tblr-body-color);
+}
+
+.dropdown-header {
+    border-bottom-color: var(--tblr-border-color-translucent);
+    background: var(--tblr-tertiary-bg);
+}
+
+.dropdown-header-close {
+    color: var(--tblr-body-color);
+}
+
+.ts-wrapper.focus .ts-control,
+.focus > .ts-control {
+    border-color: var(--tblr-focus-ring-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem var(--tblr-focus-ring-color);
 }
 
 /* Notes toggle button fixed at top left of page */
@@ -1210,6 +1317,15 @@ li.sidebar-category > span {
 
 .round-pill--duplicate svg {
     color: var(--tblr-warning);
+}
+
+.round-pill--incomplete {
+    border: 1.5px solid var(--tblr-orange);
+    background: rgba(255, 145, 0, 0.08);
+}
+
+.round-pill--incomplete svg {
+    color: var(--tblr-orange);
 }
 
 /* ===================== */

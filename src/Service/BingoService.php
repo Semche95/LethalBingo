@@ -64,7 +64,7 @@ readonly class BingoService
         foreach ($gameRound->getBingoSquares() as $bingoSquare) {
             $data = [
                 'id' => $bingoSquare->getId(),
-                'category' => $bingoSquare->getCategory()->getId(),
+                'category' => $bingoSquare->getCategory()?->getId(),
                 'label' => $bingoSquare->getLabel(),
                 'visible' => $bingoSquare->isVisible() ? 1 : 0,
             ];
@@ -168,8 +168,14 @@ readonly class BingoService
                 }
                 $bingoSquare
                     ->setLabel($label)
-                    ->setVisible($visible === '1')
-                    ->setCategory($this->em->getReference(BingoSquareCategory::class, $category));
+                    ->setVisible($visible === '1');
+
+                if ($category !== null && $category !== '') {
+                    $bingoSquare->setCategory($this->em->getReference(BingoSquareCategory::class, $category));
+                } else {
+                    $bingoSquare->setCategory(null);
+                }
+
                 $this->em->persist($bingoSquare);
             }
         }

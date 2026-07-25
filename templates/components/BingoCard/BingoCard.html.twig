@@ -8,6 +8,18 @@
                 {% if not firstRow and not firstCol %}
                     {% set square = this.squares[row][col] ?? null %}
                     {% set cellClasses = cellClasses|merge(['p-1', 'bingo-square']) %}
+                    {% if this.editMode and (square is null or square.category is null or square.category == '' or square.label is null or square.label == '') %}
+                        {% set cellClasses = cellClasses|merge(['bingo-square-missing']) %}
+                    {% endif %}
+                    {% if this.editMode and square is not null and (square.category is null or square.category == '') %}
+                        {% set cellClasses = cellClasses|merge(['missing-category']) %}
+                    {% endif %}
+                    {% if this.editMode and square is not null and (square.label is null or square.label == '') %}
+                        {% set cellClasses = cellClasses|merge(['missing-label']) %}
+                    {% endif %}
+                    {% if this.editMode and this.duplicateCoords is not empty and square is not null and (row ~ '-' ~ col) in this.duplicateCoords %}
+                        {% set cellClasses = cellClasses|merge(['bingo-square-duplicate']) %}
+                    {% endif %}
                     {% if row > 1 %}
                         {% set cellClasses = cellClasses|merge(['border-top-0']) %}
                     {% endif %}

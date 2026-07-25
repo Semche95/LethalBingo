@@ -23,9 +23,27 @@
                 'data-live-action-param': 'save'
             }
         }) }}
-        {{ form_errors(form) }}
-        {{ form_errors(form.squares) }}
         <div class="card-body" id="bingo-form">
+            {% for error in form.vars.errors %}
+                <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
+                    {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                    <div>{{ error.message }}</div>
+                </div>
+            {% endfor %}
+            {% for error in form.squares.vars.errors %}
+                <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
+                    {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                    <div>{{ error.message }}</div>
+                </div>
+            {% endfor %}
+            {% if mode == 'edit' and (not gameRound.isComplete() or gameRound.hasIncompleteContent()) %}
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                    {{ ux_icon('tabler:alert-triangle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                    <div>
+                        Ce bingo est incomplet. Complétez les cases manquantes avant de pouvoir l'utiliser dans une partie.
+                    </div>
+                </div>
+            {% endif %}
             <div class="d-flex gap-3 mb-3">
                 <div>
                     {{ form_label(form.round) }}
@@ -42,6 +60,7 @@
                 'editMode': true,
                 'squares': data.squares,
                 'squaresFieldName': form.squares.vars.full_name,
+                'duplicateCoords': duplicateCoords,
             }|merge(stimulus_target('referee--bingo-form', 'bingo').toArray())) }}
         </div>
 

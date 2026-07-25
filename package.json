@@ -10,6 +10,7 @@
     "devDependencies": {
         "@hotwired/stimulus": "^3.0.0",
         "@symfony/stimulus-bridge": "^3.2.0 || ^4.0.0",
+        "@symfony/ux-autocomplete": "file:vendor/symfony/ux-autocomplete/assets",
         "@symfony/ux-live-component": "file:vendor/symfony/ux-live-component/assets",
         "@symfony/ux-turbo": "file:vendor/symfony/ux-turbo/assets",
         "@types/bootstrap": "^5.2.10",
@@ -25,6 +26,7 @@
     "dependencies": {
         "@hotwired/turbo": "^8.0.0",
         "@tabler/core": "^1.2.0",
-        "bootstrap": "^5.3.6"
+        "bootstrap": "^5.3.6",
+        "tom-select": "^2.2.2"
     }
 }

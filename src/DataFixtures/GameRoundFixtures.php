@@ -13,7 +13,7 @@ use Doctrine\Persistence\ObjectManager;
  */
 class GameRoundFixtures extends Fixture
 {
-    public const int SEASON_COUNT = 6;
+    public const int SEASON_COUNT = 1;
     public const int ROUND_COUNT = 4;
 
     /**

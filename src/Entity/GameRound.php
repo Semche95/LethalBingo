@@ -11,6 +11,10 @@ use Stringable;
 #[ORM\Entity(repositoryClass: GameRoundRepository::class)]
 class GameRound implements Stringable
 {
+    public const int MAX_ROWS = 5;
+    public const int MAX_COLS = 5;
+    public const int EXPECTED_SQUARES = self::MAX_ROWS * self::MAX_COLS;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -128,6 +132,44 @@ class GameRound implements Stringable
         $this->season = $season;
 
         return $this;
+    }
+
+    public function isComplete(): bool
+    {
+        return $this->bingoSquares->count() === self::EXPECTED_SQUARES;
+    }
+
+    public function hasIncompleteContent(): bool
+    {
+        foreach ($this->bingoSquares as $square) {
+            if ($square->getCategory() === null || trim($square->getLabel() ?? '') === '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getMissingSquares(): array
+    {
+        $existing = [];
+        foreach ($this->bingoSquares as $square) {
+            $existing[$square->getRow() . '-' . $square->getCol()] = true;
+        }
+
+        $missing = [];
+        for ($row = 1; $row <= self::MAX_ROWS; $row++) {
+            for ($col = 1; $col <= self::MAX_COLS; $col++) {
+                if (!isset($existing[$row . '-' . $col])) {
+                    $missing[] = BingoSquare::getRowLetter($row) . $col;
+                }
+            }
+        }
+
+        return $missing;
     }
 
     public function __toString(): string

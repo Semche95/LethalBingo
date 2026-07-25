@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Stringable;
 
 #[ORM\Entity(repositoryClass: BingoSquareRepository::class)]
-#[ORM\UniqueConstraint(fields: ['round', 'label'])]
 #[ORM\UniqueConstraint(fields: ['round', 'row', 'col'])]
 class BingoSquare implements Stringable
 {
@@ -37,19 +36,18 @@ class BingoSquare implements Stringable
     private ?GameRound $round = null;
 
     #[ORM\ManyToOne(inversedBy: 'bingoSquares')]
-    #[ORM\JoinColumn(nullable: false)]
     private ?BingoSquareCategory $category = null;
 
     /**
      * @var Collection<int, BingoSquareValidated>
      */
-    #[ORM\OneToMany(targetEntity: BingoSquareValidated::class, mappedBy: 'bingoSquare')]
+    #[ORM\OneToMany(targetEntity: BingoSquareValidated::class, mappedBy: 'bingoSquare', cascade: ['remove'])]
     private Collection $bingoSquareValidated;
 
     /**
      * @var Collection<int, BingoSquareRevealed>
      */
-    #[ORM\OneToMany(targetEntity: BingoSquareRevealed::class, mappedBy: 'bingoSquare')]
+    #[ORM\OneToMany(targetEntity: BingoSquareRevealed::class, mappedBy: 'bingoSquare', cascade: ['remove'])]
     private Collection $bingoSquareRevealed;
 
     public function __construct()

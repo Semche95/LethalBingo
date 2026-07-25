@@ -14,21 +14,25 @@ use Doctrine\Persistence\ObjectManager;
  */
 class TeamFixtures extends Fixture
 {
-    use FakerTrait;
-
     /**
      * Load teams data.
      */
     public function load(ObjectManager $manager): void
     {
-        $faker = self::getFaker();
-        for ($i = 0; $i < 4; $i++) {
-            $team = new Team()
-                ->setName($faker->text(50));
-            for ($j = 0; $j < 3; $j++) {
+        $teams = [
+            ['Ministère du quota', ['VoidWalker', 'Kairo', 'Biscotte', 'Solstice']],
+            ['Les bras cassés', ['Tofu', 'BrokenCompass', 'Nox', 'Cactus']],
+            ['Service des pertes acceptables', ['Torque', 'Moka', 'Warden', 'DeadPixel']],
+            ['Les chasseurs de bracken', ['Flint', 'Kuma', 'Echo', 'Pika']],
+            ['Les collectionneurs d\'apparatus', ['CopperHead', 'Zephyr', 'Arctis', 'Crow']],
+        ];
+        foreach ($teams as $teamData) {
+            [$name, $members] = $teamData;
+            $team = new Team()->setName($name);
+            foreach ($members as $i => $memberName) {
                 $member = new TeamMember()
-                    ->setCaptain($j === 0)
-                    ->setName($faker->firstName);
+                    ->setCaptain($i === 0)
+                    ->setName($memberName);
                 $team->addMember($member);
             }
             $manager->persist($team);

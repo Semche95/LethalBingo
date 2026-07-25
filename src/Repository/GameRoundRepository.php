@@ -57,4 +57,19 @@ class GameRoundRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return list<array{round_id: int, square_count: int, incomplete_count: int}>
+     */
+    public function findSquareCompleteness(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->select('r.id AS round_id')
+            ->addSelect('COUNT(bs.id) AS square_count')
+            ->addSelect('SUM(CASE WHEN bs.label IS NULL OR bs.label = \'\' OR bs.category IS NULL THEN 1 ELSE 0 END) AS incomplete_count')
+            ->leftJoin('r.bingoSquares', 'bs')
+            ->groupBy('r.id')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
