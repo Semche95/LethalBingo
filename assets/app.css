@@ -1426,6 +1426,7 @@ li.sidebar-category > span {
 
 .game-grid thead th.game-grid-team-header {
     border-left: 3px solid var(--team-color, transparent) !important;
+    text-align: center;
 }
 
 .game-grid tbody tr:nth-child(odd) td {
