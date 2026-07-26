@@ -1359,20 +1359,21 @@ li.sidebar-category > span {
 .season-toggle-btn {
     cursor: pointer;
     border: none;
-    background: none;
+    background: transparent;
     width: 100%;
     text-align: left;
     color: inherit;
     padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
     transition: background-color 0.15s;
 }
 
 .season-toggle-btn:hover {
-    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+    background-color: rgba(0, 0, 0, 0.03);
 }
 
 [data-bs-theme="dark"] .season-toggle-btn:hover {
-    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+    background-color: rgba(255, 255, 255, 0.04);
 }
 
 .season-toggle-icon {
@@ -1394,72 +1395,67 @@ li.sidebar-category > span {
 .game-grid {
     table-layout: fixed;
     width: 100%;
+    --tblr-table-hover-bg: transparent;
+    --tblr-table-accent-bg: transparent;
+    border: none !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.game-grid th,
+.game-grid td {
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .game-grid thead th {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--tblr-muted-fg);
-    background: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.03));
-    border-bottom: 2px solid var(--tblr-border-color);
-    padding: 0.6rem 0.75rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: left;
+    padding: 12px 10px;
+    background: #1c2432;
+    color: #d6d9de;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
-[data-bs-theme="dark"] .game-grid thead th {
-    background: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.04));
+.game-grid thead th.game-grid-round-header {
+    background: transparent;
+    width: 80px;
 }
 
-.game-grid-round-header {
-    width: 90px;
-    white-space: nowrap;
+.game-grid thead th.game-grid-team-header {
+    border-left: 3px solid var(--team-color, transparent) !important;
 }
 
-.game-grid-team-header {
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.game-grid tbody tr:nth-child(odd) td {
+    background: var(--tblr-body-bg);
 }
 
-.game-grid-team-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 0.35em;
+.game-grid tbody tr:nth-child(even) td {
+    background: #1a2130;
+}
+
+.game-grid tbody tr:nth-child(odd) td.game-grid-cell--clickable:hover,
+.game-grid tbody tr:nth-child(even) td.game-grid-cell--clickable:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.game-grid tbody td {
+    padding: 10px;
+    font-size: 14px;
     vertical-align: middle;
 }
 
-.game-grid {
-    --tblr-table-hover-bg: transparent;
-    --tblr-table-accent-bg: transparent;
+.game-grid tbody td:first-child {
+    color: #8b93a1;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .game-grid tbody tr {
     cursor: default !important;
-}
-
-.game-grid tbody td {
-    padding: 0;
-    vertical-align: middle;
-}
-
-.game-grid-round-cell {
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: var(--tblr-body-color);
-    white-space: nowrap;
-    background: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.02));
-    padding: 0.5rem 0.75rem;
-}
-
-[data-bs-theme="dark"] .game-grid-round-cell {
-    background: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.03));
 }
 
 .game-grid-cell {
@@ -1471,12 +1467,11 @@ li.sidebar-category > span {
     transition: background-color 0.15s;
 }
 
-.game-grid-cell--clickable:hover {
-    background-color: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
-}
-
-[data-bs-theme="dark"] .game-grid-cell--clickable:hover {
-    background-color: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+.game-grid-cell--clickable:focus-visible {
+    outline: 2px solid var(--tblr-primary, #206bc4);
+    outline-offset: -2px;
+    z-index: 1;
+    position: relative;
 }
 
 .game-grid-cell .badge {
@@ -1486,18 +1481,19 @@ li.sidebar-category > span {
 }
 
 .game-grid-cell .badge.bg-blue-lt {
-    background: rgba(51, 154, 240, 0.2) !important;
-    color: #74c0fc !important;
+    background: #1e3a5f !important;
+    color: #7cb9f5 !important;
 }
 
 .game-grid-cell .badge.bg-secondary-lt {
-    background: rgba(134, 142, 150, 0.25) !important;
-    color: #ced4da !important;
+    background: transparent !important;
+    color: #8b93a1 !important;
+    border: 0.5px solid #384252;
 }
 
 .game-grid-cell .badge.bg-green-lt {
-    background: rgba(81, 207, 102, 0.2) !important;
-    color: #8ce99a !important;
+    background: #1c3d2c !important;
+    color: #5fd68a !important;
 }
 
 .game-grid-cell .badge svg {

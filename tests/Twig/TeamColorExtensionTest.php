@@ -48,18 +48,18 @@ class TeamColorExtensionTest extends TestCase
     public function testGetTeamColorCyclesThroughPalette(): void
     {
         $color0 = $this->extension->getTeamColor(0);
-        $color6 = $this->extension->getTeamColor(6);
+        $color10 = $this->extension->getTeamColor(10);
 
-        $this->assertSame($color0, $color6, 'Colors should cycle (modulo 6)');
+        $this->assertSame($color0, $color10, 'Colors should cycle (modulo 10)');
     }
 
     public function testGetTeamColorReturnsDifferentColorsForConsecutiveIds(): void
     {
         $colors = [];
-        for ($i = 0; $i < 6; ++$i) {
+        for ($i = 0; $i < 10; ++$i) {
             $colors[] = $this->extension->getTeamColor($i);
         }
 
-        $this->assertCount(6, array_unique($colors), 'All 6 palette colors should be unique');
+        $this->assertCount(10, array_unique($colors), 'All 10 palette colors should be unique');
     }
 }

@@ -30,9 +30,9 @@
                     g.round_number in acc ? acc : acc|merge([g.round_number]),
                 [])|sort %}
 
-                <div class="card mb-3">
+                <div class="game-grid-season mb-3">
                     <button
-                        class="season-toggle-btn card-header d-flex align-items-center gap-2"
+                        class="season-toggle-btn d-flex align-items-center gap-2"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#{{ seasonId }}"
@@ -50,61 +50,58 @@
                         data-season="{{ season }}"
                         data-referee--game-season-accordion-target="panel"
                     >
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-vcenter card-table game-grid">
-                                    <thead>
+                        <div class="table-responsive">
+                            <table class="table table-vcenter game-grid">
+                                <thead>
+                                    <tr>
+                                        <th class="game-grid-round-header"></th>
+                                        {% for team in teams %}
+                                            <th
+                                                class="game-grid-team-header"
+                                                title="{{ team.name }}"
+                                                style="--team-color: {{ team_color(team.id) }}"
+                                            >{{ team.name }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for roundNumber in roundNumbers %}
                                         <tr>
-                                            <th class="game-grid-round-header"></th>
+                                            <td class="game-grid-round-cell">Round {{ roundNumber }}</td>
                                             {% for team in teams %}
-                                                <th class="game-grid-team-header" title="{{ team.name }}">
-                                                    <span
-                                                        class="game-grid-team-dot"
-                                                        style="background-color: {{ team_color(team.id) }}"
-                                                    ></span>
-                                                    {{ team.name }}
-                                                </th>
+                                                {% set key = season ~ '_' ~ roundNumber ~ '_' ~ team.id %}
+                                                {% set cell = gameIndex[key] ?? null %}
+                                                {% if cell is not null and cell.game_id is not null %}
+                                                    <td
+                                                        class="game-grid-cell game-grid-cell--clickable"
+                                                        data-game-url="{{ path('app_referee_game_edit', {id: cell.game_id}) }}"
+                                                        tabindex="0"
+                                                    >
+                                                {% else %}
+                                                    <td class="game-grid-cell">
+                                                {% endif %}
+                                                        {% if cell is not null and cell.game_id is not null %}
+                                                            {% if cell.finishedAt is not null %}
+                                                                <span class="badge bg-green-lt">
+                                                                    {{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ cell.finishedAt|format_game_date }}
+                                                                </span>
+                                                            {% elseif cell.startedAt is not null %}
+                                                                <span class="badge bg-blue-lt">
+                                                                    {{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ cell.startedAt|format_game_date }}
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary-lt">
+                                                                    {{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}à venir
+                                                                </span>
+                                                            {% endif %}
+                                                            {{ ux_icon('tabler:pencil', {class: 'game-grid-pencil-icon'}) }}
+                                                        {% endif %}
+                                                    </td>
                                             {% endfor %}
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for roundNumber in roundNumbers %}
-                                            <tr>
-                                                <td class="game-grid-round-cell">Round {{ roundNumber }}</td>
-                                                {% for team in teams %}
-                                                    {% set key = season ~ '_' ~ roundNumber ~ '_' ~ team.id %}
-                                                    {% set cell = gameIndex[key] ?? null %}
-                                                    {% if cell is not null and cell.game_id is not null %}
-                                                        <td
-                                                            class="game-grid-cell game-grid-cell--clickable"
-                                                            data-game-url="{{ path('app_referee_game_edit', {id: cell.game_id}) }}"
-                                                        >
-                                                    {% else %}
-                                                        <td class="game-grid-cell">
-                                                    {% endif %}
-                                                            {% if cell is not null and cell.game_id is not null %}
-                                                                {% if cell.finishedAt is not null %}
-                                                                    <span class="badge bg-green-lt">
-                                                                        {{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ cell.finishedAt }}
-                                                                    </span>
-                                                                {% elseif cell.startedAt is not null %}
-                                                                    <span class="badge bg-blue-lt">
-                                                                        {{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ cell.startedAt }}
-                                                                    </span>
-                                                                {% else %}
-                                                                    <span class="badge bg-secondary-lt">
-                                                                        {{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}à venir
-                                                                    </span>
-                                                                {% endif %}
-                                                                {{ ux_icon('tabler:pencil', {class: 'game-grid-pencil-icon'}) }}
-                                                            {% endif %}
-                                                        </td>
-                                                {% endfor %}
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
