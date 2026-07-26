@@ -16,13 +16,12 @@ class JsonExtensionTest extends TestCase
         $this->extension = new JsonExtension();
     }
 
-    public function testGetFiltersReturnsTwoFilters(): void
+    public function testGetFiltersReturnsOneFilter(): void
     {
         $filters = $this->extension->getFilters();
 
-        $this->assertCount(2, $filters);
+        $this->assertCount(1, $filters);
         $this->assertSame('json_decode', $filters[0]->getName());
-        $this->assertSame('format_game_date', $filters[1]->getName());
     }
 
     public function testJsonDecodeFilterDecodesValidJson(): void
