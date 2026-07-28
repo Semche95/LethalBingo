@@ -56,7 +56,7 @@ class GameRepository extends ServiceEntityRepository
             ->join('g.team', 't')
             ->orderBy('r.season', 'DESC')
             ->addOrderBy('r.number', 'ASC')
-            ->addOrderBy('t.id', 'ASC')
+            ->addOrderBy('t.name', 'ASC')
             ->getQuery()
             ->getScalarResult();
     }

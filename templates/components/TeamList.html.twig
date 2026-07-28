@@ -1,4 +1,6 @@
-<div {{ attributes }}>
+<div {{ attributes }}
+     data-action="team:added@document->live#action team:updated@document->live#action"
+     data-live-action-param="loadTeams">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="dashboard-title">Équipes</h1>
         <div class="d-flex align-items-center gap-3">
@@ -13,7 +15,10 @@
                     data-live-debounce="300"
                 >
             </div>
-            <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary flex-shrink-0">
+            <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary flex-shrink-0"
+               data-controller="modal-loader"
+               data-action="click->modal-loader#open"
+               data-modal-loader-title-value="Nouvelle équipe">
                 {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
             </a>
         </div>
@@ -32,7 +37,10 @@
                 <div class="team-card" style="border-top: 3px solid {{ team_color(team.id) }};">
                     <div class="team-card-header">
                         <span class="team-card-name">{{ team.name }}</span>
-                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon" title="Modifier l'équipe">
+                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon" title="Modifier l'équipe"
+                           data-controller="modal-loader"
+                           data-action="click->modal-loader#open"
+                           data-modal-loader-title-value="Modifier l'équipe">
                             {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
                         </a>
                     </div>

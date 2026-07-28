@@ -24,7 +24,7 @@
 
                 {% set teams = this.games|filter(g => g.season == season)|reduce((acc, g) =>
                     g.team_id in acc|column('id') ? acc : acc|merge([{id: g.team_id, name: g.team_name}]),
-                []) %}
+                [])|sort((a, b) => a.name|lower <=> b.name|lower) %}
 
                 {% set roundNumbers = this.games|filter(g => g.season == season)|reduce((acc, g) =>
                     g.round_number in acc ? acc : acc|merge([g.round_number]),

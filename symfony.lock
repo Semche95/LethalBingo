@@ -339,6 +339,9 @@
             "config/routes/ux_live_component.yaml"
         ]
     },
+    "symfony/ux-toolkit": {
+        "version": "v2.36.1"
+    },
     "symfony/ux-turbo": {
         "version": "2.31",
         "recipe": {

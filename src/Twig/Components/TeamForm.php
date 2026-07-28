@@ -4,10 +4,10 @@ namespace App\Twig\Components;
 
 use App\Entity\Team;
 use App\Form\TeamFormType;
+use App\Repository\TeamMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -16,6 +16,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\LiveCollectionTrait;
+use Symfony\UX\LiveComponent\LiveResponder;
 
 #[AsLiveComponent]
 final class TeamForm extends AbstractController
@@ -29,6 +30,15 @@ final class TeamForm extends AbstractController
     #[LiveProp]
     public string $mode;
 
+    #[LiveProp]
+    public bool $modalMode = false;
+
+    public function __construct(
+        private readonly LiveResponder $liveResponder,
+        private readonly TeamMemberRepository $teamMemberRepository,
+    ) {
+    }
+
     protected function instantiateForm(): FormInterface
     {
         return $this->createForm(
@@ -39,7 +49,7 @@ final class TeamForm extends AbstractController
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
-    public function save(EntityManagerInterface $em): RedirectResponse
+    public function save(EntityManagerInterface $em)
     {
         $this->submitForm();
 
@@ -47,6 +57,20 @@ final class TeamForm extends AbstractController
         $team = $this->getForm()->getData();
         $em->persist($team);
         $em->flush();
+
+        if ($this->modalMode) {
+            $this->liveResponder->dispatchBrowserEvent(
+                $this->mode === 'edit' ? 'team:updated' : 'team:added',
+                [
+                    'id' => $team->getId(),
+                    'name' => $team->getName(),
+                    'members' => $this->teamMemberRepository->findNamesByTeamOrdered($team->getId()),
+                    'flash' => ['type' => 'success', 'message' => 'Équipe enregistrée'],
+                ],
+            );
+
+            return;
+        }
 
         $this->addFlash('success', 'Équipe enregistrée');
 

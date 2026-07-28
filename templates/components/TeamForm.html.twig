@@ -5,10 +5,13 @@
             'data-live-action-param': 'save'
         }
     }) }}
+    {% if modalMode %}
+        <input type="hidden" name="modalMode" value="1">
+    {% endif %}
     {{ form_errors(form) }}
     <div class="card-body">
         <div class="mb-3">
-            {{ form_label(form.name, 'Nom de l\'équipe', {label_attr: {class: 'form-label'}}) }}
+            {{ form_label(form.name, 'Nom de l\'équipe', {label_attr: {class: 'form-label text-nowrap'}}) }}
             {{ form_widget(form.name) }}
             {{ form_errors(form.name) }}
         </div>
@@ -49,7 +52,7 @@
                                 {{ ux_icon('tabler:crown', {height: '18', width: '18'}) }}
                             </button>
                         </td>
-                        <td class="text-end td-shrink">
+                        <td class="align-middle text-end td-shrink">
                             {{ form_widget(member_form.vars.button_delete, {
                                 label: ux_icon('tabler:trash', {height: '18', width: '18'}),
                                 label_html: true,
@@ -68,13 +71,17 @@
             </table>
         </div>
     </div>
-    <div class="card-footer">
+    <div class="card-footer mt-3">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex gap-2 align-items-center">
-                <a href="{{ path('app_referee_team') }}" class="btn btn-outline-secondary">Retour</a>
+                {% if modalMode %}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                {% else %}
+                    <a href="{{ path('app_referee_team') }}" class="btn btn-outline-secondary">Retour</a>
+                {% endif %}
                 {% if mode == 'edit' %}
                     <span class="text-muted mx-1">|</span>
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-team-modal">
+                    <button type="button" class="btn btn-outline-danger" data-action="click->referee--team-form#openDeleteModal">
                         {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
                     </button>
                 {% endif %}

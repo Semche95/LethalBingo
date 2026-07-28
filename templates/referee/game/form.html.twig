@@ -25,14 +25,19 @@
                     {{ form_errors(form.round) }}
                 </div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-3" {{ stimulus_target('referee--game-form', 'team') }}>
                 {{ form_label(form.team) }}
                 <div class="col-sm-3">
                     {{ form_widget(form.team) }}
                 </div>
-                <div class="col-sm-6 d-flex align-items-center">
-                    <a href="{{ path('app_referee_team_add') }}">Ajouter une équipe</a>
-                </div>
+                {% if mode == 'add' or game.finishedAt is null %}
+                    <div class="col-sm-6 d-flex align-items-center">
+                        <a href="{{ path('app_referee_team_add') }}"
+                           data-controller="modal-loader"
+                           data-action="click->modal-loader#open"
+                           data-modal-loader-title-value="Nouvelle équipe">Ajouter une équipe</a>
+                    </div>
+                {% endif %}
                 <div class="offset-sm-2 col-sm-10">
                     {{ form_errors(form.team) }}
                 </div>

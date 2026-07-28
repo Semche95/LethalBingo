@@ -25,10 +25,18 @@ class TeamController extends AbstractController
     }
 
     #[Route('/add', name: 'app_referee_team_add')]
-    public function add(): Response
+    public function add(Request $request): Response
     {
         $team = new Team();
         $team->addMember(new TeamMember()->setCaptain(true));
+
+        if ($request->headers->has('X-Fragment-Request')) {
+            return $this->render('referee/team/_fragment.html.twig', [
+                'team' => $team,
+                'mode' => 'add',
+            ]);
+        }
+
         return $this->render('referee/team/form.html.twig', [
             'team' => $team,
             'mode' => 'add',
@@ -36,8 +44,15 @@ class TeamController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_referee_team_edit', requirements: ['id' => '\d+'])]
-    public function edit(Team $team): Response
+    public function edit(Team $team, Request $request): Response
     {
+        if ($request->headers->has('X-Fragment-Request')) {
+            return $this->render('referee/team/_fragment.html.twig', [
+                'team' => $team,
+                'mode' => 'edit',
+            ]);
+        }
+
         return $this->render('referee/team/form.html.twig', [
             'team' => $team,
             'mode' => 'edit',

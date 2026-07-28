@@ -2,6 +2,7 @@ import { Component, getComponent } from '@symfony/ux-live-component'
 import { Controller } from '@hotwired/stimulus'
 import { Context } from '@hotwired/stimulus/dist/types/core/context'
 import { focusFirstInput } from '../../utils'
+import { Modal } from 'bootstrap'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -69,5 +70,12 @@ export default class extends Controller<HTMLDivElement> {
         this.buttonTargets.forEach((button, i) => {
             button.classList.toggle('btn-captain-active', i === index)
         })
+    }
+
+    openDeleteModal(): void {
+        const modalEl = document.getElementById('delete-team-modal')
+        if (!modalEl) return
+
+        Modal.getOrCreateInstance(modalEl).show()
     }
 }

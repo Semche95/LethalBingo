@@ -8,19 +8,21 @@ export function initTooltips(elements: NodeListOf<HTMLElement>) {
 }
 
 export function initToasts(elements: NodeListOf<HTMLElement>) {
-    elements.forEach((toast) => {
-        requestAnimationFrame(() => {
-            toast.classList.add('toast-visible')
-        })
+    elements.forEach((toast) => initToast(toast))
+}
 
-        toast.addEventListener('click', (event) => {
-            if ((event.target as HTMLElement).closest('.btn-close')) {
-                dismissToast(toast)
-            }
-        })
-
-        setTimeout(() => dismissToast(toast), TOAST_DELAY)
+function initToast(toast: HTMLElement): void {
+    requestAnimationFrame(() => {
+        toast.classList.add('toast-visible')
     })
+
+    toast.addEventListener('click', (event) => {
+        if ((event.target as HTMLElement).closest('.btn-close')) {
+            dismissToast(toast)
+        }
+    })
+
+    setTimeout(() => dismissToast(toast), TOAST_DELAY)
 }
 
 function dismissToast(toast: HTMLElement): void {
@@ -30,6 +32,30 @@ function dismissToast(toast: HTMLElement): void {
     toast.classList.remove('toast-visible')
     toast.classList.add('toast-slide-out')
     setTimeout(() => toast.remove(), TOAST_ANIMATION_DURATION)
+}
+
+export function showToast(message: string, type: string = 'success'): void {
+    const container = document.querySelector('.toast-container')
+    if (!container) {
+        return
+    }
+
+    const toast = document.createElement('div')
+    toast.className = `toast show align-items-center toast-outline toast-outline-${type}`
+    toast.setAttribute('role', 'alert')
+    toast.setAttribute('aria-live', 'assertive')
+    toast.setAttribute('aria-atomic', 'true')
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-progress">
+            <div class="toast-progress-bar toast-progress-bar-${type}"></div>
+        </div>
+    `
+    container.appendChild(toast)
+    initToast(toast)
 }
 
 export function focusFirstInput(container: HTMLElement) {

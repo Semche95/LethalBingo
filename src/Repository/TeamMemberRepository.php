@@ -15,4 +15,19 @@ class TeamMemberRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, TeamMember::class);
     }
+
+    /**
+     * @return string[]
+     */
+    public function findNamesByTeamOrdered(int $teamId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->select('m.name')
+            ->where('m.team = :teamId')
+            ->setParameter('teamId', $teamId)
+            ->orderBy('m.captain', 'DESC')
+            ->addOrderBy('m.name', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
 }

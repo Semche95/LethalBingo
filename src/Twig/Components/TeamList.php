@@ -7,6 +7,7 @@ namespace App\Twig\Components;
 use App\Repository\TeamRepository;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
+use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -34,6 +35,7 @@ final class TeamList
         $this->loadTeams();
     }
 
+    #[LiveAction]
     public function loadTeams(): void
     {
         $this->teams = $this->teamRepository->findWithMembers($this->search !== '' ? $this->search : null);
