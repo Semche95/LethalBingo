@@ -9,23 +9,23 @@ importers:
   .:
     dependencies:
       '@hotwired/turbo':
-        specifier: ^8.0.0
+        specifier: ^8.0.23
         version: 8.0.23
       '@tabler/core':
-        specifier: ^1.2.0
+        specifier: ^1.4.0
         version: 1.4.0
       bootstrap:
-        specifier: ^5.3.6
+        specifier: ^5.3.8
         version: 5.3.8(@popperjs/core@2.11.8)
       tom-select:
-        specifier: ^2.2.2
+        specifier: ^2.6.2
         version: 2.6.2
     devDependencies:
       '@hotwired/stimulus':
-        specifier: ^3.0.0
+        specifier: ^3.2.2
         version: 3.2.2
       '@symfony/stimulus-bridge':
-        specifier: ^3.2.0 || ^4.0.0
+        specifier: ^4.0.1
         version: 4.0.1(@hotwired/stimulus@3.2.2)
       '@symfony/ux-autocomplete':
         specifier: file:vendor/symfony/ux-autocomplete/assets
@@ -37,7 +37,7 @@ importers:
         specifier: file:vendor/symfony/ux-turbo/assets
         version: file:vendor/symfony/ux-turbo/assets(@hotwired/stimulus@3.2.2)(@hotwired/turbo@8.0.23)
       '@types/bootstrap':
-        specifier: ^5.2.10
+        specifier: ^5.2.11
         version: 5.2.11
       jsdom:
         specifier: ^25.0.1
@@ -46,19 +46,16 @@ importers:
         specifier: ^3.10.1
         version: 3.10.1
       pdfmake:
-        specifier: ^0.2.20
+        specifier: ^0.2.23
         version: 0.2.23
-      tsc:
-        specifier: ^2.0.4
-        version: 2.0.4
       typescript:
-        specifier: ^5.8.3
+        specifier: ^5.9.3
         version: 5.9.3
       vite:
         specifier: ^6.4.3
         version: 6.4.3
       vite-plugin-symfony:
-        specifier: ^8.0
+        specifier: ^8.2.4
         version: 8.2.4(vite@6.4.3)
       vitest:
         specifier: ^3.2.7
@@ -1088,11 +1085,6 @@ packages:
   tr46@5.1.1:
     resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
     engines: {node: '>=18'}
-
-  tsc@2.0.4:
-    resolution: {integrity: sha512-fzoSieZI5KKJVBYGvwbVZs/J5za84f2lSTLPYf6AGiIf43tZ3GNrI1QzTLcjtyDDP4aLxd46RTZq1nQxe7+k5Q==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    hasBin: true
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -2178,8 +2170,6 @@ snapshots:
   tr46@5.1.1:
     dependencies:
       punycode: 2.3.1
-
-  tsc@2.0.4: {}
 
   typescript@5.9.3: {}
 
