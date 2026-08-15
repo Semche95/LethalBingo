@@ -20,3 +20,4 @@
 ###< pentatrion/vite-bundle ###
 /.vite/
 /.junie/
+/certs/
