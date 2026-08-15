@@ -10,7 +10,7 @@ just sf lint:container       # Vérification du conteneur de services
 ## Prérequis
 
 - PHP 8.4+
-- Node.js + npm
+- Node.js + pnpm
 - Docker + Docker Compose
 - just (task runner)
 
@@ -24,9 +24,9 @@ just up         # Uniquement les conteneurs Docker
 ## Vite et gestion des assets
 
 - **Ne jamais lancer automatiquement de build** des assets après une modification de fichiers frontend (TypeScript, JavaScript, CSS, images, etc.).
-- **Ne jamais lancer automatiquement `npm run dev` ni `just dev`** : le serveur de développement Vite est géré manuellement par l'utilisateur.
+- **Ne jamais lancer automatiquement `pnpm run dev` ni `just dev`** : le serveur de développement Vite est géré manuellement par l'utilisateur.
 - Après modification de fichiers frontend, **laisser le HMR de Vite gérer la mise à jour** en temps réel.
-- Les commandes de build (`npm run build`, `just build-assets`, `vite build` ou toute commande équivalente) ne doivent être lancées que sur **demande explicite de l'utilisateur** ou dans le cadre d'une vérification de build de production.
+- Les commandes de build (`pnpm run build`, `just build-assets`, `vite build` ou toute commande équivalente) ne doivent être lancées que sur **demande explicite de l'utilisateur** ou dans le cadre d'une vérification de build de production.
 
 ## Conventions de code PHP
 

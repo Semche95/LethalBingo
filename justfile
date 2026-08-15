@@ -35,9 +35,9 @@ ps *args:
 restart *args:
     @docker compose restart {{args}}
 
-# Installe les dépendances npm (privilégie npm ci si un lockfile est présent)
+# Installe les dépendances pnpm
 install:
-    if [ -f package-lock.json ]; then npm ci; else npm install; fi
+    @pnpm install --frozen-lockfile
 
 # Proxy pour exécuter des commandes Composer, ex: `just composer install`
 composer +args:
@@ -81,11 +81,11 @@ sql sql:
 
 # Lance les conteneurs Docker puis le serveur de dev (Vite) côté frontend
 dev: up
-    @npm run dev
+    @pnpm run dev
 
 # Build des assets pour la production
 build-assets:
-    @npm run build
+    @pnpm run build
 
 # Affiche l'aide de ce justfile
 help:

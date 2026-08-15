@@ -154,7 +154,7 @@ flowchart LR
 ### Prerequisites
 
 - PHP 8.4+
-- Node.js + npm
+- Node.js + pnpm
 - Docker + Docker Compose
 - [just](https://github.com/casey/just) (task runner)
 
@@ -166,7 +166,7 @@ git clone https://github.com/Semche95/LethalBingo.git
 cd LethalBingo
 
 # Install JS dependencies
-npm ci
+pnpm install
 
 # Create .env.local with your secrets
 cp .env .env.local
