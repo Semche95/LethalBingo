@@ -1,11 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
-    connect() {
+    override connect() {
         this.element.addEventListener('change', this.blur)
     }
 
-    disconnect() {
+    override disconnect() {
         this.element.removeEventListener('change', this.blur)
     }
 
