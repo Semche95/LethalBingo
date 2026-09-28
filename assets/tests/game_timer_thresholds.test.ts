@@ -3,6 +3,7 @@ import {
     computeAlertColor,
     createThresholdState,
     evaluateThresholds,
+    listUpcomingAlerts,
 } from '../controllers/game/game_timer_thresholds'
 
 const DURATION = 3600 // 1 hour
@@ -218,5 +219,40 @@ describe('evaluateThresholds (sound)', () => {
         expect(evaluateThresholds(59, DURATION, state)).toBe('danger')
         expect(evaluateThresholds(1, DURATION, state)).toBeNull()
         expect(evaluateThresholds(0, DURATION, state)).toBe('end')
+    })
+})
+describe('listUpcomingAlerts', () => {
+    it('lists every remaining alert in order, at the moment the display drops below each threshold', () => {
+        // 00:10:00.5 remaining: 10:00 is shown until 599 s are left.
+        expect(listUpcomingAlerts(600.5, DURATION)).toEqual([
+            { alert: 'warning', inSeconds: 1.5 },
+            { alert: 'danger', inSeconds: 301.5 },
+            { alert: 'danger', inSeconds: 421.5 },
+            { alert: 'danger', inSeconds: 541.5 },
+            { alert: 'end', inSeconds: 600.5 },
+        ])
+    })
+
+    it('skips the full duration and the thresholds already crossed', () => {
+        const alerts = listUpcomingAlerts(3600, DURATION)
+
+        expect(alerts.filter(({ alert }) => alert === 'warning').map(({ inSeconds }) => inSeconds))
+            .toEqual([601, 1201, 1801, 2401, 3001])
+        expect(listUpcomingAlerts(0, DURATION)).toEqual([])
+    })
+
+    it('agrees with evaluateThresholds on when each alert fires', () => {
+        const exactRemaining = 3600
+        const state = createThresholdState()
+        const fired: Array<{ alert: string, inSeconds: number }> = []
+
+        for (let elapsed = 0; elapsed <= 3601; elapsed += 0.25) {
+            const alert = evaluateThresholds(Math.max(0, Math.ceil(exactRemaining - elapsed)), DURATION, state)
+            if (alert) {
+                fired.push({ alert, inSeconds: elapsed })
+            }
+        }
+
+        expect(fired).toEqual(listUpcomingAlerts(exactRemaining, DURATION))
     })
 })

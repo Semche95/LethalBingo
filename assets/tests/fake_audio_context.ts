@@ -8,7 +8,10 @@ export class FakeAudioContext extends EventTarget {
 
     state: AudioContextState = FakeAudioContext.initialState
     destination = {}
+    currentTime = 0
     played: unknown[] = []
+    // Every started sound with its start time on the audio clock.
+    starts: Array<{ buffer: unknown, when: number, stopped: boolean }> = []
     resume = vi.fn(async () => this.setState('running'))
     close = vi.fn(async () => this.setState('closed'))
     decodeAudioData = vi.fn(async (data: ArrayBuffer) => ({ decodedFrom: data }))
@@ -19,10 +22,21 @@ export class FakeAudioContext extends EventTarget {
     }
 
     createBufferSource() {
+        let started: { buffer: unknown, when: number, stopped: boolean } | null = null
         const source = {
             buffer: null as unknown,
+            onended: null as (() => void) | null,
             connect: vi.fn(),
-            start: vi.fn(() => this.played.push(source.buffer)),
+            start: vi.fn((when: number = 0) => {
+                this.played.push(source.buffer)
+                started = { buffer: source.buffer, when, stopped: false }
+                this.starts.push(started)
+            }),
+            stop: vi.fn(() => {
+                if (started) {
+                    started.stopped = true
+                }
+            }),
         }
         return source
     }

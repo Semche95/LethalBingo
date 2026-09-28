@@ -21,9 +21,22 @@ export interface RemainingSecondsParams {
  * GameTimerService::getRemainingSeconds() on the PHP side.
  */
 export function calculateRemainingSeconds(params: RemainingSecondsParams): number {
+    if (!params.gameStartedAt) {
+        return GAME_DURATION_SECONDS
+    } else if (params.gameFinishedAt) {
+        return 0
+    }
+
+    return Math.max(0, Math.ceil(calculateExactRemainingSeconds(params)))
+}
+
+/**
+ * Unrounded remaining seconds of a started game, negative once time is up.
+ * Used to schedule the threshold sounds to the millisecond.
+ */
+export function calculateExactRemainingSeconds(params: RemainingSecondsParams): number {
     const {
         gameStartedAt,
-        gameFinishedAt,
         gameTotalPausedSeconds,
         gameManualAdjustmentSeconds,
         gameLastPausedAt,
@@ -31,19 +44,12 @@ export function calculateRemainingSeconds(params: RemainingSecondsParams): numbe
         currentServerTime,
     } = params
 
-    if (!gameStartedAt) {
-        return GAME_DURATION_SECONDS
-    } else if (gameFinishedAt) {
-        return 0
-    }
-
     // While paused, use lastPausedAt directly instead of subtracting the
     // current pause from now: the float residue would make the ceil flicker.
     const endMs = gameIsPaused && gameLastPausedAt ? gameLastPausedAt * 1000 : currentServerTime
-    const elapsedSeconds = (endMs - gameStartedAt * 1000) / 1000 - gameTotalPausedSeconds
-    const remainingSeconds = GAME_DURATION_SECONDS - elapsedSeconds + gameManualAdjustmentSeconds
+    const elapsedSeconds = (endMs - (gameStartedAt ?? 0) * 1000) / 1000 - gameTotalPausedSeconds
 
-    return Math.max(0, Math.ceil(remainingSeconds))
+    return GAME_DURATION_SECONDS - elapsedSeconds + gameManualAdjustmentSeconds
 }
 
 /**

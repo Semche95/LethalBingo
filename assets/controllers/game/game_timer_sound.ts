@@ -1,5 +1,10 @@
 export type TimerSoundName = 'notification' | 'end'
 
+export interface ScheduledSound {
+    name: TimerSoundName
+    inSeconds: number
+}
+
 /**
  * Timer sounds played through the Web Audio API. Browsers block sound until
  * the user has interacted with the page (click, key press): unlike an <audio>
@@ -9,6 +14,9 @@ export type TimerSoundName = 'notification' | 'end'
 export class TimerSound {
     private readonly context = new AudioContext()
     private readonly buffers: Map<TimerSoundName, Promise<AudioBuffer | null>>
+    private readonly scheduled = new Set<AudioBufferSourceNode>()
+    // Bumped by cancelScheduled() so a schedule() still loading its sounds gives up.
+    private scheduleGeneration = 0
 
     constructor(urls: Record<TimerSoundName, string>) {
         this.buffers = new Map(
@@ -45,7 +53,42 @@ export class TimerSound {
         source.start()
     }
 
+    // Plays each sound after its delay on the audio clock, which keeps running
+    // while the page is hidden, unlike timers and animation frames. Replaces
+    // the sounds scheduled before.
+    async schedule(sounds: ScheduledSound[]): Promise<void> {
+        this.cancelScheduled()
+        const generation = this.scheduleGeneration
+        const scheduledAt = this.context.currentTime
+
+        const buffers = await Promise.all(sounds.map(({ name }) => this.buffers.get(name)))
+        if (generation !== this.scheduleGeneration || this.isLocked) {
+            return
+        }
+
+        sounds.forEach(({ inSeconds }, index) => {
+            const buffer = buffers[index]
+            if (!buffer) {
+                return
+            }
+
+            const source = this.context.createBufferSource()
+            source.buffer = buffer
+            source.connect(this.context.destination)
+            source.onended = () => this.scheduled.delete(source)
+            source.start(scheduledAt + inSeconds)
+            this.scheduled.add(source)
+        })
+    }
+
+    cancelScheduled(): void {
+        this.scheduleGeneration++
+        this.scheduled.forEach(source => source.stop())
+        this.scheduled.clear()
+    }
+
     close(): void {
+        this.cancelScheduled()
         this.context.close().catch(() => {})
     }
 

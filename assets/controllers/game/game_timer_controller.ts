@@ -1,8 +1,10 @@
 import { Controller } from '@hotwired/stimulus'
 import {
+    calculateExactRemainingSeconds,
     calculateRemainingSeconds,
     formatGameDuration,
     GAME_DURATION_SECONDS,
+    type RemainingSecondsParams,
 } from './game_timer_math'
 import {
     estimateServerTimeFromResponses,
@@ -11,7 +13,7 @@ import {
     watchClientClockJumps,
 } from './game_timer_anchor'
 import { TimerSound, type TimerSoundName } from './game_timer_sound'
-import { computeAlertColor, createThresholdState, evaluateThresholds } from './game_timer_thresholds'
+import { computeAlertColor, createThresholdState, evaluateThresholds, listUpcomingAlerts } from './game_timer_thresholds'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -62,8 +64,11 @@ export default class extends Controller<HTMLDivElement> {
     private resyncAbortController: AbortController | null = null
 
     private readonly onVisibilityChange = (): void => {
+        this.updateScheduledSounds()
+
         if (document.visibilityState === 'visible') {
-            this.updateTimerDisplay()
+            // The thresholds crossed while hidden already sounded on time.
+            this.updateTimerDisplay(false)
             this.resyncWithServer()
         }
     }
@@ -107,6 +112,7 @@ export default class extends Controller<HTMLDivElement> {
         window.addEventListener('online', this.onOnline)
 
         this.updateTimerDisplay()
+        this.updateScheduledSounds()
     }
 
     override disconnect() {
@@ -130,31 +136,38 @@ export default class extends Controller<HTMLDivElement> {
 
     gameIsPausedValueChanged() {
         this.updatePauseBadge()
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     gameStartedAtValueChanged() {
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     gameFinishedAtValueChanged() {
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     gameTotalPausedSecondsValueChanged() {
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     gameManualAdjustmentSecondsValueChanged() {
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     gameLastPausedAtValueChanged() {
-        this.updateTimerDisplay(false)
+        this.onGameStateChanged()
     }
 
     serverTimeValueChanged() {
         this.reanchor()
+        this.updateScheduledSounds()
+    }
+
+    // Referee actions are not a natural countdown: no threshold sound.
+    private onGameStateChanged() {
+        this.updateTimerDisplay(false)
+        this.updateScheduledSounds()
     }
 
     // Every candidate can only lag behind the real server time: the current
@@ -205,6 +218,7 @@ export default class extends Controller<HTMLDivElement> {
             this.clientTimeAtRender = responseArrival
             // A jump after a sleep is not a natural countdown: no threshold sound.
             this.updateTimerDisplay(false)
+            this.updateScheduledSounds()
         } catch {
             // Offline or aborted: the next wake-up, tab return or reconnection retries.
         } finally {
@@ -285,7 +299,11 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private computeRemainingSeconds(): number {
-        return calculateRemainingSeconds({
+        return calculateRemainingSeconds(this.remainingSecondsParams())
+    }
+
+    private remainingSecondsParams(): RemainingSecondsParams {
+        return {
             gameStartedAt: this.gameStartedAtValue,
             gameFinishedAt: this.gameFinishedAtValue,
             gameTotalPausedSeconds: this.gameTotalPausedSecondsValue,
@@ -293,7 +311,7 @@ export default class extends Controller<HTMLDivElement> {
             gameLastPausedAt: this.gameLastPausedAtValue,
             gameIsPaused: this.gameIsPausedValue,
             currentServerTime: this.getCurrentServerTime(),
-        })
+        }
     }
 
     private formatGameDisplay(): string {
@@ -305,11 +323,34 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private playSound(name: TimerSoundName) {
-        // Don't play sounds if the game is finished
-        if (this.gameFinishedAtValue) {
+        // Don't play sounds if the game is finished. While the page is hidden,
+        // the scheduled sounds play instead (updateScheduledSounds()).
+        if (this.gameFinishedAtValue || document.visibilityState === 'hidden') {
             return
         }
 
         this.sound?.play(name)
+    }
+
+    // The browser stops the display loop while the page is hidden (other tab,
+    // minimized window), so the threshold sounds are scheduled ahead on the
+    // audio clock instead, and rescheduled on every change of the countdown
+    // (docs/TIMER.md section 5).
+    private updateScheduledSounds() {
+        if (!this.sound) {
+            return
+        }
+
+        const isCountingDown = this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue
+        if (document.visibilityState !== 'hidden' || !isCountingDown) {
+            this.sound.cancelScheduled()
+            return
+        }
+
+        const exactRemainingSeconds = calculateExactRemainingSeconds(this.remainingSecondsParams())
+        this.sound.schedule(listUpcomingAlerts(exactRemainingSeconds, GAME_DURATION_SECONDS).map(({ alert, inSeconds }) => ({
+            name: alert === 'end' ? 'end' : 'notification',
+            inSeconds,
+        })))
     }
 }

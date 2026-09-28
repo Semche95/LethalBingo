@@ -63,4 +63,43 @@ describe('TimerSound', () => {
 
         expect(onLockChange).not.toHaveBeenCalled()
     })
+
+    it('schedules each sound on the audio clock, replacing the previous schedule', async () => {
+        const sound = new TimerSound(URLS)
+        const context = FakeAudioContext.instances[0]
+        sound.unlock()
+        await flushPromises()
+        context.currentTime = 100
+
+        await sound.schedule([{ name: 'notification', inSeconds: 1.5 }])
+        await sound.schedule([{ name: 'notification', inSeconds: 2 }, { name: 'end', inSeconds: 60 }])
+
+        expect(context.starts).toEqual([
+            { buffer: { decodedFrom: URLS.notification }, when: 101.5, stopped: true },
+            { buffer: { decodedFrom: URLS.notification }, when: 102, stopped: false },
+            { buffer: { decodedFrom: URLS.end }, when: 160, stopped: false },
+        ])
+    })
+
+    it('stops the scheduled sounds, including a schedule still loading its sounds', async () => {
+        const sound = new TimerSound(URLS)
+        const context = FakeAudioContext.instances[0]
+        sound.unlock()
+        await flushPromises()
+        await sound.schedule([{ name: 'end', inSeconds: 10 }])
+
+        const loading = sound.schedule([{ name: 'end', inSeconds: 20 }])
+        sound.cancelScheduled()
+        await loading
+
+        expect(context.starts).toEqual([{ buffer: { decodedFrom: URLS.end }, when: 10, stopped: true }])
+    })
+
+    it('schedules nothing while the browser blocks sound', async () => {
+        const sound = new TimerSound(URLS)
+
+        await sound.schedule([{ name: 'end', inSeconds: 10 }])
+
+        expect(FakeAudioContext.instances[0].starts).toEqual([])
+    })
 })

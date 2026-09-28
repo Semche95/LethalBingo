@@ -106,6 +106,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
+    delete (document as any).visibilityState
     app.stop()
     document.body.innerHTML = ''
     vi.runOnlyPendingTimers()
@@ -538,6 +539,94 @@ describe('game_timer_controller', () => {
 
             expect(context.close).toHaveBeenCalled()
             expect(context.resume).not.toHaveBeenCalled()
+        })
+    })
+
+    describe('sounds while the page is hidden', () => {
+        async function flushPromises() {
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve()
+            }
+        }
+
+        function setVisibility(state: DocumentVisibilityState) {
+            Object.defineProperty(document, 'visibilityState', { value: state, configurable: true })
+            document.dispatchEvent(new Event('visibilitychange'))
+        }
+
+        // Pending sounds on the audio clock, as [name, start time].
+        function pendingSounds(): Array<[string, number]> {
+            return FakeAudioContext.instances[0].starts
+                .filter(({ stopped }) => !stopped)
+                .map(({ buffer, when }) => [String((buffer as any).decodedFrom).includes('end') ? 'end' : 'notification', when])
+        }
+
+        beforeEach(() => {
+            FakeAudioContext.initialState = 'running'
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ arrayBuffer: async () => url })))
+        })
+
+        afterEach(() => {
+            vi.unstubAllGlobals()
+        })
+
+        it('schedules the upcoming alerts on the audio clock once the page is hidden', async () => {
+            // 00:05:01 remaining: the display drops below 05:00 in 2 s.
+            await connectWithAnchor({ gameStartedAt: SERVER_TIME - 3299 })
+            expect(pendingSounds()).toEqual([])
+
+            setVisibility('hidden')
+            await flushPromises()
+
+            expect(pendingSounds()).toEqual([
+                ['notification', 2],
+                ['notification', 122],
+                ['notification', 242],
+                ['end', 301],
+            ])
+        })
+
+        it('does not replay on return a threshold that sounded while hidden', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: SERVER_TIME - 3299 })
+            const plays = spyOnSounds(controller)
+            setVisibility('hidden')
+            await flushPromises()
+
+            // The display loop is stopped while hidden: time passes without frames.
+            controller.clientTimeAtRender -= 3_000
+            setVisibility('visible')
+            await vi.advanceTimersByTimeAsync(100)
+
+            expect(controller.timerDisplayTarget.textContent).toBe('00:04:58')
+            expect(plays('notification')).toBe(0)
+            expect(pendingSounds()).toEqual([])
+        })
+
+        it('cancels the scheduled alerts when the referee pauses, and reschedules on resume', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: SERVER_TIME - 3299 })
+            setVisibility('hidden')
+            await flushPromises()
+
+            controller.gameLastPausedAtValue = SERVER_TIME
+            controller.gameIsPausedValue = true
+            await flushPromises()
+            expect(pendingSounds()).toEqual([])
+
+            controller.gameIsPausedValue = false
+            controller.gameTotalPausedSecondsValue = 10
+            await flushPromises()
+            expect(pendingSounds()[0]).toEqual(['notification', 12])
+        })
+
+        it('reschedules after a +1 minute from the referee', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: SERVER_TIME - 3299 })
+            setVisibility('hidden')
+            await flushPromises()
+
+            controller.gameManualAdjustmentSecondsValue = 60
+            await flushPromises()
+
+            expect(pendingSounds()[0]).toEqual(['notification', 62])
         })
     })
 })

@@ -82,3 +82,32 @@ export function evaluateThresholds(
 
     return canTriggerSound ? alert : null
 }
+
+export interface UpcomingAlert {
+    alert: Exclude<ThresholdAlert, null>
+    inSeconds: number
+}
+
+/**
+ * Lists the alerts evaluateThresholds() will raise if the countdown runs on
+ * uninterrupted, with their delay from now. Each one fires when the displayed
+ * (rounded up) time drops below its threshold, i.e. when the exact remaining
+ * time reaches threshold - 1, or zero for the end.
+ */
+export function listUpcomingAlerts(exactRemainingSeconds: number, durationSeconds: number): UpcomingAlert[] {
+    const warnings: UpcomingAlert[] = []
+    for (let threshold = WARNING_STEP_SECONDS; threshold < durationSeconds; threshold += WARNING_STEP_SECONDS) {
+        warnings.push({ alert: 'warning', inSeconds: exactRemainingSeconds - (threshold - 1) })
+    }
+
+    const dangers: UpcomingAlert[] = DANGER_BOUNDARIES_SECONDS.map(threshold => ({
+        alert: 'danger',
+        inSeconds: exactRemainingSeconds - (threshold - 1),
+    }))
+
+    const end: UpcomingAlert = { alert: 'end', inSeconds: exactRemainingSeconds }
+
+    return [...warnings, ...dangers, end]
+        .filter(({ inSeconds }) => inSeconds > 0)
+        .sort((a, b) => a.inSeconds - b.inSeconds)
+}
