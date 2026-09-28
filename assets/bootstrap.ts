@@ -1,8 +1,8 @@
-import '@hotwired/turbo'
+import { config as turboConfig } from '@hotwired/turbo'
 import { startStimulusApp, registerControllers } from 'vite-plugin-symfony/stimulus/helpers'
 import AutocompleteController from '../vendor/symfony/ux-autocomplete/assets/dist/controller.js'
 
-Turbo.setProgressBarDelay(10)
+turboConfig.drive.progressBarDelay = 10
 
 const app = startStimulusApp()
 registerControllers(
