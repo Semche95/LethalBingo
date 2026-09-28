@@ -7,8 +7,8 @@ import {
 import {
     estimateServerTimeFromResponses,
     estimateServerTimeFromRoundTrip,
-    hasClientClockJumped,
     parseServerTimeHeader,
+    watchClientClockJumps,
 } from './game_timer_anchor'
 import { computeAlertColor, createThresholdState, evaluateThresholds } from './game_timer_thresholds'
 
@@ -55,9 +55,7 @@ export default class extends Controller<HTMLDivElement> {
     // performance.now() taken when syncedServerTime was anchored.
     private clientTimeAtRender: number = 0
     private thresholdState = createThresholdState()
-    // Clocks read on the previous frame, to detect a sleep between two frames.
-    private previousFrameWallTime: number = 0
-    private previousFrameClientTime: number = 0
+    private stopClockJumpWatch: (() => void) | null = null
     private resyncAbortController: AbortController | null = null
 
     private readonly onVisibilityChange = (): void => {
@@ -81,6 +79,7 @@ export default class extends Controller<HTMLDivElement> {
 
         // rAF rather than setInterval: no phase that could drift between clients.
         this.startTimerLoop()
+        this.stopClockJumpWatch = watchClientClockJumps(() => this.resyncWithServer())
 
         document.addEventListener('visibilitychange', this.onVisibilityChange)
         window.addEventListener('online', this.onOnline)
@@ -94,6 +93,8 @@ export default class extends Controller<HTMLDivElement> {
         this.endAudio = null
 
         this.stopTimerLoop()
+        this.stopClockJumpWatch?.()
+        this.stopClockJumpWatch = null
 
         document.removeEventListener('visibilitychange', this.onVisibilityChange)
         window.removeEventListener('online', this.onOnline)
@@ -189,30 +190,11 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private startTimerLoop() {
-        this.previousFrameWallTime = Date.now()
-        this.previousFrameClientTime = performance.now()
-
         const tick = () => {
-            this.detectClientClockJump()
             this.updateTimerDisplay()
             this.animationFrameId = window.requestAnimationFrame(tick)
         }
         this.animationFrameId = window.requestAnimationFrame(tick)
-    }
-
-    // Date.now() only serves to detect the jump, never to compute the time.
-    private detectClientClockJump() {
-        const wallTime = Date.now()
-        const clientTime = performance.now()
-
-        if (hasClientClockJumped(this.previousFrameWallTime, this.previousFrameClientTime, wallTime, clientTime)) {
-            this.resyncWithServer()
-            // Messages may have been missed during the sleep: game--game-frame reloads the game state.
-            this.dispatch('clock-jump')
-        }
-
-        this.previousFrameWallTime = wallTime
-        this.previousFrameClientTime = clientTime
     }
 
     private stopTimerLoop() {

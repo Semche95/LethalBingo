@@ -99,3 +99,29 @@ export const CLOCK_JUMP_THRESHOLD_MS = 1_000
 export function hasClientClockJumped(previousWallMs: number, previousClientMs: number, wallMs: number, clientMs: number): boolean {
     return Math.abs((wallMs - previousWallMs) - (clientMs - previousClientMs)) > CLOCK_JUMP_THRESHOLD_MS
 }
+
+/**
+ * Calls onJump on the first frame after a sleep or a system clock change.
+ * Date.now() only serves to detect the jump, never to compute the time.
+ * Returns the function that stops watching.
+ */
+export function watchClientClockJumps(onJump: () => void): () => void {
+    let previousWallTime = Date.now()
+    let previousClientTime = performance.now()
+
+    const tick = () => {
+        const wallTime = Date.now()
+        const clientTime = performance.now()
+
+        if (hasClientClockJumped(previousWallTime, previousClientTime, wallTime, clientTime)) {
+            onJump()
+        }
+
+        previousWallTime = wallTime
+        previousClientTime = clientTime
+        animationFrameId = window.requestAnimationFrame(tick)
+    }
+    let animationFrameId = window.requestAnimationFrame(tick)
+
+    return () => window.cancelAnimationFrame(animationFrameId)
+}

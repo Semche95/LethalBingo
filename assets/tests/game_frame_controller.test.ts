@@ -26,7 +26,6 @@ async function connectController() {
     element = document.createElement('div')
     element.setAttribute('data-controller', 'game--game-frame')
     element.setAttribute('data-game--game-frame-mercure-url-value', 'https://hub/.well-known/mercure?topic=game')
-    element.innerHTML = '<div id="timer"></div>'
     document.body.appendChild(element)
 
     for (let i = 0; i < 50; i++) {
@@ -68,15 +67,23 @@ describe('game_frame_controller', () => {
         expect(emit).toHaveBeenCalledWith('gameTimerRefresh', { serverTime: 1_700_000_000.5 })
     })
 
+    // Also covers a finished game, where the timer is no longer on the page.
     it('reopens the connection and reloads the game after a sleep', async () => {
-        await connectController()
-        const first = FakeEventSource.instances[0]
+        vi.useFakeTimers({ toFake: ['Date', 'performance', 'requestAnimationFrame', 'cancelAnimationFrame'] })
+        try {
+            await connectController()
+            const first = FakeEventSource.instances[0]
 
-        element.querySelector('#timer')!.dispatchEvent(new CustomEvent('game--game-timer:clock-jump', { bubbles: true }))
+            // Only the wall clock moves, as performance.now() does during a sleep.
+            vi.setSystemTime(Date.now() + 60_000)
+            await vi.advanceTimersByTimeAsync(20)
 
-        expect(first.close).toHaveBeenCalled()
-        expect(FakeEventSource.instances).toHaveLength(2)
-        expect(emit).toHaveBeenCalledWith('gameFrameRefresh', {})
+            expect(first.close).toHaveBeenCalled()
+            expect(FakeEventSource.instances).toHaveLength(2)
+            expect(emit).toHaveBeenCalledWith('gameFrameRefresh', {})
+        } finally {
+            vi.useRealTimers()
+        }
     })
 
     it('reopens the connection and reloads the game when the network comes back', async () => {

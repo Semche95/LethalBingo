@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import { initTooltips } from '../../utils'
 import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
 import { Component, getComponent } from '@symfony/ux-live-component'
+import { watchClientClockJumps } from './game_timer_anchor'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -13,6 +14,8 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly mercureUrlValue: string
     private component!: Component
     private es!: EventSource
+    // Watched here rather than in the timer, which is gone once the game is over.
+    private stopClockJumpWatch: (() => void) | null = null
 
     override async initialize() {
         this.component = await getComponent(this.element)
@@ -25,14 +28,15 @@ export default class extends Controller<HTMLDivElement> {
     override connect() {
         this.openEventSource()
 
-        this.element.addEventListener('game--game-timer:clock-jump', this.onWakeUp)
+        this.stopClockJumpWatch = watchClientClockJumps(this.onWakeUp)
         window.addEventListener('online', this.onWakeUp)
     }
 
     override disconnect() {
         this.es.close()
 
-        this.element.removeEventListener('game--game-timer:clock-jump', this.onWakeUp)
+        this.stopClockJumpWatch?.()
+        this.stopClockJumpWatch = null
         window.removeEventListener('online', this.onWakeUp)
     }
 
