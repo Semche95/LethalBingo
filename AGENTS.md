@@ -21,10 +21,13 @@ just dev        # Démarre Docker + Vite dev server
 just up         # Uniquement les conteneurs Docker
 ```
 
+- L'agent peut lancer `just up` et `just dev` si l'environnement n'est pas déjà démarré (vérifier d'abord avec `docker compose ps` et que Vite répond réellement sur le port 5173, ex. `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` — la simple présence d'un process `vite` ne suffit pas).
+- L'agent peut recharger la base de dev avec `just fixtures` si un test (manuel ou navigateur) nécessite un état propre.
+
 ## Vite et gestion des assets
 
 - **Ne jamais lancer automatiquement de build** des assets après une modification de fichiers frontend (TypeScript, JavaScript, CSS, images, etc.).
-- **Ne jamais lancer automatiquement `pnpm run dev` ni `just dev`** : le serveur de développement Vite est géré manuellement par l'utilisateur.
+- **Serveur de dev Vite** : `just dev` (ou `pnpm run dev`) peut être lancé uniquement s'il ne tourne pas déjà (ex. pour tester dans un navigateur) — vérifier avant de le démarrer pour ne pas créer de doublon.
 - Après modification de fichiers frontend, **laisser le HMR de Vite gérer la mise à jour** en temps réel.
 - Les commandes de build (`pnpm run build`, `just build-assets`, `vite build` ou toute commande équivalente) ne doivent être lancées que sur **demande explicite de l'utilisateur** ou dans le cadre d'une vérification de build de production.
 
