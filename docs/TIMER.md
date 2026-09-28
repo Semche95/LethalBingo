@@ -55,7 +55,18 @@ Le contrôleur fait alors **une** requête `GET /server-time` (`App\Controller\S
 
 Une seule requête à la fois ; elle est annulée au `disconnect()`. Le client connaît l'instant de départ de sa requête et l'instant d'arrivée de la réponse : l'heure serveur réelle est comprise entre `envoi + (maintenant − arrivée)` et `envoi + (maintenant − départ)` (`estimateServerTimeFromRoundTrip()`). Une estimation sous la borne basse avance jusqu'à elle (cas de la veille). Une estimation **au-dessus de la borne haute est prouvée en avance** : c'est le seul cas où l'ancre recule, jusqu'à la borne basse. Le saut d'affichage qui en résulte ne déclenche aucun son de seuil (ce n'est pas un décompte naturel). En cas d'échec réseau, rien ne change : le prochain événement réessaie.
 
-L'heure ne suffit pas : pendant la veille, la connexion Mercure a pu mourir sans que le navigateur le remarque, et les messages envoyés entre-temps (pause, arrêt, case validée…) sont perdus. Le contrôleur `game--game-frame` rouvre alors la connexion puis recharge tout l'état de la partie (`gameFrameRefresh` émis localement, sans `serverTime`) : sur un saut d'horloge signalé par le timer (événement `game--game-timer:clock-jump`), au retour du réseau (`online`), et quand le navigateur se reconnecte de lui-même à Mercure après une coupure (second `open` de l'`EventSource`). La connexion est rouverte **avant** le rechargement, pour qu'aucun message envoyé pendant le rechargement ne soit perdu. Le simple retour sur l'onglet ne recharge pas l'état : un onglet en arrière-plan garde sa connexion Mercure active.
+L'heure ne suffit pas : pendant la veille, la connexion Mercure a pu mourir sans que le navigateur le remarque, et les messages envoyés entre-temps (pause, arrêt, case validée…) sont perdus. Le contrôleur `game--game-frame` rouvre alors la connexion puis recharge tout l'état de la partie (`gameFrameRefresh` émis localement, sans `serverTime`) : sur un saut d'horloge signalé par le timer (événement `game--game-timer:clock-jump`), au retour du réseau (`online`), et quand le navigateur se reconnecte de lui-même à Mercure après une coupure (second `open` de l'`EventSource`). La connexion est rouverte **avant** le rechargement, pour qu'aucun message envoyé pendant le rechargement ne soit perdu. Le simple retour sur l'onglet ne recharge pas l'état : un onglet en arrière-plan garde sa connexion Mercure active. La détection du saut d'horloge est faite par `game--game-frame` lui-même (`watchClientClockJumps()`), pas seulement par le timer : une fois la partie terminée, le timer n'est plus affiché, et une réinitialisation faite pendant la veille du joueur doit quand même lui parvenir.
+
+### Production derrière un reverse proxy
+
+En production, l'application est servie derrière un reverse proxy. Pour que le timer garde sa précision :
+
+- **laisser passer l'en-tête `Server-Timing`** des réponses (comportement par défaut de nginx, Caddy, Traefik, Apache : ne pas le filtrer ni le réécrire) ;
+- **ne pas mettre en cache `/server-time`** (la réponse porte déjà `Cache-Control: no-store`) ;
+- **servir le site en HTTPS jusqu'au navigateur** : le navigateur n'expose `Server-Timing` qu'en contexte sécurisé ;
+- **Mercure** : ne pas mettre en tampon le flux (nginx : `proxy_buffering off` sur `/.well-known/mercure`) et garder un délai de lecture supérieur au heartbeat du hub. Chaque coupure de connexion provoque un rechargement complet de l'état de la partie chez tous les clients.
+
+Vérification après déploiement : `curl -sI https://<domaine>/server-time | grep -i server-timing` doit afficher `app-time;desc="…"`. Sans cet en-tête, le timer continue de fonctionner mais retombe sur les sources 1 et 2 (moins précises), et le recalage après une veille ne se fait plus.
 
 ---
 
@@ -127,6 +138,12 @@ Cette détection compare le temps restant actuel à sa valeur lors de la derniè
 
 Le seul état à conserver entre deux évaluations est la valeur du temps restant observée lors de l'évaluation précédente, rien de plus. Aucun ensemble de seuils « déjà signalés » ni aucun indicateur booléen par seuil ne doit être mémorisé séparément de cette valeur : un tel état, une fois marqué, risque de ne jamais être remis à zéro correctement pour toutes les voies de mutation possibles, ce qui empêche un seuil franchi une première fois de redéclencher le son lors d'un franchissement ultérieur légitime, même après une longue série de mutations entre les deux. La comparaison de la valeur actuelle à la seule valeur précédente, mise à jour à chaque évaluation sans exception, suffit à couvrir tous les cas sans avoir besoin d'un état supplémentaire.
 
+### Lecture du son
+
+Les navigateurs bloquent tout son tant que la personne n'a pas interagi avec la page (clic, touche). Les sons passent donc par l'API Web Audio (`TimerSound`, `game_timer_sound.ts`), qui indique si le son est encore bloqué, contrairement à une balise `<audio>` dont l'échec n'apparaît qu'au moment de jouer, trop tard. Tant que le son est bloqué, le timer affiche un bouton secondaire « Activer le son des alertes » (`btn-outline-warning`, marqué `data-live-ignore` pour que les re-renders Live ne le fassent pas réapparaître). N'importe quel clic ou appui de touche sur la page débloque le son et masque le bouton. Une alerte déclenchée pendant que le son est bloqué est perdue, elle n'est pas rejouée plus tard.
+
+**Limite connue : page cachée.** Le déclenchement des sons suit la boucle d'affichage (`requestAnimationFrame`), que le navigateur suspend quand la page n'est pas visible (onglet en arrière-plan, fenêtre réduite, ou entièrement recouverte par un jeu en plein écran selon le système). Pendant ce temps, aucun son ne se déclenche. Au retour sur l'onglet, un seuil franchi pendant l'absence déclenche son son à ce moment-là, donc en retard. Après une veille, en revanche, le recalage est silencieux. Ce comportement n'est pas vérifiable par Playwright, qui garde toujours les pages visibles : voir la procédure manuelle en section 6.
+
 ---
 
 ## 6. Fiabilité des tests automatisés sur ce composant
@@ -143,7 +160,22 @@ Mesure de l'écart : faire un `fetch('/server-time')`, lire l'heure d'envoi dans
 - repos : aucune requête `/server-time` sans événement ;
 - message manqué : rendre la connexion du joueur sourde (`es.onmessage = null`), mettre en pause côté arbitre, puis simuler le réveil → le joueur affiche la pause à la même seconde que l'arbitre, sur une nouvelle connexion qui reçoit l'action suivante.
 
-Validé sur Chromium et Firefox 156 (écarts de 0 à 6 ms). Non vérifié : une vraie mise en veille du poste (la veille est simulée) et Safari.
+- partie arrêtée puis réinitialisée pendant la veille du joueur → au réveil, le joueur voit la partie réinitialisée ;
+- son : sur une page ouverte sans interaction, le bouton « Activer le son des alertes » est visible et le contexte audio `suspended` ; après un clic n'importe où, le bouton disparaît, le contexte passe à `running` et un son peut être joué ; un re-render Live ne fait pas réapparaître le bouton.
+
+Validé sur Chromium et Firefox 156 (écarts de 0 à 6 ms). La veille est simulée (saut de `Date.now()`), ce qui est jugé suffisant.
+
+**À faire : tester sous Safari** (16.4 minimum pour la lecture de `Server-Timing`, sur Mac ou iPhone), qui n'a encore jamais été vérifié : écart du timer, recalage au retour sur l'onglet, bouton d'activation du son.
+
+### Vérification manuelle : son quand le navigateur est caché
+
+Playwright garde toujours les pages visibles, ce test se fait donc à la main, sur le poste qui servira à jouer :
+
+1. Dans un navigateur ouvert normalement, ouvrir la page joueur d'une partie et cliquer une fois sur la page (le bouton d'activation du son doit disparaître).
+2. Côté arbitre, démarrer la partie puis ramener le temps restant à environ 10 min 30 s avec les boutons `−1 minute` (ou `00:10:03` avec `DEBUG_TIMER`).
+3. Lancer le jeu en plein écran par-dessus le navigateur, puis attendre le passage de 10:00.
+4. Noter si le bip retentit à l'heure, en retard au retour sur le navigateur, ou pas du tout.
+5. Recommencer avec le navigateur réduit, puis avec la page du jeu dans un onglet en arrière-plan.
 
 La détection du son (section 5) doit être testée par des séquences de mutations enchaînées, pas seulement par des cas isolés : combiner dans un ordre arbitraire des décomptes naturels, des `+1 minute`, des `−1 minute` et des ajustements directs à une valeur spécifique, et vérifier qu'un seuil franchi naturellement plus tard dans la partie continue de déclencher correctement le son, même après une séquence de mutations qui l'a temporairement approché puis éloigné. Un test qui ne couvre que des mutations isolées (un seul `+1` ou un seul `−1`) ne suffit pas à garantir ce comportement. La couleur, étant une fonction pure du temps restant actuel, n'a pas besoin de ce type de test par séquence : il suffit de vérifier qu'elle est correcte pour chaque valeur de temps restant testée isolément.
 
@@ -164,4 +196,5 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 - Couleur des seuils : fonction pure du temps restant actuel (aucun état ni minuteur), affichée quand le temps restant est dans les 5 secondes qui suivent un seuil (10min, 5min, 3min) ; dès 60 secondes, bascule en danger continu sans flash séparé, y compris en overtime ; s'arrête uniquement quand `finishedAt` est renseigné, la partie étant alors terminée.
 - Son des seuils : événement ponctuel déclenché uniquement par le décompte naturel, jamais par un ajustement manuel de l'arbitre (`+1`/`−1` minute, réglage direct) même s'il traverse un seuil ; la référence de comparaison, elle, se resynchronise à chaque évaluation quelle qu'en soit l'origine, y compris les ajustements manuels, pour rester fiable sur les franchissements naturels suivants. Un son de fin distinct se déclenche une fois au passage à zéro (uniquement par décompte naturel, même règle). L'état intermédiaire de l'absorption (section 3) n'est jamais exposé à cette détection.
 - Spécification des seuils : chaque multiple de 10 minutes restantes → warning ; 5/3min → danger (flash 5s) ; 1min → bascule directe en danger continu (section 5).
-- Toute correction sur ce composant se valide en navigateur réel.
+- Sons via Web Audio : bouton « Activer le son des alertes » tant que le navigateur bloque le son, débloqué par n'importe quelle interaction avec la page. Aucun son quand la page est cachée (limite connue, section 5).
+- Toute correction sur ce composant se valide en navigateur réel. Safari reste à tester.
