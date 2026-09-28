@@ -16,7 +16,9 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            login_throttling: null
+            # 5 failed attempts per username and IP, 10 per IP (see rate_limiter below)
+            login_throttling:
+                limiter: app.login_rate_limiter
             form_login:
                 login_path: app_login
                 check_path: app_login
@@ -24,6 +26,9 @@ security:
                 enable_csrf: true
             logout:
                 path: app_logout
+                # POST form carrying the "logout" token in a field named "token" (CsrfInput component)
+                enable_csrf: true
+                csrf_parameter: token
                 # where to redirect after logout
                 # target: app_any_route
 
@@ -42,6 +47,27 @@ security:
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/referee, roles: ROLE_REFEREE }
+
+framework:
+    rate_limiter:
+        # Failed logins for one username from one IP
+        login_local:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        # Failed logins from one IP, whatever the username
+        login_global:
+            policy: fixed_window
+            limit: 10
+            interval: '15 minutes'
+
+services:
+    app.login_rate_limiter:
+        class: Symfony\Component\Security\Http\RateLimiter\DefaultLoginRateLimiter
+        arguments:
+            $globalFactory: '@limiter.login_global'
+            $localFactory: '@limiter.login_local'
+            $secret: '%kernel.secret%'
 
 when@test:
     security:

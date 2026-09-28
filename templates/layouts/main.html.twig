@@ -17,11 +17,12 @@
                                 <div class="d-none d-xl-block ps-2">{{ app.user }}</div>
                             </a>
                         </div>
-                        <div class="nav-item">
-                            <a href="{{ path('app_logout') }}" class="nav-link" title="Déconnexion">
+                        <form action="{{ path('app_logout') }}" method="post" class="nav-item">
+                            {{ component('CsrfInput', {tokenId: 'logout'}) }}
+                            <button type="submit" class="nav-link btn btn-link" title="Déconnexion" aria-label="Déconnexion">
                                 {{ ux_icon('tabler:logout', {class: 'w-4 h-4'}) }}
-                            </a>
-                        </div>
+                            </button>
+                        </form>
                     {% else %}
                         <div class="nav-item {{ app.request.attributes.get('_route') == 'app_login' ? 'active' : '' }}">
                             <a href="{{ path('app_login') }}" class="nav-link">
