@@ -10,6 +10,7 @@ import {
     parseServerTimeHeader,
     watchClientClockJumps,
 } from './game_timer_anchor'
+import { TimerSound, type TimerSoundName } from './game_timer_sound'
 import { computeAlertColor, createThresholdState, evaluateThresholds } from './game_timer_thresholds'
 
 /* stimulusFetch: 'lazy' */
@@ -28,7 +29,7 @@ export default class extends Controller<HTMLDivElement> {
         serverTimeUrl: String,
     }
 
-    static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton']
+    static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton', 'soundButton']
 
     declare readonly gameStartedAtValue: number | null
     declare readonly gameFinishedAtValue: number | null
@@ -47,9 +48,11 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly pauseBadgeTarget: HTMLElement
     declare readonly pauseButtonTarget: HTMLElement
     declare readonly hasPauseButtonTarget: boolean
+    declare readonly soundButtonTarget: HTMLElement
+    declare readonly hasSoundButtonTarget: boolean
 
-    private notificationAudio: HTMLAudioElement | null = null
-    private endAudio: HTMLAudioElement | null = null
+    private sound: TimerSound | null = null
+    private stopSoundLockWatch: (() => void) | null = null
     private animationFrameId: number | null = null
     private lastRenderedText: string | null = null
     // performance.now() taken when syncedServerTime was anchored.
@@ -65,15 +68,34 @@ export default class extends Controller<HTMLDivElement> {
         }
     }
 
+    private readonly onUserGesture = (): void => {
+        this.sound?.unlock()
+    }
+
+    private readonly updateSoundButton = (): void => {
+        if (this.hasSoundButtonTarget) {
+            this.soundButtonTarget.classList.toggle('d-none', !this.sound?.isLocked)
+        }
+    }
+
+    enableSound() {
+        this.sound?.unlock()
+    }
+
     private readonly onOnline = (): void => {
         this.resyncWithServer()
     }
 
     override connect() {
-        const notificationSoundURL = new URL('/assets/sounds/interval.mp3', import.meta.url)
-        const endSoundURL = new URL('/assets/sounds/end.mp3', import.meta.url)
-        this.notificationAudio = new Audio(notificationSoundURL.href)
-        this.endAudio = new Audio(endSoundURL.href)
+        this.sound = new TimerSound({
+            notification: new URL('/assets/sounds/interval.mp3', import.meta.url).href,
+            end: new URL('/assets/sounds/end.mp3', import.meta.url).href,
+        })
+        this.stopSoundLockWatch = this.sound.onLockChange(this.updateSoundButton)
+        this.updateSoundButton()
+        // Any interaction with the page unlocks the sound, not only the button.
+        document.addEventListener('click', this.onUserGesture)
+        document.addEventListener('keydown', this.onUserGesture)
 
         this.reanchor()
 
@@ -88,9 +110,12 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     override disconnect() {
-        this.resetAudio(true)
-        this.notificationAudio = null
-        this.endAudio = null
+        document.removeEventListener('click', this.onUserGesture)
+        document.removeEventListener('keydown', this.onUserGesture)
+        this.stopSoundLockWatch?.()
+        this.stopSoundLockWatch = null
+        this.sound?.close()
+        this.sound = null
 
         this.stopTimerLoop()
         this.stopClockJumpWatch?.()
@@ -241,9 +266,9 @@ export default class extends Controller<HTMLDivElement> {
         }
 
         if (alert === 'end') {
-            this.playEndOfTimerSound()
+            this.playSound('end')
         } else if (alert) {
-            this.playNotificationSound()
+            this.playSound('notification')
         }
 
         const color = computeAlertColor(remainingSeconds, GAME_DURATION_SECONDS)
@@ -279,42 +304,12 @@ export default class extends Controller<HTMLDivElement> {
         )
     }
 
-    private resetAudio(cleanup = false) {
-        if (this.notificationAudio) {
-            this.notificationAudio.pause()
-            this.notificationAudio.currentTime = 0
-            if (cleanup) this.notificationAudio.src = ''
-        }
-
-        if (this.endAudio) {
-            this.endAudio.pause()
-            this.endAudio.currentTime = 0
-            if (cleanup) this.endAudio.src = ''
-        }
-    }
-
-    private playAudio(audio: HTMLAudioElement | null, errorType: string) {
+    private playSound(name: TimerSoundName) {
         // Don't play sounds if the game is finished
         if (this.gameFinishedAtValue) {
             return
         }
 
-        try {
-            if (audio) {
-                audio.pause()
-                audio.currentTime = 0
-                audio.play().catch(e => console.error(`Error playing ${errorType}: ${e}`))
-            }
-        } catch (e) {
-            console.error(`${errorType} sound failed: ${e}`)
-        }
-    }
-
-    private playNotificationSound() {
-        this.playAudio(this.notificationAudio, 'notification')
-    }
-
-    private playEndOfTimerSound() {
-        this.playAudio(this.endAudio, 'end')
+        this.sound?.play(name)
     }
 }

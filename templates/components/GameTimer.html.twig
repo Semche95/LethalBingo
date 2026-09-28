@@ -18,6 +18,14 @@
                 <span data-game--game-timer-target="timerDisplay" data-live-ignore></span>
                 <span data-game--game-timer-target="pauseBadge" class="badge text-bg-warning ms-2 d-none">PAUSE</span>
             </div>
+            <button type="button"
+                    class="btn btn-outline-warning btn-sm mt-2 d-none"
+                    data-game--game-timer-target="soundButton"
+                    data-action="game--game-timer#enableSound"
+                    data-live-ignore>
+                {{ ux_icon('mdi:volume-off') }}
+                Activer le son des alertes
+            </button>
         </div>
         {% if is_granted('ROLE_REFEREE') and this.game.startedAt and not this.game.finishedAt %}
             <div class="ms-3 d-flex">

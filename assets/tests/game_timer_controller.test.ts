@@ -2,18 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Application } from '@hotwired/stimulus'
 import GameTimerController from '../controllers/game/game_timer_controller'
 import { createThresholdState } from '../controllers/game/game_timer_thresholds'
+import { FakeAudioContext, installFakeAudioContext } from './fake_audio_context'
 
 // ---------------------------------------------------------------------------
 // Test environment setup
 // ---------------------------------------------------------------------------
 
-class FakeAudio {
-    src = ''
-    currentTime = 0
-    play = vi.fn().mockResolvedValue(undefined)
-    pause = vi.fn()
-}
-const FakeAudioCtor = vi.fn(FakeAudio) as unknown as typeof Audio
 
 let app: Application
 
@@ -48,9 +42,16 @@ function buildElement(values: TimerValues = {}) {
         <span data-game--game-timer-target="timerDisplay"></span>
         <span data-game--game-timer-target="pauseBadge" class="d-none"></span>
         <button data-game--game-timer-target="pauseButton"></button>
+        <button data-game--game-timer-target="soundButton" class="d-none"></button>
     `
     document.body.appendChild(el)
     return el
+}
+
+// Records the sounds requested by the controller ('notification' or 'end').
+function spyOnSounds(controller: any) {
+    const play = vi.spyOn(controller.sound, 'play')
+    return (name: string) => play.mock.calls.filter(([played]) => played === name).length
 }
 
 async function connectController(el: HTMLElement): Promise<any> {
@@ -97,7 +98,7 @@ beforeEach(async () => {
         ],
     })
 
-    Object.defineProperty(globalThis, 'Audio', { value: FakeAudioCtor, configurable: true })
+    installFakeAudioContext()
 
     app = new Application(document.documentElement)
     app.register('game--game-timer', GameTimerController)
@@ -296,12 +297,12 @@ describe('game_timer_controller', () => {
             gameStartedAt: SERVER_TIME - 3299,
             gameIsPaused: false,
         })
-        const audio = controller.notificationAudio as any
+        const plays = spyOnSounds(controller)
 
         // Natural countdown crosses 00:05:00 → sound must fire.
         await vi.advanceTimersByTimeAsync(2000)
         expect(controller.timerDisplayTarget.textContent).toBe('00:04:59')
-        expect(audio.play.mock.calls.length).toBeGreaterThan(0)
+        expect(plays('notification')).toBeGreaterThan(0)
     })
 
     it('does NOT trigger sound on manual −1 minute crossing a threshold', async () => {
@@ -311,13 +312,13 @@ describe('game_timer_controller', () => {
             gameStartedAt: SERVER_TIME - 3240,
             gameIsPaused: false,
         })
-        const audio = controller.notificationAudio as any
+        const plays = spyOnSounds(controller)
 
         // Let rAF seed the reference at ~360s.
         await vi.advanceTimersByTimeAsync(100)
         expect(controller.timerDisplayTarget.textContent).toBe('00:06:00')
 
-        const playsBefore = audio.play.mock.calls.length
+        const playsBefore = plays('notification')
 
         // Simulate a −1 minute manual adjustment: the remaining time drops from
         // ~360s to ~300s, crossing the 00:05:00 threshold. The sound must NOT
@@ -326,7 +327,7 @@ describe('game_timer_controller', () => {
         controller.gameManualAdjustmentSecondsValueChanged()
         expect(controller.timerDisplayTarget.textContent).toBe('00:05:00')
 
-        expect(audio.play.mock.calls.length).toBe(playsBefore)
+        expect(plays('notification')).toBe(playsBefore)
     })
 
     it('plays the end sound (not the notification) when the countdown reaches zero', async () => {
@@ -335,19 +336,18 @@ describe('game_timer_controller', () => {
             gameStartedAt: SERVER_TIME - 3598,
             gameIsPaused: false,
         })
-        const notification = controller.notificationAudio as any
-        const end = controller.endAudio as any
-        const notificationsBefore = notification.play.mock.calls.length
+        const plays = spyOnSounds(controller)
+        const notificationsBefore = plays('notification')
 
         await vi.advanceTimersByTimeAsync(3000)
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
-        expect(end.play).toHaveBeenCalledTimes(1)
-        expect(notification.play.mock.calls.length).toBe(notificationsBefore)
+        expect(plays('end')).toBe(1)
+        expect(plays('notification')).toBe(notificationsBefore)
         expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
 
         // Overtime: staying at zero never replays the end sound.
         await vi.advanceTimersByTimeAsync(5000)
-        expect(end.play).toHaveBeenCalledTimes(1)
+        expect(plays('end')).toBe(1)
     })
 
     it('does NOT play the end sound on a manual −1 minute reaching zero, but does on the later natural zero', async () => {
@@ -356,7 +356,7 @@ describe('game_timer_controller', () => {
             gameStartedAt: SERVER_TIME - 3570,
             gameIsPaused: false,
         })
-        const end = controller.endAudio as any
+        const plays = spyOnSounds(controller)
 
         await vi.advanceTimersByTimeAsync(100)
 
@@ -365,19 +365,19 @@ describe('game_timer_controller', () => {
         controller.gameManualAdjustmentSecondsValueChanged()
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
         expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
-        expect(end.play).not.toHaveBeenCalled()
+        expect(plays('end')).toBe(0)
 
         // Manual +1 minute brings the time back: pause button visible again.
         controller.gameManualAdjustmentSecondsValue = 0
         controller.gameManualAdjustmentSecondsValueChanged()
         expect(controller.timerDisplayTarget.textContent).not.toBe('00:00:00')
         expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
-        expect(end.play).not.toHaveBeenCalled()
+        expect(plays('end')).toBe(0)
 
         // Natural countdown reaches zero → the end sound MUST fire.
         await vi.advanceTimersByTimeAsync(31_000)
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
-        expect(end.play).toHaveBeenCalledTimes(1)
+        expect(plays('end')).toBe(1)
     })
 
     describe('server time anchor', () => {
@@ -499,6 +499,45 @@ describe('game_timer_controller', () => {
             await flushPromises()
 
             expect(controller.getCurrentServerTime()).toBeCloseTo(SERVER_TIME * 1000, 3)
+        })
+    })
+
+    describe('sound unlock', () => {
+        async function flushPromises() {
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve()
+            }
+        }
+
+        it('shows the enable sound button while the browser blocks sound, until the user clicks the page', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC })
+            expect(controller.soundButtonTarget.classList.contains('d-none')).toBe(false)
+
+            document.body.click()
+            await flushPromises()
+
+            expect(FakeAudioContext.instances[0].resume).toHaveBeenCalled()
+            expect(controller.soundButtonTarget.classList.contains('d-none')).toBe(true)
+        })
+
+        it('hides the button when sound is already allowed', async () => {
+            FakeAudioContext.initialState = 'running'
+
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC })
+
+            expect(controller.soundButtonTarget.classList.contains('d-none')).toBe(true)
+        })
+
+        it('releases the audio context and the page listeners on disconnect', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC })
+            const context = FakeAudioContext.instances[0]
+
+            controller.element.remove()
+            await flushPromises()
+            document.body.click()
+
+            expect(context.close).toHaveBeenCalled()
+            expect(context.resume).not.toHaveBeenCalled()
         })
     })
 })
