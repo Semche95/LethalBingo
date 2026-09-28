@@ -24,12 +24,6 @@ class GameController extends AbstractController
         ]);
     }
 
-    #[Route('/server-time', name: 'app_game_server_time', methods: [Request::METHOD_GET])]
-    public function serverTime(): Response
-    {
-        return $this->json(['serverTime' => time()]);
-    }
-
     #[Route(
         '/save-notes/{id}',
         name: 'app_game_save_notes',

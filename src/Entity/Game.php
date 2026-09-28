@@ -56,8 +56,13 @@ class Game
     #[ORM\Column(type: 'boolean')]
     private bool $isPaused = false;
 
+    // Fractional seconds: pause windows are measured from microtime, so the
+    // sub-second part must survive persistence (docs/TIMER.md section 2).
+    #[ORM\Column(type: 'float')]
+    private float $totalPausedSeconds = 0.0;
+
     #[ORM\Column(type: 'integer')]
-    private int $totalPausedSeconds = 0;
+    private int $manualAdjustmentSeconds = 0;
 
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $lastPausedAt = null;
@@ -220,12 +225,12 @@ class Game
         return $this;
     }
 
-    public function getTotalPausedSeconds(): int
+    public function getTotalPausedSeconds(): float
     {
         return $this->totalPausedSeconds;
     }
 
-    public function setTotalPausedSeconds(int $totalPausedSeconds): static
+    public function setTotalPausedSeconds(float $totalPausedSeconds): static
     {
         $this->totalPausedSeconds = $totalPausedSeconds;
 
@@ -240,6 +245,18 @@ class Game
     public function setLastPausedAt(?DateTimeImmutable $lastPausedAt): static
     {
         $this->lastPausedAt = $lastPausedAt;
+
+        return $this;
+    }
+
+    public function getManualAdjustmentSeconds(): int
+    {
+        return $this->manualAdjustmentSeconds;
+    }
+
+    public function setManualAdjustmentSeconds(int $manualAdjustmentSeconds): static
+    {
+        $this->manualAdjustmentSeconds = $manualAdjustmentSeconds;
 
         return $this;
     }

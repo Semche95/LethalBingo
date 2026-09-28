@@ -1,0 +1,122 @@
+[
+  {
+    "gameStartedAt": null,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000000000,
+    "expected": 3600
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": 1000000100,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000000000,
+    "expected": 0
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600000,
+    "expected": 3000
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600400,
+    "expected": 3000
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600600,
+    "expected": 3000
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000601000,
+    "expected": 2999
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 60,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600000,
+    "expected": 3060
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": -60,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600000,
+    "expected": 2940
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 120,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000000600000,
+    "expected": 3120
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": 1000000300,
+    "gameIsPaused": true,
+    "currentServerTime": 1000000900000,
+    "expected": 3300
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000003600000,
+    "expected": 0
+  },
+  {
+    "gameStartedAt": 1000000000,
+    "gameFinishedAt": null,
+    "gameTotalPausedSeconds": 0,
+    "gameManualAdjustmentSeconds": 0,
+    "gameLastPausedAt": null,
+    "gameIsPaused": false,
+    "currentServerTime": 1000008600000,
+    "expected": 0
+  }
+]

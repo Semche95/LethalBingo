@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentToolsTrait;
@@ -25,7 +26,7 @@ final class GameTimer extends AbstractController
     public ?Game $game = null;
 
     #[LiveProp]
-    public string $timerDisplay = '';
+    public float $serverTime = 0.0;
 
     public function __construct(
         private readonly GameTimerService       $gameTimerService,
@@ -34,11 +35,22 @@ final class GameTimer extends AbstractController
     {
     }
 
+    public function mount(): void
+    {
+        // The first render has no Mercure message yet. Every later refresh
+        // receives the shared timestamp carried by that message.
+        if (0.0 === $this->serverTime) {
+            $this->serverTime = microtime(true);
+        }
+    }
+
     #[LiveListener('gameFrameRefresh')]
     #[LiveListener('gameTimerRefresh')]
-    public function __invoke(): void
+    public function __invoke(#[LiveArg] ?float $serverTime = null): void
     {
-        $this->timerDisplay = $this->gameTimerService->formatGameDuration($this->game);
+        // Time display is owned exclusively by the client (rAF loop). The
+        // timestamp comes from Mercure so every client receives the same anchor.
+        $this->serverTime = $serverTime ?? microtime(true);
     }
 
     /**
@@ -50,7 +62,7 @@ final class GameTimer extends AbstractController
         $this->entityManager->flush();
 
         // Notify clients of the game update
-        $this->gameTimerService->refreshGameTimer($this->game);
+        $this->serverTime = $this->gameTimerService->refreshGameTimer($this->game);
     }
 
     #[LiveAction]
@@ -60,6 +72,8 @@ final class GameTimer extends AbstractController
         if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt() || $this->game->isPaused()) {
             return;
         }
+
+        $this->gameTimerService->absorbDeficit($this->game);
 
         $this->game
             ->setIsPaused(true)
@@ -76,15 +90,8 @@ final class GameTimer extends AbstractController
             return;
         }
 
-        // Calculate additional paused time
-        if ($this->game->getLastPausedAt()) {
-            $additionalPausedSeconds = new DateTimeImmutable()->getTimestamp() - $this->game->getLastPausedAt()->getTimestamp();
-            $this->game->setTotalPausedSeconds($this->game->getTotalPausedSeconds() + $additionalPausedSeconds);
-        }
-
-        $this->game
-            ->setIsPaused(false)
-            ->setLastPausedAt(null);
+        $this->gameTimerService->absorbDeficit($this->game);
+        $this->gameTimerService->closeCurrentPause($this->game);
 
         $this->persistGameChangesAndNotifyClients();
     }
@@ -97,12 +104,11 @@ final class GameTimer extends AbstractController
             return;
         }
 
-        // Add 1 minute (60 seconds) by adjusting the start time
-        $startedAt = $this->game->getStartedAt();
-        $newTimestamp = $startedAt->getTimestamp() + 60;
-        $newStartedAt = new DateTimeImmutable()->setTimestamp($newTimestamp);
+        $this->gameTimerService->absorbDeficit($this->game);
 
-        $this->game->setStartedAt($newStartedAt);
+        // Add 1 minute (60 seconds) by incrementing the cumulative manual
+        // adjustment counter. startedAt is never touched.
+        $this->game->setManualAdjustmentSeconds($this->game->getManualAdjustmentSeconds() + 60);
 
         $this->persistGameChangesAndNotifyClients();
     }
@@ -115,39 +121,19 @@ final class GameTimer extends AbstractController
             return;
         }
 
-        // Calculate current remaining time
-        $now = new DateTimeImmutable();
-        $elapsedSeconds = $now->getTimestamp() - $this->game->getStartedAt()->getTimestamp();
-        $elapsedSeconds -= $this->game->getTotalPausedSeconds();
+        $this->gameTimerService->absorbDeficit($this->game);
 
-        // If the game is currently paused, subtract the time since it was paused
-        if ($this->game->isPaused() && $this->game->getLastPausedAt()) {
-            $pausedSeconds = $now->getTimestamp() - $this->game->getLastPausedAt()->getTimestamp();
-            $elapsedSeconds -= $pausedSeconds;
-        }
-
-        $remainingSeconds = 3600 - $elapsedSeconds;
-
-        // Calculate how much time we can safely decrease
-        $decreaseAmount = min(60, $remainingSeconds);
-
-        // If no time to decrease, return early
-        if ($decreaseAmount <= 0) {
-            return;
-        }
-
-        // Remove the calculated amount of seconds by adjusting the start time
-        $startedAt = $this->game->getStartedAt();
-        $newTimestamp = $startedAt->getTimestamp() - $decreaseAmount;
-        $newStartedAt = new DateTimeImmutable()->setTimestamp($newTimestamp);
-
-        $this->game->setStartedAt($newStartedAt);
+        // Remove 1 minute (60 seconds) by decrementing the cumulative manual
+        // adjustment counter. startedAt is never touched. A negative counter
+        // reduces the remaining time; a fresh deficit is absorbed first.
+        $this->game->setManualAdjustmentSeconds($this->game->getManualAdjustmentSeconds() - 60);
 
         $this->persistGameChangesAndNotifyClients();
     }
 
     /**
-     * Sets the timer to a specific value by adjusting the game's start time
+     * Sets the timer to a specific value by adjusting the cumulative manual
+     * adjustment counter (never by touching startedAt).
      */
     private function setTimerToSpecificValue(int $targetRemainingSeconds): void
     {
@@ -155,24 +141,12 @@ final class GameTimer extends AbstractController
             return;
         }
 
-        // Calculate the new startedAt timestamp
-        $now = new DateTimeImmutable();
-        $targetElapsedSeconds = 3600 - $targetRemainingSeconds;
-        $newTimestamp = $now->getTimestamp() - $targetElapsedSeconds;
+        $this->gameTimerService->absorbDeficit($this->game);
 
-        // Adjust for paused time
-        if ($this->game->isPaused() && $this->game->getLastPausedAt()) {
-            // If the game is paused, we need to account for both the total paused seconds
-            // and the current pause duration
-            $currentPauseDuration = $now->getTimestamp() - $this->game->getLastPausedAt()->getTimestamp();
-            $newTimestamp = $newTimestamp - $this->game->getTotalPausedSeconds() - $currentPauseDuration;
-        } else {
-            // If the game is not paused, we only need to account for the total paused seconds
-            $newTimestamp = $newTimestamp - $this->game->getTotalPausedSeconds();
-        }
+        $currentRemainingSeconds = $this->gameTimerService->getRemainingSeconds($this->game);
+        $newAdjustment = $this->game->getManualAdjustmentSeconds() + ($targetRemainingSeconds - $currentRemainingSeconds);
 
-        $newStartedAt = new DateTimeImmutable()->setTimestamp($newTimestamp);
-        $this->game->setStartedAt($newStartedAt);
+        $this->game->setManualAdjustmentSeconds($newAdjustment);
 
         $this->persistGameChangesAndNotifyClients();
     }

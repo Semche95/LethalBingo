@@ -7,55 +7,99 @@ use DateTimeImmutable;
 
 readonly class GameTimerService
 {
+    public const DEFAULT_DURATION_SECONDS = 3600;
+
     public function __construct(
         private GameService $gameService,
     )
     {
     }
 
-    public function refreshGameTimer(Game $game): void
+    public function refreshGameTimer(Game $game): float
     {
-        $this->gameService->refreshGameFrame($game, RefreshEvent::GameTimer);
+        return $this->gameService->refreshGameFrame($game, RefreshEvent::GameTimer);
     }
 
-    public function formatGameDuration(Game $game): string
+    /**
+     * Time authority for the countdown, mirrored by calculateRemainingSeconds()
+     * in game_timer_math.ts. $nowMs defaults to the real clock.
+     */
+    public function getRemainingSeconds(Game $game, ?float $nowMs = null): int
     {
         if (!$game->getStartedAt()) {
-            return '01:00:00';
-        } elseif ($game->getFinishedAt()) {
-            return '00:00:00';
+            return self::DEFAULT_DURATION_SECONDS;
         }
 
-        // Calculate elapsed seconds since game started
-        $elapsedSeconds = new DateTimeImmutable()->getTimestamp() - $game->getStartedAt()->getTimestamp();
-
-        // Subtract total paused time
-        $elapsedSeconds -= $game->getTotalPausedSeconds();
-
-        // If the game is currently paused, subtract the time since it was paused
-        if ($game->isPaused() && $game->getLastPausedAt()) {
-            $pausedSeconds = new DateTimeImmutable()->getTimestamp() - $game->getLastPausedAt()->getTimestamp();
-            $elapsedSeconds -= $pausedSeconds;
+        if ($game->getFinishedAt()) {
+            return 0;
         }
 
-        // Calculate remaining seconds (don't go below zero)
-        $remainingSeconds = max(0, 3600 - $elapsedSeconds);
+        $nowMs = $nowMs ?? microtime(true) * 1000;
 
-        // If time is up, return 00:00:00
-        if ($remainingSeconds <= 0) {
-            return '00:00:00';
+        return max(0, (int)ceil($this->computeRawRemainingSeconds($game, $nowMs)));
+    }
+
+    /**
+     * Folds any overtime deficit into totalPausedSeconds so the next mutation
+     * applies on a remaining time of exactly zero (docs/TIMER.md section 3).
+     * Must be called first by every action that changes the remaining time.
+     */
+    public function absorbDeficit(Game $game, ?float $nowMs = null): void
+    {
+        if (!$game->getStartedAt() || $game->getFinishedAt()) {
+            return;
         }
 
-        // Convert remaining seconds to hours, minutes, seconds
-        $hours = floor($remainingSeconds / 3600);
-        $minutes = floor(($remainingSeconds % 3600) / 60);
-        $seconds = $remainingSeconds % 60;
+        $nowMs = $nowMs ?? microtime(true) * 1000;
+        $rawRemaining = $this->computeRawRemainingSeconds($game, $nowMs);
 
-        return sprintf(
-            '%02d:%02d:%02d',
-            $hours,
-            $minutes,
-            $seconds
-        );
+        if ($rawRemaining <= 0) {
+            // Keep a 0.5ms margin so the raw value stays strictly negative and
+            // the final ceil yields 0, never 1.
+            $game->setTotalPausedSeconds($game->getTotalPausedSeconds() + floor(-$rawRemaining * 1000 - 0.5) / 1000);
+        }
+    }
+
+    /**
+     * Ends the current pause, folding its sub-second duration into totalPausedSeconds.
+     */
+    public function closeCurrentPause(Game $game, ?float $nowMs = null): void
+    {
+        if (!$game->isPaused()) {
+            return;
+        }
+
+        if ($game->getLastPausedAt()) {
+            $nowMs = $nowMs ?? microtime(true) * 1000;
+            $pauseSeconds = ($nowMs - self::toMilliseconds($game->getLastPausedAt())) / 1000;
+            $game->setTotalPausedSeconds($game->getTotalPausedSeconds() + $pauseSeconds);
+        }
+
+        $game
+            ->setIsPaused(false)
+            ->setLastPausedAt(null);
+    }
+
+    /**
+     * Unclamped remaining seconds (may be negative), sub-second precision.
+     */
+    private function computeRawRemainingSeconds(Game $game, float $nowMs): float
+    {
+        $startedAtMs = self::toMilliseconds($game->getStartedAt());
+
+        // While paused, use lastPausedAt directly instead of subtracting the
+        // current pause from now: the float residue would make the ceil flicker.
+        $endMs = $game->isPaused() && $game->getLastPausedAt()
+            ? self::toMilliseconds($game->getLastPausedAt())
+            : $nowMs;
+
+        $elapsedSeconds = ($endMs - $startedAtMs) / 1000 - $game->getTotalPausedSeconds();
+
+        return self::DEFAULT_DURATION_SECONDS - $elapsedSeconds + $game->getManualAdjustmentSeconds();
+    }
+
+    private static function toMilliseconds(DateTimeImmutable $date): float
+    {
+        return ((float)$date->format('U.u')) * 1000;
     }
 }

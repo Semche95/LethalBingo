@@ -41,6 +41,7 @@ class GameServiceTest extends TestCase
 
                 $data = json_decode($update->getData(), true, 512, JSON_THROW_ON_ERROR);
                 $this->assertSame('gameFrameRefresh', $data['event']);
+                $this->assertIsFloat($data['serverTime']);
 
                 return true;
             }));
@@ -58,6 +59,7 @@ class GameServiceTest extends TestCase
             ->with($this->callback(function ($update): bool {
                 $data = json_decode($update->getData(), true, 512, JSON_THROW_ON_ERROR);
                 $this->assertSame('bingoCardRefresh', $data['event']);
+                $this->assertIsFloat($data['serverTime']);
 
                 return true;
             }));
@@ -79,7 +81,7 @@ class GameServiceTest extends TestCase
         $this->assertInstanceOf(DateTimeImmutable::class, $game->getStartedAt());
         $this->assertNull($game->getFinishedAt());
         $this->assertFalse($game->isPaused());
-        $this->assertSame(0, $game->getTotalPausedSeconds());
+        $this->assertSame(0.0, $game->getTotalPausedSeconds());
         $this->assertNull($game->getLastPausedAt());
     }
 
@@ -141,7 +143,7 @@ class GameServiceTest extends TestCase
         $this->assertNull($game->getStartedAt());
         $this->assertNull($game->getFinishedAt());
         $this->assertFalse($game->isPaused());
-        $this->assertSame(0, $game->getTotalPausedSeconds());
+        $this->assertSame(0.0, $game->getTotalPausedSeconds());
         $this->assertNull($game->getLastPausedAt());
         $this->assertCount(2, $removedEntities);
         $this->assertInstanceOf(BingoSquareValidated::class, $removedEntities[0]);

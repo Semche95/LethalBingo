@@ -19,12 +19,19 @@ readonly class GameService
     {
     }
 
-    public function refreshGameFrame(Game $game, RefreshEvent $event = RefreshEvent::GameFrame): void
+    public function refreshGameFrame(Game $game, RefreshEvent $event = RefreshEvent::GameFrame): float
     {
+        $serverTime = microtime(true);
+
         $this->hub->publish(new Update(
             'game/' . $game->getSlug(),
-            json_encode(['event' => $event->value]),
+            json_encode([
+                'event' => $event->value,
+                'serverTime' => $serverTime,
+            ], JSON_THROW_ON_ERROR),
         ));
+
+        return $serverTime;
     }
 
     public function start(Game $game): void
@@ -34,6 +41,7 @@ readonly class GameService
             ->setFinishedAt(null)
             ->setIsPaused(false)
             ->setTotalPausedSeconds(0)
+            ->setManualAdjustmentSeconds(0)
             ->setLastPausedAt(null);
         $this->em->persist($game);
         $this->em->flush();
@@ -42,6 +50,7 @@ readonly class GameService
 
     public function stop(Game $game): void
     {
+        // stop() only ever modifies finishedAt; startedAt is never touched here.
         $game->setFinishedAt(new DateTimeImmutable());
         $this->em->persist($game);
         $this->em->flush();
@@ -56,6 +65,7 @@ readonly class GameService
                 ->setFinishedAt(null)
                 ->setIsPaused(false)
                 ->setTotalPausedSeconds(0)
+                ->setManualAdjustmentSeconds(0)
                 ->setLastPausedAt(null);
             $game->getBingoSquareRevealed()->clear();
             foreach ($game->getBingoSquareValidated() as $square) {

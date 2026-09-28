@@ -1,11 +1,11 @@
 <div {{ attributes.defaults(stimulus_controller('game--game-timer', {
-    gameStartedAt: this.game.startedAt ? this.game.startedAt.timestamp : null,
-    gameFinishedAt: this.game.finishedAt ? this.game.finishedAt.timestamp : null,
+    gameStartedAt: this.game.startedAt ? this.game.startedAt.format('U.u') : null,
+    gameFinishedAt: this.game.finishedAt ? this.game.finishedAt.format('U.u') : null,
     gameTotalPausedSeconds: this.game.totalPausedSeconds,
-    gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.timestamp : null,
+    gameManualAdjustmentSeconds: this.game.manualAdjustmentSeconds,
+    gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.format('U.u') : null,
     gameIsPaused: this.game.isPaused,
-    serverTime: date().timestamp,
-    serverTimeUrl: path('app_game_server_time')
+    serverTime: this.serverTime
 })) }}>
     <div class="vcenter">
         <div class="me-3">
@@ -14,7 +14,7 @@
         <div class="text-center">
             <h3 class="m-0">Temps restant</h3>
             <div class="fs-1 fw-bold" id="timer-display">
-                <span data-game--game-timer-target="timerDisplay">{{ this.timerDisplay }}</span>
+                <span data-game--game-timer-target="timerDisplay" data-live-ignore></span>
                 <span data-game--game-timer-target="pauseBadge" class="badge text-bg-warning ms-2 d-none">PAUSE</span>
             </div>
         </div>

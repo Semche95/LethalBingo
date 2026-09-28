@@ -80,7 +80,19 @@ class GameTest extends TestCase
         $this->assertNull($game->getNotes());
         $this->assertNull($game->getLastPausedAt());
         $this->assertFalse($game->isPaused());
-        $this->assertSame(0, $game->getTotalPausedSeconds());
+        $this->assertSame(0.0, $game->getTotalPausedSeconds());
+        $this->assertSame(0, $game->getManualAdjustmentSeconds());
+    }
+
+    public function testManualAdjustmentSecondsRoundTrip(): void
+    {
+        $game = new Game();
+        $game->setManualAdjustmentSeconds(60);
+
+        $this->assertSame(60, $game->getManualAdjustmentSeconds());
+
+        $game->setManualAdjustmentSeconds(-30);
+        $this->assertSame(-30, $game->getManualAdjustmentSeconds());
     }
 
     public function testSetNotes(): void
