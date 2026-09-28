@@ -4,7 +4,12 @@ import {
     formatGameDuration,
     GAME_DURATION_SECONDS,
 } from './game_timer_math'
-import { estimateServerTimeFromResponses } from './game_timer_anchor'
+import {
+    estimateServerTimeFromResponses,
+    estimateServerTimeFromRoundTrip,
+    hasClientClockJumped,
+    parseServerTimeHeader,
+} from './game_timer_anchor'
 import { computeAlertColor, createThresholdState, evaluateThresholds } from './game_timer_thresholds'
 
 /* stimulusFetch: 'lazy' */
@@ -19,6 +24,8 @@ export default class extends Controller<HTMLDivElement> {
         // Server timestamp (fractional seconds) shared by all clients through the
         // Mercure broadcast, or taken at mount() on first render.
         serverTime: Number,
+        // Stamped empty response fetched to resync after a sleep or a clock jump.
+        serverTimeUrl: String,
     }
 
     static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton']
@@ -30,6 +37,8 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly gameLastPausedAtValue: number | null
     declare readonly gameIsPausedValue: boolean
     declare readonly serverTimeValue: number
+    declare readonly serverTimeUrlValue: string
+    declare readonly hasServerTimeUrlValue: boolean
 
     // Server time anchor (seconds), see getCurrentServerTime().
     private syncedServerTime: number = 0
@@ -46,11 +55,20 @@ export default class extends Controller<HTMLDivElement> {
     // performance.now() taken when syncedServerTime was anchored.
     private clientTimeAtRender: number = 0
     private thresholdState = createThresholdState()
+    // Clocks read on the previous frame, to detect a sleep between two frames.
+    private previousFrameWallTime: number = 0
+    private previousFrameClientTime: number = 0
+    private resyncAbortController: AbortController | null = null
 
     private readonly onVisibilityChange = (): void => {
         if (document.visibilityState === 'visible') {
             this.updateTimerDisplay()
+            this.resyncWithServer()
         }
+    }
+
+    private readonly onOnline = (): void => {
+        this.resyncWithServer()
     }
 
     override connect() {
@@ -65,6 +83,7 @@ export default class extends Controller<HTMLDivElement> {
         this.startTimerLoop()
 
         document.addEventListener('visibilitychange', this.onVisibilityChange)
+        window.addEventListener('online', this.onOnline)
 
         this.updateTimerDisplay()
     }
@@ -77,6 +96,10 @@ export default class extends Controller<HTMLDivElement> {
         this.stopTimerLoop()
 
         document.removeEventListener('visibilitychange', this.onVisibilityChange)
+        window.removeEventListener('online', this.onOnline)
+
+        this.resyncAbortController?.abort()
+        this.resyncAbortController = null
     }
 
     gameIsPausedValueChanged() {
@@ -125,12 +148,69 @@ export default class extends Controller<HTMLDivElement> {
         this.clientTimeAtRender = now
     }
 
+    // One-off request, never on an interval (docs/TIMER.md section 1): only after
+    // a sleep, a clock jump, a return to the tab or a network recovery, where the
+    // client clock may have stalled or drifted with no broadcast to catch up.
+    private async resyncWithServer() {
+        if (!this.hasServerTimeUrlValue || this.resyncAbortController) {
+            return
+        }
+
+        const abortController = new AbortController()
+        this.resyncAbortController = abortController
+
+        try {
+            const requestStart = performance.now()
+            const response = await fetch(this.serverTimeUrlValue, { cache: 'no-store', signal: abortController.signal })
+            const responseArrival = performance.now()
+
+            const sentAtSeconds = parseServerTimeHeader(response.headers.get('Server-Timing'))
+            if (sentAtSeconds === null) {
+                return
+            }
+
+            this.syncedServerTime = estimateServerTimeFromRoundTrip(
+                this.getCurrentServerTime(),
+                sentAtSeconds,
+                requestStart,
+                responseArrival,
+                responseArrival,
+            ) / 1000
+            this.clientTimeAtRender = responseArrival
+            // A jump after a sleep is not a natural countdown: no threshold sound.
+            this.updateTimerDisplay(false)
+        } catch {
+            // Offline or aborted: the next wake-up, tab return or reconnection retries.
+        } finally {
+            if (this.resyncAbortController === abortController) {
+                this.resyncAbortController = null
+            }
+        }
+    }
+
     private startTimerLoop() {
+        this.previousFrameWallTime = Date.now()
+        this.previousFrameClientTime = performance.now()
+
         const tick = () => {
+            this.detectClientClockJump()
             this.updateTimerDisplay()
             this.animationFrameId = window.requestAnimationFrame(tick)
         }
         this.animationFrameId = window.requestAnimationFrame(tick)
+    }
+
+    // Date.now() only serves to detect the jump, never to compute the time.
+    private detectClientClockJump() {
+        const wallTime = Date.now()
+        const clientTime = performance.now()
+
+        if (hasClientClockJumped(this.previousFrameWallTime, this.previousFrameClientTime, wallTime, clientTime)) {
+            this.resyncWithServer()
+        }
+
+        this.previousFrameWallTime = wallTime
+        this.previousFrameClientTime = clientTime
     }
 
     private stopTimerLoop() {

@@ -29,6 +29,7 @@ interface TimerValues {
     gameLastPausedAt?: number | null
     gameIsPaused?: boolean
     serverTime?: number
+    serverTimeUrl?: string
 }
 
 const SERVER_TIME = 1_700_000_000
@@ -414,6 +415,89 @@ describe('game_timer_controller', () => {
             const controller = await connectController(buildElement({ gameStartedAt: START_SEC, serverTime: SERVER_TIME }))
 
             expect(estimatedServerTimeMs(controller)).toBeCloseTo(SERVER_TIME * 1000, 3)
+        })
+    })
+
+    describe('server resync', () => {
+        const SERVER_TIME_URL = '/server-time'
+
+        function stubServerTimeResponse(sentAtSeconds: number | null) {
+            const headers = new Headers(sentAtSeconds === null ? {} : { 'Server-Timing': `app-time;desc="${sentAtSeconds}"` })
+            const fetchMock = vi.fn().mockResolvedValue({ headers })
+            vi.stubGlobal('fetch', fetchMock)
+            return fetchMock
+        }
+
+        async function flushPromises() {
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve()
+            }
+        }
+
+        function showTab() {
+            Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true })
+            document.dispatchEvent(new Event('visibilitychange'))
+        }
+
+        afterEach(() => {
+            vi.unstubAllGlobals()
+        })
+
+        it('catches up on the server time after a sleep once the tab is visible again', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            // The client clock stalled during a 60s sleep: the server moved on.
+            const fetchMock = stubServerTimeResponse(SERVER_TIME + 60)
+
+            showTab()
+            await flushPromises()
+
+            expect(fetchMock).toHaveBeenCalledWith(SERVER_TIME_URL, expect.objectContaining({ cache: 'no-store' }))
+            expect(controller.timerDisplayTarget.textContent).toBe('00:29:00')
+        })
+
+        it('resyncs when the wall clock jumps ahead of the stalled client clock', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            const fetchMock = stubServerTimeResponse(SERVER_TIME + 60)
+
+            // Only the wall clock moves, as performance.now() does during a sleep.
+            vi.setSystemTime(Date.now() + 60_000)
+            await vi.advanceTimersByTimeAsync(20)
+            await flushPromises()
+
+            expect(fetchMock).toHaveBeenCalledTimes(1)
+            expect(controller.timerDisplayTarget.textContent).toBe('00:29:00')
+        })
+
+        it('does not resync while both clocks run together', async () => {
+            await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            const fetchMock = stubServerTimeResponse(SERVER_TIME)
+
+            await vi.advanceTimersByTimeAsync(5_000)
+
+            expect(fetchMock).not.toHaveBeenCalled()
+        })
+
+        it('moves the anchor backward only when the client clock is proven ahead', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            // The client clock ran 2s fast; the server replies within the round trip.
+            controller.syncedServerTime = SERVER_TIME + 2
+            stubServerTimeResponse(SERVER_TIME)
+
+            showTab()
+            await flushPromises()
+
+            expect(controller.getCurrentServerTime()).toBeCloseTo(SERVER_TIME * 1000, 3)
+            expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
+        })
+
+        it('keeps the anchor when the response carries no server time', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            stubServerTimeResponse(null)
+
+            showTab()
+            await flushPromises()
+
+            expect(controller.getCurrentServerTime()).toBeCloseTo(SERVER_TIME * 1000, 3)
         })
     })
 })

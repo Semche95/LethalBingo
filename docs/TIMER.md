@@ -13,7 +13,7 @@ Le serveur est l'autorité sur le temps. Chaque client (arbitre et joueurs) repr
 - Le serveur publie `microtime(true)` (temps fractionnaire) dans le payload du message Mercure diffusé à chaque mutation du jeu (start, stop, pause, reprise, ±1 minute, validation de case, etc.).
 - Tous les clients reçoivent ce broadcast en même temps et s'ancrent dessus.
 - Au tout premier rendu de page (avant tout broadcast), le composant Live (`GameTimer.php`) résout lui-même un `microtime(true)` dans son `mount()`, pour ne jamais laisser l'ancre à une valeur par défaut invalide (ex. `0.0`, qui donnerait un calcul depuis l'epoch Unix).
-- **Aucun fetch périodique côté client ne doit exister** vers un endpoint de type `/game/server-time`. Chaque client interrogeant le serveur indépendamment produit une ancre légèrement différente d'un client à l'autre : l'ancre doit toujours venir du broadcast partagé, jamais d'une requête individuelle.
+- **Aucun fetch périodique côté client ne doit exister** vers un endpoint de type `/server-time`. L'ancre vient du broadcast partagé et des réponses déjà reçues ; une requête individuelle n'est faite que ponctuellement, pour un recalage après une veille ou un saut d'horloge (voir « Recalage après une veille ou une horloge décalée »).
 
 ### Estimation du temps serveur côté client
 
@@ -37,8 +37,20 @@ Toute source d'heure serveur arrive au client **en retard** : l'heure a été lu
 Sans la source 3, l'ancre d'un premier rendu intégrait le reste du rendu de la page côté serveur, le parsing et le chargement lazy du contrôleur : ≈ 70 ms de retard mesurés côté arbitre et jusqu'à 300 ms côté joueur en dev, davantage sur un vrai réseau. Le maximum garantit aussi que l'ancre ne recule jamais, ce qui empêche l'affichage d'osciller entre deux secondes.
 
 Le navigateur ne conserve qu'une liste limitée de réponses reçues (≈ 250) et cesse silencieusement d'en enregistrer une fois pleine, ce que Vite atteint vite en dev. Le contrôleur `app` vide cette liste dès qu'elle est pleine (`resourcetimingbufferfull`) pour que les réponses récentes restent disponibles. Une réponse manquante ne fausse jamais l'estimation (le maximum ignore simplement cette source), elle la rend seulement moins précise.
-- `performance.now()` est une horloge **monotone** (ne dépend pas de l'horloge système de la machine), donc immunisée contre un changement d'heure locale ou une mise en veille du poste.
+- `performance.now()` est une horloge **monotone** : elle ne dépend pas de l'horloge système de la machine, donc un changement d'heure locale ne fausse pas le décompte. En revanche, sur la plupart des systèmes elle **s'arrête pendant la mise en veille** du poste : au réveil, l'estimation est en retard de la durée de la veille (voir ci-dessous).
 - L'ancre se met à jour : au premier rendu, à chaque broadcast Mercure, et lors de refresh événementiels ponctuels (`visibilitychange` quand l'onglet redevient visible, reconnexion de l'`EventSource` Mercure après une coupure). Jamais via un intervalle récurrent. Ces refresh événementiels ne transportent pas toujours un nouveau `serverTime` (c'est le cas typique de `visibilitychange`, qui déclenche un re-render sans repasser par un broadcast). **Le point d'entrée qui reçoit `serverTime` doit systématiquement produire une ancre fraîche quand aucune valeur n'est fournie (repli sur l'heure serveur actuelle), jamais laisser l'ancre inchangée dans ce cas.** Une ancre qui reste figée quand `serverTime` est absent romprait justement le mécanisme de refresh événementiel décrit ci-dessus, et produirait un décompte qui semble s'arrêter puis reprendre en retard après un changement d'onglet.
+
+### Recalage après une veille ou une horloge décalée
+
+Aucun broadcast n'arrive forcément au réveil d'un poste : sans recalage, le chrono resterait en retard de la durée de la veille jusqu'au prochain événement de la partie. Une horloge client qui avance trop vite (dérive du quartz) ne serait jamais corrigée non plus, puisque l'ancre ne recule jamais sur une simple estimation.
+
+Le contrôleur fait alors **une** requête `GET /server-time` (`App\Controller\ServerTimeController`, réponse 204 non mise en cache, horodatée par `ServerTimeHeaderListener`), uniquement dans ces cas :
+
+- saut d'horloge détecté entre deux frames : l'horloge système (`Date.now()`) a avancé de plus d'une seconde de plus (ou de moins) que `performance.now()` — signe d'une veille ou d'un changement d'heure système. `Date.now()` sert uniquement à cette détection, jamais au calcul ;
+- retour sur l'onglet (`visibilitychange` → `visible`) ;
+- retour du réseau (`online`).
+
+Une seule requête à la fois ; elle est annulée au `disconnect()`. Le client connaît l'instant de départ de sa requête et l'instant d'arrivée de la réponse : l'heure serveur réelle est comprise entre `envoi + (maintenant − arrivée)` et `envoi + (maintenant − départ)` (`estimateServerTimeFromRoundTrip()`). Une estimation sous la borne basse avance jusqu'à elle (cas de la veille). Une estimation **au-dessus de la borne haute est prouvée en avance** : c'est le seul cas où l'ancre recule, jusqu'à la borne basse. Le saut d'affichage qui en résulte ne déclenche aucun son de seuil (ce n'est pas un décompte naturel). En cas d'échec réseau, rien ne change : le prochain événement réessaie.
 
 ---
 
@@ -123,7 +135,7 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 ## 7. Récapitulatif
 
 - Le serveur est l'autorité sur le temps ; tout le reste de la spécification en découle.
-- Ancre = la plus avancée des estimations disponibles (ancre courante, `serverTime` du broadcast Mercure ou du premier rendu, en-tête `Server-Timing` des réponses reçues), toutes nécessairement en retard : elle ne recule jamais. Pas de fetch périodique.
+- Ancre = la plus avancée des estimations disponibles (ancre courante, `serverTime` du broadcast Mercure ou du premier rendu, en-tête `Server-Timing` des réponses reçues), toutes nécessairement en retard : elle ne recule jamais sauf si une requête `/server-time` prouve que l'horloge client est en avance. Pas de fetch périodique : une requête ponctuelle seulement après une veille, un saut d'horloge, un retour sur l'onglet ou un retour du réseau.
 - `performance.now()` pour l'extrapolation locale, pas `Date.now()`.
 - `requestAnimationFrame` pour la boucle d'affichage, pas `setInterval`.
 - Calcul du temps restant en précision sous-seconde de bout en bout, un seul arrondi final, identique en PHP et en TS (vérifié par fixture partagée, pas par réimplémentation croisée dans les tests).
