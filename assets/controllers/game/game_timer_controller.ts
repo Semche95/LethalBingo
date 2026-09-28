@@ -4,6 +4,7 @@ import {
     formatGameDuration,
     GAME_DURATION_SECONDS,
 } from './game_timer_math'
+import { estimateServerTimeFromResponses } from './game_timer_anchor'
 import { computeAlertColor, createThresholdState, evaluateThresholds } from './game_timer_thresholds'
 
 /* stimulusFetch: 'lazy' */
@@ -58,8 +59,7 @@ export default class extends Controller<HTMLDivElement> {
         this.notificationAudio = new Audio(notificationSoundURL.href)
         this.endAudio = new Audio(endSoundURL.href)
 
-        this.syncedServerTime = this.serverTimeValue
-        this.clientTimeAtRender = performance.now()
+        this.reanchor()
 
         // rAF rather than setInterval: no phase that could drift between clients.
         this.startTimerLoop()
@@ -104,17 +104,25 @@ export default class extends Controller<HTMLDivElement> {
         this.updateTimerDisplay(false)
     }
 
-    // Re-anchor on each Live re-render, but never backward: the broadcast
-    // timestamp predates its delivery (and arrives twice: action response and
-    // Mercure echo), so rewinding would make the display flicker between seconds.
     serverTimeValueChanged() {
-        const newAnchorMs = this.serverTimeValue * 1000
-        if (newAnchorMs < this.getCurrentServerTime()) {
-            return
-        }
+        this.reanchor()
+    }
 
-        this.syncedServerTime = this.serverTimeValue
-        this.clientTimeAtRender = performance.now()
+    // Every candidate can only lag behind the real server time: the current
+    // estimate, the serverTime value read now (it predates its delivery) and the
+    // stamped responses (docs/TIMER.md section 1). Keeping the highest one never
+    // moves the anchor backward, so the display cannot flicker between seconds.
+    private reanchor() {
+        const now = performance.now()
+        const fromResponses = estimateServerTimeFromResponses(
+            [...performance.getEntriesByType('navigation'), ...performance.getEntriesByType('resource')] as PerformanceResourceTiming[],
+            now,
+        )
+
+        const bestMs = Math.max(this.getCurrentServerTime(), this.serverTimeValue * 1000, fromResponses ?? 0)
+
+        this.syncedServerTime = bestMs / 1000
+        this.clientTimeAtRender = now
     }
 
     private startTimerLoop() {

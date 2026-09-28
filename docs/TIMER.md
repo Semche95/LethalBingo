@@ -22,7 +22,21 @@ estimatedServerTime(ms) = syncedServerTime * 1000 + (performance.now() - clientT
 ```
 
 - `syncedServerTime` : l'ancre reçue (secondes, fractionnaire).
-- `clientTimeAtRender` : `performance.now()` capturé au même moment que l'ancre.
+- `clientTimeAtRender` : l'instant client (base `performance.now()`) auquel correspond `syncedServerTime`.
+
+### Choix de l'ancre : la meilleure estimation, jamais en avance
+
+Toute source d'heure serveur arrive au client **en retard** : l'heure a été lue sur le serveur, puis il a fallu finir le rendu, transmettre, parser la page, charger le contrôleur. Une estimation construite à partir d'une de ces sources ne peut donc être qu'en retard sur l'heure serveur réelle, jamais en avance. La meilleure estimation est simplement **la plus avancée**.
+
+À chaque `connect()` et à chaque changement de `serverTime` (re-render Live), le contrôleur retient le maximum entre :
+
+1. l'estimation courante (ancre précédente extrapolée) ;
+2. `serverTime` reçu (lu pendant le rendu, donc déjà en retard à son arrivée) ;
+3. l'estimation tirée des réponses HTTP reçues par le navigateur : chaque réponse de l'application porte un en-tête `Server-Timing: app-time;desc="<microtime>"` posé au dernier moment avant l'envoi (`App\EventListener\ServerTimeHeaderListener`), et le navigateur note l'instant d'arrivée de chaque réponse (`responseStart`, API Resource/Navigation Timing). `heure d'envoi + (maintenant − arrivée)` n'est en retard que du temps de transit réseau (`estimateServerTimeFromResponses()` dans `game_timer_anchor.ts`).
+
+Sans la source 3, l'ancre d'un premier rendu intégrait le reste du rendu de la page côté serveur, le parsing et le chargement lazy du contrôleur : ≈ 70 ms de retard mesurés côté arbitre et jusqu'à 300 ms côté joueur en dev, davantage sur un vrai réseau. Le maximum garantit aussi que l'ancre ne recule jamais, ce qui empêche l'affichage d'osciller entre deux secondes.
+
+Le navigateur ne conserve qu'une liste limitée de réponses reçues (≈ 250) et cesse silencieusement d'en enregistrer une fois pleine, ce que Vite atteint vite en dev. Le contrôleur `app` vide cette liste dès qu'elle est pleine (`resourcetimingbufferfull`) pour que les réponses récentes restent disponibles. Une réponse manquante ne fausse jamais l'estimation (le maximum ignore simplement cette source), elle la rend seulement moins précise.
 - `performance.now()` est une horloge **monotone** (ne dépend pas de l'horloge système de la machine), donc immunisée contre un changement d'heure locale ou une mise en veille du poste.
 - L'ancre se met à jour : au premier rendu, à chaque broadcast Mercure, et lors de refresh événementiels ponctuels (`visibilitychange` quand l'onglet redevient visible, reconnexion de l'`EventSource` Mercure après une coupure). Jamais via un intervalle récurrent. Ces refresh événementiels ne transportent pas toujours un nouveau `serverTime` (c'est le cas typique de `visibilitychange`, qui déclenche un re-render sans repasser par un broadcast). **Le point d'entrée qui reçoit `serverTime` doit systématiquement produire une ancre fraîche quand aucune valeur n'est fournie (repli sur l'heure serveur actuelle), jamais laisser l'ancre inchangée dans ce cas.** Une ancre qui reste figée quand `serverTime` est absent romprait justement le mécanisme de refresh événementiel décrit ci-dessus, et produirait un décompte qui semble s'arrêter puis reprendre en retard après un changement d'onglet.
 
@@ -109,7 +123,7 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 ## 7. Récapitulatif
 
 - Le serveur est l'autorité sur le temps ; tout le reste de la spécification en découle.
-- Une seule ancre temporelle : le broadcast Mercure (+ résolution au premier rendu). Pas de fetch périodique.
+- Ancre = la plus avancée des estimations disponibles (ancre courante, `serverTime` du broadcast Mercure ou du premier rendu, en-tête `Server-Timing` des réponses reçues), toutes nécessairement en retard : elle ne recule jamais. Pas de fetch périodique.
 - `performance.now()` pour l'extrapolation locale, pas `Date.now()`.
 - `requestAnimationFrame` pour la boucle d'affichage, pas `setInterval`.
 - Calcul du temps restant en précision sous-seconde de bout en bout, un seul arrondi final, identique en PHP et en TS (vérifié par fixture partagée, pas par réimplémentation croisée dans les tests).

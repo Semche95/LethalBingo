@@ -172,7 +172,6 @@ describe('game_timer_controller', () => {
         // Let the client clock tick forward: the extrapolated estimate is now
         // ahead of the anchor by the elapsed time.
         await vi.advanceTimersByTimeAsync(2000)
-        const anchorBefore = controller.syncedServerTime
         const estimateBefore = controller.getCurrentServerTime()
 
         // Simulate a Live re-render delivering a broadcast timestamp captured
@@ -180,7 +179,6 @@ describe('game_timer_controller', () => {
         // extrapolated estimate. Re-applying it would rewind the display.
         controller.serverTimeValue = (estimateBefore - 500) / 1000
         controller.serverTimeValueChanged()
-        expect(controller.syncedServerTime).toBe(anchorBefore)
         expect(controller.getCurrentServerTime()).toBe(estimateBefore)
     })
 
@@ -379,5 +377,43 @@ describe('game_timer_controller', () => {
         await vi.advanceTimersByTimeAsync(31_000)
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
         expect(end.play).toHaveBeenCalledTimes(1)
+    })
+
+    describe('server time anchor', () => {
+        // Simulates a response stamped with the server send time that arrived
+        // arrivedMsAgo milliseconds before now.
+        function stubStampedResponse(sentAtSeconds: number, arrivedMsAgo: number) {
+            const entry = {
+                responseStart: performance.now() - arrivedMsAgo,
+                serverTiming: [{ name: 'app-time', description: String(sentAtSeconds) }],
+            }
+            Object.defineProperty(performance, 'getEntriesByType', {
+                value: (type: string) => type === 'navigation' ? [entry] : [],
+                configurable: true,
+            })
+        }
+
+        function estimatedServerTimeMs(controller: any): number {
+            return controller.getCurrentServerTime()
+        }
+
+        it('anchors on the stamped response when the rendered serverTime is older', async () => {
+            await vi.advanceTimersByTimeAsync(5_000)
+            // Rendered at SERVER_TIME, sent 70ms later, arrived 1.5s ago.
+            stubStampedResponse(SERVER_TIME + 0.07, 1_500)
+
+            const controller = await connectController(buildElement({ gameStartedAt: START_SEC, serverTime: SERVER_TIME }))
+
+            expect(estimatedServerTimeMs(controller)).toBeCloseTo(SERVER_TIME * 1000 + 70 + 1_500, 3)
+        })
+
+        it('falls back to the rendered serverTime without any stamped response', async () => {
+            await vi.advanceTimersByTimeAsync(5_000)
+            Object.defineProperty(performance, 'getEntriesByType', { value: () => [], configurable: true })
+
+            const controller = await connectController(buildElement({ gameStartedAt: START_SEC, serverTime: SERVER_TIME }))
+
+            expect(estimatedServerTimeMs(controller)).toBeCloseTo(SERVER_TIME * 1000, 3)
+        })
     })
 })
