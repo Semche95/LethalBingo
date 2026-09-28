@@ -1,0 +1,14 @@
+# Development only, imported through CADDY_SERVER_EXTRA_DIRECTIVES
+# (compose.override.yaml) and never copied into an image.
+#
+# The Vite dev server runs on the host and is proxied here so the browser
+# always talks to a single origin (https://lethalbingo.localhost). This is
+# required because Web Workers cannot be loaded cross-origin: the page and its
+# JS/assets must share the same origin. The /build assets, the Vite HMR client
+# and the HMR WebSocket all flow through this proxy. The handle block runs
+# before the catch-all one, which would otherwise rewrite /build requests to
+# index.php.
+@vite path /build/* /@vite/* /@id/* /@fs/*
+handle @vite {
+	reverse_proxy host.docker.internal:5173
+}

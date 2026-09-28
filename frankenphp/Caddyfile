@@ -30,40 +30,37 @@
 	root /app/public
 	encode zstd br gzip
 
-	# In development the Vite dev server runs on the host and is proxied here so
-	# the browser always talks to a single origin (https://lethalbingo.localhost).
-	# This is required because Web Workers cannot be loaded cross-origin: the page
-	# and its JS/assets must share the same origin. The /build assets, the Vite
-	# HMR client and the HMR WebSocket all flow through this proxy.
-	@vite path /build/* /@vite/* /@id/* /@fs/*
-	reverse_proxy @vite host.docker.internal:5173
-
 	mercure {
-		# Publisher JWT key
-		publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
-		# Subscriber JWT key
-		subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-		# Allow anonymous subscribers (double-check that it's what you want)
+		# The same key signs and checks every Mercure JWT (MERCURE_JWT_SECRET,
+		# also used by Symfony to publish)
+		publisher_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_PUBLISHER_JWT_ALG}
+		subscriber_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+		# Anonymous subscribers are wanted: players follow a game without an
+		# account. Updates only carry refresh signals, never game content.
 		anonymous
-		# Enable the subscription API (double-check that it's what you want)
-		subscriptions
 		# Extra directives
 		{$MERCURE_EXTRA_DIRECTIVES}
 	}
 
 	vulcain
 
-	{$CADDY_SERVER_EXTRA_DIRECTIVES}
-
-	# Disable Topics tracking if not enabled explicitly: https://github.com/jkarlin/topics
-	header ?Permissions-Policy "browsing-topics=()"
-
-	# Vite dev assets (development only — isolated in a handle block so the
-	# reverse_proxy runs before the @phpRoute rewrite that would otherwise
-	# redirect /build requests to index.php).
-	handle @vite {
-		reverse_proxy host.docker.internal:5173
+	# Security headers sent with every response, static files included. The
+	# Content-Security-Policy is set by Symfony (ContentSecurityPolicyListener) so the
+	# profiler toolbar can add its nonces in dev.
+	header {
+		?Strict-Transport-Security "max-age=31536000"
+		?X-Content-Type-Options "nosniff"
+		?X-Frame-Options "DENY"
+		?Referrer-Policy "strict-origin-when-cross-origin"
+		?Cross-Origin-Opener-Policy "same-origin"
+		# Disable Topics tracking and the browser features the app never uses
+		?Permissions-Policy "browsing-topics=(), camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		-Server
+		-X-Powered-By
 	}
+
+	# Development only (compose.override.yaml): proxy to the Vite dev server
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
 	handle {
 		@phpRoute {
@@ -82,7 +79,8 @@
 }
 
 {$SERVER_NAME:localhost} {
-	tls /etc/caddy/certs/cert.pem /etc/caddy/certs/cert-key.pem
+	# Development only (compose.override.yaml): locally trusted certificate
+	{$CADDY_SERVER_TLS}
 
 	import symfony
 }

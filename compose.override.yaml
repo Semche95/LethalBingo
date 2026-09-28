@@ -9,6 +9,8 @@ services:
       - ./:/app
       - ./frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
       - ./frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
+      - ./frankenphp/vite.caddy:/etc/frankenphp/vite.caddy:ro
+      # Locally trusted certificate: bind-mounted, never copied into an image
       - ./certs:/etc/caddy/certs:ro
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
@@ -16,6 +18,8 @@ services:
     environment:
       FRANKENPHP_WORKER_CONFIG: watch
       MERCURE_EXTRA_DIRECTIVES: demo
+      CADDY_SERVER_EXTRA_DIRECTIVES: import /etc/frankenphp/vite.caddy
+      CADDY_SERVER_TLS: tls /etc/caddy/certs/cert.pem /etc/caddy/certs/cert-key.pem
       SERVER_NAME: lethalbingo.localhost
       MERCURE_PUBLIC_URL: https://lethalbingo.localhost/.well-known/mercure
       # See https://xdebug.org/docs/all_settings#mode
@@ -25,12 +29,6 @@ services:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
     tty: true
-###> symfony/mercure-bundle ###
-  mercure:
-    ports:
-      - "80"
-###< symfony/mercure-bundle ###
-
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
