@@ -52,6 +52,8 @@ Le contrôleur fait alors **une** requête `GET /server-time` (`App\Controller\S
 
 Une seule requête à la fois ; elle est annulée au `disconnect()`. Le client connaît l'instant de départ de sa requête et l'instant d'arrivée de la réponse : l'heure serveur réelle est comprise entre `envoi + (maintenant − arrivée)` et `envoi + (maintenant − départ)` (`estimateServerTimeFromRoundTrip()`). Une estimation sous la borne basse avance jusqu'à elle (cas de la veille). Une estimation **au-dessus de la borne haute est prouvée en avance** : c'est le seul cas où l'ancre recule, jusqu'à la borne basse. Le saut d'affichage qui en résulte ne déclenche aucun son de seuil (ce n'est pas un décompte naturel). En cas d'échec réseau, rien ne change : le prochain événement réessaie.
 
+L'heure ne suffit pas : pendant la veille, la connexion Mercure a pu mourir sans que le navigateur le remarque, et les messages envoyés entre-temps (pause, arrêt, case validée…) sont perdus. Le contrôleur `game--game-frame` rouvre alors la connexion puis recharge tout l'état de la partie (`gameFrameRefresh` émis localement, sans `serverTime`) : sur un saut d'horloge signalé par le timer (événement `game--game-timer:clock-jump`), au retour du réseau (`online`), et quand le navigateur se reconnecte de lui-même à Mercure après une coupure.
+
 ---
 
 ## 2. Calcul du temps restant, précision et parité PHP/TS

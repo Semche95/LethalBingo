@@ -18,16 +18,52 @@ export default class extends Controller<HTMLDivElement> {
         this.component = await getComponent(this.element)
     }
 
+    private readonly onWakeUp = (): void => {
+        this.reconnect()
+    }
+
     override connect() {
+        this.openEventSource()
+
+        this.element.addEventListener('game--game-timer:clock-jump', this.onWakeUp)
+        window.addEventListener('online', this.onWakeUp)
+    }
+
+    override disconnect() {
+        this.es.close()
+
+        this.element.removeEventListener('game--game-timer:clock-jump', this.onWakeUp)
+        window.removeEventListener('online', this.onWakeUp)
+    }
+
+    private openEventSource() {
+        let hasBeenOpen = false
+
         this.es = new EventSource(this.mercureUrlValue)
+        this.es.onopen = () => {
+            // The browser reconnected by itself: messages sent meanwhile are lost.
+            if (hasBeenOpen) {
+                this.refreshGame()
+            }
+            hasBeenOpen = true
+        }
         this.es.onmessage = async (event) => {
             const eventData = JSON.parse(event.data)
             this.component.emit(eventData.event, { serverTime: eventData.serverTime })
         }
     }
 
-    override disconnect() {
+    // After a sleep or a network loss the connection may be dead without the
+    // browser noticing, and messages sent meanwhile (pause, stop, validated
+    // square...) were missed: reopen it first, then reload the whole game state.
+    private reconnect() {
         this.es.close()
+        this.openEventSource()
+        this.refreshGame()
+    }
+
+    private refreshGame() {
+        this.component?.emit('gameFrameRefresh', {})
     }
 
     // TODO

@@ -207,6 +207,8 @@ export default class extends Controller<HTMLDivElement> {
 
         if (hasClientClockJumped(this.previousFrameWallTime, this.previousFrameClientTime, wallTime, clientTime)) {
             this.resyncWithServer()
+            // Messages may have been missed during the sleep: game--game-frame reloads the game state.
+            this.dispatch('clock-jump')
         }
 
         this.previousFrameWallTime = wallTime

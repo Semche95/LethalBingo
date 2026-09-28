@@ -468,6 +468,18 @@ describe('game_timer_controller', () => {
             expect(controller.timerDisplayTarget.textContent).toBe('00:29:00')
         })
 
+        it('tells the page to reload the game state after a clock jump', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
+            stubServerTimeResponse(SERVER_TIME + 60)
+            const onClockJump = vi.fn()
+            controller.element.addEventListener('game--game-timer:clock-jump', onClockJump)
+
+            vi.setSystemTime(Date.now() + 60_000)
+            await vi.advanceTimersByTimeAsync(20)
+
+            expect(onClockJump).toHaveBeenCalledTimes(1)
+        })
+
         it('does not resync while both clocks run together', async () => {
             await connectWithAnchor({ gameStartedAt: START_SEC, serverTimeUrl: SERVER_TIME_URL })
             const fetchMock = stubServerTimeResponse(SERVER_TIME)
