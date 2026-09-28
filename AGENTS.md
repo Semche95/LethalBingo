@@ -146,7 +146,6 @@ assets/
   - Scopes : les mêmes que pour les commits (`game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`)
   - Exemples : `feature/bingo-scoring-rules`, `fix/timer-drift`, `chore/config-docker-secrets`
 - Réécriture d'historique (`rebase`, `amend`, `force-push`) autorisée librement sur les branches de travail tant qu'elles ne sont pas mergées dans `main`
-- Merge dans `main` via pull request, même en solo — garde un point de passage clair avant intégration
 
 ## Sécurité
 
