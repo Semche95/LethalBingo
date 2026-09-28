@@ -2,6 +2,20 @@
 set -e
 
 if [ "$1" = 'frankenphp' ] || [ "$1" = 'php' ] || [ "$1" = 'bin/console' ]; then
+	# Refuse to start with a missing secret, or with a public placeholder
+	# (!ChangeMe!, !ChangeThis…!) in production
+	for name in APP_SECRET MERCURE_JWT_SECRET DATABASE_URL; do
+		value=$(printenv "$name" || true)
+		if [ -z "$value" ]; then
+			echo "$name is not set: define it in .env.local (see docs/SECURITY.md)" >&2
+			exit 1
+		fi
+		if [ "$APP_ENV" = 'prod' ] && echo "$value" | grep -q '!Change'; then
+			echo "$name still holds a public placeholder: define a real value in .env.local" >&2
+			exit 1
+		fi
+	done
+
 	# Install the project the first time PHP is started
 	# After the installation, the following block can be deleted
 	if [ ! -f composer.json ]; then
