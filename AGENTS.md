@@ -131,6 +131,8 @@ assets/
 ## Conventions Git
 
 - Messages de commit au format : `feat(scope): description` ou `chore(scope): description`
+- **Une seule ligne** par message de commit : pas de corps ni de liste à puces
+- **Jamais de trailer `Co-Authored-By`** (ni aucune autre ligne d'attribution) dans les commits
 - Scopes courants : `game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`
 
 ## Workflow Git (branches)
