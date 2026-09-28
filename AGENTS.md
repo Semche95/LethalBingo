@@ -145,6 +145,7 @@ assets/
   - Types : `feature`, `fix`, `chore`, `hotfix`
   - Scopes : les mêmes que pour les commits (`game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`)
   - Exemples : `feature/bingo-scoring-rules`, `fix/timer-drift`, `chore/config-docker-secrets`
+- **Jamais de commit de merge** : pour intégrer une branche dans `main`, la rebaser sur `main` (`git rebase main`) puis avancer `main` en fast-forward (`git merge --ff-only <branche>`) ; l'historique de `main` reste linéaire
 - Réécriture d'historique (`rebase`, `amend`, `force-push`) autorisée librement sur les branches de travail tant qu'elles ne sont pas mergées dans `main`
 
 ## Sécurité
