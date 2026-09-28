@@ -102,7 +102,7 @@
             {% endblock %}
             {% block modal_footer %}
                 <form action="{{ path('app_referee_game_delete', {id: game.id}) }}" method="post" class="d-flex w-100">
-                    <input type="hidden" name="token" value="{{ csrf_token('delete-game') }}">
+                    {{ component('CsrfInput', {tokenId: 'delete-game'}) }}
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-danger ms-auto">
                         {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
@@ -123,7 +123,7 @@
             {% block modal_footer %}
                 <form action="{{ path('app_referee_game_regenerate_slug', {id: game.id}) }}" method="post"
                       class="d-flex w-100">
-                    <input type="hidden" name="token" value="{{ csrf_token('regenerate-slug') }}">
+                    {{ component('CsrfInput', {tokenId: 'regenerate-slug'}) }}
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-warning ms-auto">
                         {{ ux_icon('tabler:refresh', {height: '18', width: '18'}) }}&nbsp;Regénérer

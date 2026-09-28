@@ -99,7 +99,7 @@
             {% endblock %}
             {% block modal_footer %}
                 <form action="{{ path('app_referee_team_delete', {id: team.id}) }}" method="post" class="d-flex w-100">
-                    <input type="hidden" name="token" value="{{ csrf_token('delete-team') }}">
+                    {{ component('CsrfInput', {tokenId: 'delete-team'}) }}
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-danger ms-auto">
                         {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer

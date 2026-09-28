@@ -2,7 +2,7 @@
     <div class="d-flex align-items-center gap-2 mb-5">
         <h1 class="dashboard-title mb-0">Bingos</h1>
         <form method="post" action="{{ path('app_referee_bingo_add_season') }}">
-            <input type="hidden" name="token" value="{{ csrf_token('add-season') }}">
+            {{ component('CsrfInput', {tokenId: 'add-season'}) }}
             <button type="submit" class="btn btn-outline-primary px-2">
                 {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }} Nouvelle saison
             </button>
@@ -36,7 +36,7 @@
                         <h3 class="card-title mb-2">Saison {{ season }}</h3>
                         <span class="badge season-count-badge">{{ rounds|length }} rounds</span>
                         <form method="post" action="{{ path('app_referee_bingo_add_round', {season: season}) }}">
-                            <input type="hidden" name="token" value="{{ csrf_token('add-round-' ~ season) }}">
+                            {{ component('CsrfInput', {tokenId: 'add-round-' ~ season}) }}
                             <button type="submit" class="btn btn-sm btn-outline-primary">
                                 {{ ux_icon('tabler:plus', {height: '14', width: '14'}) }}&nbsp;Nouveau round
                             </button>
@@ -73,8 +73,7 @@
                             <form method="post"
                                   action="{{ path('app_referee_bingo_fill_gaps', {season: season}) }}"
                                   class="d-inline">
-                                <input type="hidden" name="token"
-                                       value="{{ csrf_token('fill-gaps-' ~ season) }}">
+                                {{ component('CsrfInput', {tokenId: 'fill-gaps-' ~ season}) }}
                                 <button type="submit" class="btn btn-sm btn-warning">
                                     Combler
                                 </button>

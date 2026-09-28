@@ -1,0 +1,3 @@
+{% props tokenId %}
+{# Hidden CSRF token field kept up to date by the csrf-refresh Stimulus controller #}
+<input type="hidden" name="token" value="{{ csrf_token(tokenId) }}" data-csrf-token-id="{{ tokenId }}" {{ attributes }}>

@@ -90,7 +90,7 @@
             {% block modal_footer %}
                 <form action="{{ path('app_referee_bingo_delete', {id: gameRound.id}) }}" method="post"
                       class="d-flex w-100">
-                    <input type="hidden" name="token" value="{{ csrf_token('delete-bingo') }}">
+                    {{ component('CsrfInput', {tokenId: 'delete-bingo'}) }}
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-danger ms-auto">
                         {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer

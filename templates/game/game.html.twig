@@ -21,8 +21,11 @@
         <div {{ stimulus_controller('game--game-notes', {
             gameId: game.id,
             saveUrl: path('app_game_save_notes', {id: game.id}),
-            csrfToken: csrf_token('save-notes-' ~ game.id),
         }) }}>
+            {{ component('CsrfInput', {
+                tokenId: 'save-notes-' ~ game.id,
+                'data-game--game-notes-target': 'token',
+            }) }}
             <div class="notes-sidebar" {{ stimulus_target('game--game-notes', 'panel') }}>
                 <div class="card h-100 border-0 rounded-0">
                     <div class="card-status-top bg-green"></div>

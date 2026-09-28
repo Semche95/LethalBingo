@@ -95,7 +95,7 @@ class GameControllerTest extends ControllerTestCase
     {
         $crawler = $this->client->request('GET', '/game/' . $game->getSlug());
 
-        return (string) $crawler->filter('[data-game--game-notes-csrf-token-value]')->attr('data-game--game-notes-csrf-token-value');
+        return (string) $crawler->filter('[data-game--game-notes-target="token"]')->attr('value');
     }
 
     /**

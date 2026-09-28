@@ -24,6 +24,10 @@
 </head>
 <body {{ stimulus_controller('app') }} data-turbo-prefetch="false" class="{% block body_classes %}{% endblock %}">
 {% include 'layouts/_toasts.html.twig' only %}
+
+{% if app.user %}
+    <div hidden {{ stimulus_controller('csrf-refresh', {url: path('app_csrf_tokens')}) }}></div>
+{% endif %}
 {% block body %}{% endblock %}
 </body>
 </html>
