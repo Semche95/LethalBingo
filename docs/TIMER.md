@@ -8,7 +8,7 @@ Document de référence sur le fonctionnement attendu du timer.
 
 Le serveur est l'autorité sur le temps. Chaque client (arbitre et joueurs) reproduit localement le même calcul que le serveur pour afficher un compte à rebours fluide sans avoir à interroger le serveur en continu.
 
-**Règle non négociable : une seule source d'ancre temporelle, partagée par tous les clients au même instant.**
+**Règle non négociable : l'heure du serveur est la seule référence.** Le client ne se fie jamais à l'horloge de sa machine pour le calcul ; il estime l'heure du serveur à partir des heures que le serveur lui a transmises.
 
 - Le serveur publie `microtime(true)` (temps fractionnaire) dans le payload du message Mercure diffusé à chaque mutation du jeu (start, stop, pause, reprise, ±1 minute, validation de case, etc.).
 - Tous les clients reçoivent ce broadcast en même temps et s'ancrent dessus.
@@ -37,8 +37,11 @@ Toute source d'heure serveur arrive au client **en retard** : l'heure a été lu
 Sans la source 3, l'ancre d'un premier rendu intégrait le reste du rendu de la page côté serveur, le parsing et le chargement lazy du contrôleur : ≈ 70 ms de retard mesurés côté arbitre et jusqu'à 300 ms côté joueur en dev, davantage sur un vrai réseau. Le maximum garantit aussi que l'ancre ne recule jamais, ce qui empêche l'affichage d'osciller entre deux secondes.
 
 Le navigateur ne conserve qu'une liste limitée de réponses reçues (≈ 250) et cesse silencieusement d'en enregistrer une fois pleine, ce que Vite atteint vite en dev. Le contrôleur `app` vide cette liste dès qu'elle est pleine (`resourcetimingbufferfull`) pour que les réponses récentes restent disponibles. Une réponse manquante ne fausse jamais l'estimation (le maximum ignore simplement cette source), elle la rend seulement moins précise.
+
+Compatibilité de la source 3 : Chrome/Edge 65+, Firefox 61+, Safari 16.4+, et uniquement en HTTPS (ou `localhost`). Elle est absente sur un Safari plus ancien, derrière un proxy qui supprime l'en-tête `Server-Timing`, ou avec certains réglages de confidentialité renforcés (Firefox anti-pistage strict, Tor Browser). Dans tous ces cas, le chrono retombe sur les sources 1 et 2 : quelques dizaines à centaines de millisecondes de retard, jamais d'avance.
+
 - `performance.now()` est une horloge **monotone** : elle ne dépend pas de l'horloge système de la machine, donc un changement d'heure locale ne fausse pas le décompte. En revanche, sur la plupart des systèmes elle **s'arrête pendant la mise en veille** du poste : au réveil, l'estimation est en retard de la durée de la veille (voir ci-dessous).
-- L'ancre se met à jour : au premier rendu, à chaque broadcast Mercure, et lors de refresh événementiels ponctuels (`visibilitychange` quand l'onglet redevient visible, reconnexion de l'`EventSource` Mercure après une coupure). Jamais via un intervalle récurrent. Ces refresh événementiels ne transportent pas toujours un nouveau `serverTime` (c'est le cas typique de `visibilitychange`, qui déclenche un re-render sans repasser par un broadcast). **Le point d'entrée qui reçoit `serverTime` doit systématiquement produire une ancre fraîche quand aucune valeur n'est fournie (repli sur l'heure serveur actuelle), jamais laisser l'ancre inchangée dans ce cas.** Une ancre qui reste figée quand `serverTime` est absent romprait justement le mécanisme de refresh événementiel décrit ci-dessus, et produirait un décompte qui semble s'arrêter puis reprendre en retard après un changement d'onglet.
+- L'ancre se met à jour : au premier rendu, à chaque broadcast Mercure, et lors d'événements ponctuels (saut d'horloge, retour sur l'onglet, retour du réseau, reconnexion Mercure : voir « Recalage après une veille ou une horloge décalée »). Jamais via un intervalle récurrent. Un re-render déclenché localement (rechargement de l'état de la partie après une veille ou une reconnexion) ne transporte pas de `serverTime`. **Le point d'entrée qui reçoit `serverTime` doit systématiquement produire une ancre fraîche quand aucune valeur n'est fournie (repli sur l'heure serveur actuelle), jamais laisser l'ancre inchangée dans ce cas.** Une ancre qui reste figée quand `serverTime` est absent romprait justement le mécanisme de refresh événementiel décrit ci-dessus, et produirait un décompte qui semble s'arrêter puis reprendre en retard après un changement d'onglet.
 
 ### Recalage après une veille ou une horloge décalée
 
@@ -52,7 +55,7 @@ Le contrôleur fait alors **une** requête `GET /server-time` (`App\Controller\S
 
 Une seule requête à la fois ; elle est annulée au `disconnect()`. Le client connaît l'instant de départ de sa requête et l'instant d'arrivée de la réponse : l'heure serveur réelle est comprise entre `envoi + (maintenant − arrivée)` et `envoi + (maintenant − départ)` (`estimateServerTimeFromRoundTrip()`). Une estimation sous la borne basse avance jusqu'à elle (cas de la veille). Une estimation **au-dessus de la borne haute est prouvée en avance** : c'est le seul cas où l'ancre recule, jusqu'à la borne basse. Le saut d'affichage qui en résulte ne déclenche aucun son de seuil (ce n'est pas un décompte naturel). En cas d'échec réseau, rien ne change : le prochain événement réessaie.
 
-L'heure ne suffit pas : pendant la veille, la connexion Mercure a pu mourir sans que le navigateur le remarque, et les messages envoyés entre-temps (pause, arrêt, case validée…) sont perdus. Le contrôleur `game--game-frame` rouvre alors la connexion puis recharge tout l'état de la partie (`gameFrameRefresh` émis localement, sans `serverTime`) : sur un saut d'horloge signalé par le timer (événement `game--game-timer:clock-jump`), au retour du réseau (`online`), et quand le navigateur se reconnecte de lui-même à Mercure après une coupure.
+L'heure ne suffit pas : pendant la veille, la connexion Mercure a pu mourir sans que le navigateur le remarque, et les messages envoyés entre-temps (pause, arrêt, case validée…) sont perdus. Le contrôleur `game--game-frame` rouvre alors la connexion puis recharge tout l'état de la partie (`gameFrameRefresh` émis localement, sans `serverTime`) : sur un saut d'horloge signalé par le timer (événement `game--game-timer:clock-jump`), au retour du réseau (`online`), et quand le navigateur se reconnecte de lui-même à Mercure après une coupure (second `open` de l'`EventSource`). La connexion est rouverte **avant** le rechargement, pour qu'aucun message envoyé pendant le rechargement ne soit perdu. Le simple retour sur l'onglet ne recharge pas l'état : un onglet en arrière-plan garde sa connexion Mercure active.
 
 ---
 
@@ -130,6 +133,18 @@ Le seul état à conserver entre deux évaluations est la valeur du temps restan
 
 Une suite de tests entièrement verte n'est pas une preuve suffisante que le timer fonctionne réellement. La validation d'un changement sur ce composant passe par une vérification manuelle en navigateur réel (deux fenêtres pour la synchro arbitre/joueur, rechargement de page), indépendamment du nombre de tests automatisés qui passent.
 
+### Vérification en navigateur (Playwright)
+
+Mesure de l'écart : faire un `fetch('/server-time')`, lire l'heure d'envoi dans `Server-Timing`, et comparer `getCurrentServerTime()` du contrôleur (accessible via `window.$$stimulusApp$$.getControllerForElementAndIdentifier()`) à `envoi + (maintenant − arrivée)`. Scénarios à rejouer, arbitre et joueur dans deux contextes séparés :
+
+- ouverture de page, démarrage, `+1 minute`, pause/reprise, rechargement, navigation Turbo : écart de quelques millisecondes attendu ;
+- veille simulée : reculer l'ancre (`syncedServerTime -= 60`) puis faire sauter `Date.now()` de 60 s → une seule requête `/server-time`, écart ramené à quelques millisecondes ;
+- horloge en avance : avancer l'ancre de 5 s puis émettre `visibilitychange` → l'ancre recule, écart ramené à quelques millisecondes ;
+- repos : aucune requête `/server-time` sans événement ;
+- message manqué : rendre la connexion du joueur sourde (`es.onmessage = null`), mettre en pause côté arbitre, puis simuler le réveil → le joueur affiche la pause à la même seconde que l'arbitre, sur une nouvelle connexion qui reçoit l'action suivante.
+
+Validé sur Chromium et Firefox 156 (écarts de 0 à 6 ms). Non vérifié : une vraie mise en veille du poste (la veille est simulée) et Safari.
+
 La détection du son (section 5) doit être testée par des séquences de mutations enchaînées, pas seulement par des cas isolés : combiner dans un ordre arbitraire des décomptes naturels, des `+1 minute`, des `−1 minute` et des ajustements directs à une valeur spécifique, et vérifier qu'un seuil franchi naturellement plus tard dans la partie continue de déclencher correctement le son, même après une séquence de mutations qui l'a temporairement approché puis éloigné. Un test qui ne couvre que des mutations isolées (un seul `+1` ou un seul `−1`) ne suffit pas à garantir ce comportement. La couleur, étant une fonction pure du temps restant actuel, n'a pas besoin de ce type de test par séquence : il suffit de vérifier qu'elle est correcte pour chaque valeur de temps restant testée isolément.
 
 ---
@@ -138,7 +153,8 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 
 - Le serveur est l'autorité sur le temps ; tout le reste de la spécification en découle.
 - Ancre = la plus avancée des estimations disponibles (ancre courante, `serverTime` du broadcast Mercure ou du premier rendu, en-tête `Server-Timing` des réponses reçues), toutes nécessairement en retard : elle ne recule jamais sauf si une requête `/server-time` prouve que l'horloge client est en avance. Pas de fetch périodique : une requête ponctuelle seulement après une veille, un saut d'horloge, un retour sur l'onglet ou un retour du réseau.
-- `performance.now()` pour l'extrapolation locale, pas `Date.now()`.
+- Après une veille, une coupure réseau ou une reconnexion Mercure, la connexion est rouverte et tout l'état de la partie rechargé, pour rattraper les messages manqués.
+- `performance.now()` pour l'extrapolation locale, pas `Date.now()` (qui ne sert qu'à détecter un saut d'horloge).
 - `requestAnimationFrame` pour la boucle d'affichage, pas `setInterval`.
 - Calcul du temps restant en précision sous-seconde de bout en bout, un seul arrondi final, identique en PHP et en TS (vérifié par fixture partagée, pas par réimplémentation croisée dans les tests).
 - L'écart de pause se calcule par une seule soustraction directe entre les deux timestamps concernés (`lastPausedAt − startedAt`), jamais en soustrayant deux grands écarts calculés séparément par rapport à l'instant présent, pour éviter une instabilité d'arrondi flottant qui ferait osciller l'affichage en pause près d'une frontière de seconde.
