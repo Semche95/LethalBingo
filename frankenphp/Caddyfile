@@ -36,7 +36,8 @@
 		publisher_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_PUBLISHER_JWT_ALG}
 		subscriber_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_SUBSCRIBER_JWT_ALG}
 		# Anonymous subscribers are wanted: players follow a game without an
-		# account. Updates only carry refresh signals, never game content.
+		# account. Messages only say which part of the page to refresh; game
+		# content comes from the filtered Live Component reload, never Mercure.
 		anonymous
 		# Extra directives
 		{$MERCURE_EXTRA_DIRECTIVES}

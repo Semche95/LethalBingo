@@ -66,8 +66,16 @@ This project uses environment variables to store sensitive information like pass
 - The login form and every Symfony form use CSRF tokens (`config/packages/csrf.yaml`)
 - Every route that changes data outside a form (deletions, round and season creation, game notes) requires `POST` and checks a dedicated CSRF token
 - Logging out is a `POST` form with a CSRF token, so another site cannot log a user out
-- On long-lived pages, the `csrf-refresh` Stimulus controller fetches fresh session tokens from `/csrf-tokens` (authenticated users only, `no-store`) and keeps the session alive while the page stays open
+- On long-lived pages, the `csrf-refresh` Stimulus controller fetches fresh session tokens from `/csrf-tokens` (authenticated users only, `no-store`) every 10 minutes, which keeps the PHP session alive while the page stays open; each ping also reports how long the page has gone without a click or key press, so it cannot keep an unattended tab logged in (see Session Inactivity)
 - Never change data on a `GET` route
+
+### Session Inactivity
+
+- A logged-in user is logged out after `app.session_idle_timeout` seconds without activity (`config/services.yaml`, 8 hours by default, long enough for a referee watching a game without touching it). It is an inactivity timeout, not a maximum session age: someone who keeps using the app is never logged out
+- `SessionIdleTimeoutListener` keeps the time of the last activity in the session (`_last_activity`), set at login and on every request the user makes: page loads, Turbo visits, form submits
+- Requests the page sends by itself never count: the `/csrf-tokens` ping, Live Component re-renders (including the ones triggered by Mercure), Turbo prefetches (`Sec-Purpose` / `X-Sec-Purpose: prefetch`) and the timer resync (`/server-time`)
+- Clicks, key presses, wheel and touch events in the page (for example the ones that only trigger a Live Component action) are reported by the ping as `idle`, the seconds since the last one; the server keeps `max(last activity, now - idle)`. A client lying about it only keeps its own session open, and the reporting lag (one ping interval at most) is negligible against the timeout
+- Once the timeout is exceeded, the next request logs the user out (session invalidated) with a flash message: a page request is redirected to the login page (and back to the requested page after logging in again), a Live Component request gets an `X-Live-Redirect` to it, and the ping gets a `401` on which `csrf-refresh` shows the login page, so an unattended screen does not keep showing stale content
 
 ### Login Throttling
 
@@ -77,9 +85,8 @@ This project uses environment variables to store sensitive information like pass
 ### Real-Time Updates (Mercure)
 
 - Anonymous subscribers are allowed on purpose: players follow a game without an account, knowing only its 12-character slug
-- Updates are public and only carry refresh signals (`event`, `serverTime`); the browser then reloads the data through the Live Components, which apply the access rules
-- Never publish game content (square labels, notes, teams) in a Mercure update
-
-## Reporting Security Issues
-
-If you discover a security vulnerability in this project, please report it by sending an email to [robin@semche.ovh](mailto:robin@semche.ovh). Please do not create a public GitHub issue.
+- A Mercure message (`{"event": ..., "serverTime": ...}` on topic `game/{slug}`, published only by `GameService::refreshGameFrame()`) only tells the open pages of a game which part to refresh (bingo card, timer, steps…); it carries no game data itself
+- The page then reloads that part through its Live Component: this request is where game content reaches players, including the label of a square that has just been revealed
+- The server filters that response (`BingoService::gameSquares()`): until the game is over, players only get the labels of the always-visible squares and of the squares already revealed; referees get every square
+- A hidden square's label is therefore never sent to a player, neither through Mercure nor through the Live Components
+- Never put game content (square labels, notes, teams) in a Mercure message: anyone who knows the game slug can subscribe anonymously
