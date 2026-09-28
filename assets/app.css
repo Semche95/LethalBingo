@@ -129,6 +129,7 @@ ul#rules > li:before {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: 5rem;
 }
 
 .bingo .bingo-square-hidden {
