@@ -1,20 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Application } from '@hotwired/stimulus'
 import GameTimerController from '../controllers/game/game_timer_controller'
+import { createThresholdState } from '../controllers/game/game_timer_thresholds'
 
 // ---------------------------------------------------------------------------
 // Test environment setup
 // ---------------------------------------------------------------------------
 
-// jsdom does not implement Audio the way the controller expects; provide a stub
-// that records play() calls so we can assert on sound effects.
 class FakeAudio {
     src = ''
     currentTime = 0
     play = vi.fn().mockResolvedValue(undefined)
     pause = vi.fn()
 }
-const FakeAudioCtor = vi.fn().mockImplementation(() => new FakeAudio()) as unknown as typeof Audio
+const FakeAudioCtor = vi.fn(FakeAudio) as unknown as typeof Audio
 
 let app: Application
 
@@ -26,11 +25,14 @@ interface TimerValues {
     gameStartedAt?: number | null
     gameFinishedAt?: number | null
     gameTotalPausedSeconds?: number
+    gameManualAdjustmentSeconds?: number
     gameLastPausedAt?: number | null
     gameIsPaused?: boolean
     serverTime?: number
-    serverTimeUrl?: string
 }
+
+const SERVER_TIME = 1_700_000_000
+const START_SEC = SERVER_TIME - 1800 // 30 minutes elapsed -> 00:30:00 remaining
 
 function buildElement(values: TimerValues = {}) {
     const el = document.createElement('div')
@@ -50,8 +52,6 @@ function buildElement(values: TimerValues = {}) {
     return el
 }
 
-// Stimulus connects controllers asynchronously (MutationObserver). Wait until
-// the controller is available.
 async function connectController(el: HTMLElement): Promise<any> {
     for (let i = 0; i < 50; i++) {
         const controller = app.getControllerForElementAndIdentifier(el, 'game--game-timer')
@@ -61,23 +61,28 @@ async function connectController(el: HTMLElement): Promise<any> {
     throw new Error('Controller never connected')
 }
 
-// Redefine a Stimulus value getter on the controller instance, mimicking Twig
-// writing a new value into the DOM (and the value-changed callback firing).
-function overrideValue(controller: any, name: string, value: unknown) {
-    Object.defineProperty(controller, name, { configurable: true, get: () => value })
-}
-
-// JSON responses helper for fetch mocking.
-function jsonResponse(serverTime: unknown, ok = true) {
-    return {
-        ok,
-        json: () => Promise.resolve({ serverTime }),
-    }
+// The fake performance.now() may return the real epoch on its first read, which
+// would skew the client-time estimate. Normalizing the anchor right after connect
+// makes the delta start at 0 and keeps the estimate fully deterministic.
+//
+// connect()'s own initial updateTimerDisplay() runs BEFORE this normalization, so
+// with the skewed first read it may spuriously seed the SOUND detection reference
+// with a wrong remaining value. That never happens on a real page load (correct
+// serverTime + real clock), so we reset the sound threshold state here to the
+// clean post-connect slate a real controller would have. Colour needs no reset:
+// it is a pure function of the current remaining time, recomputed every frame.
+async function connectWithAnchor(values: TimerValues = {}): Promise<any> {
+    const el = buildElement(values)
+    const controller = await connectController(el)
+    controller.syncedServerTime = values.serverTime ?? SERVER_TIME
+    controller.clientTimeAtRender = performance.now()
+    controller.thresholdState = createThresholdState()
+    controller.timerDisplayTarget.className = ''
+    controller.updateTimerDisplay()
+    return controller
 }
 
 beforeEach(async () => {
-    // Fake timers including performance.now() so that the client-side time
-    // estimate advances deterministically alongside setInterval.
     vi.useFakeTimers({
         toFake: [
             'setTimeout',
@@ -92,7 +97,6 @@ beforeEach(async () => {
     })
 
     Object.defineProperty(globalThis, 'Audio', { value: FakeAudioCtor, configurable: true })
-    globalThis.fetch = vi.fn()
 
     app = new Application(document.documentElement)
     app.register('game--game-timer', GameTimerController)
@@ -107,113 +111,273 @@ afterEach(() => {
     vi.clearAllMocks()
 })
 
-// ---------------------------------------------------------------------------
-// Sync pause/stop behaviour
-// ---------------------------------------------------------------------------
-
-describe('game_timer_controller sync interval pause/stop behaviour', () => {
-    const serverTime = 1_700_000_000
-    const startSec = serverTime - 1800
-
-    it('starts with sync active when the timer is running', async () => {
-        const el = buildElement({
-            gameStartedAt: startSec,
-            gameTotalPausedSeconds: 0,
+describe('game_timer_controller', () => {
+    it('renders the initial remaining time on connect', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
             gameIsPaused: false,
-            serverTime,
-            serverTimeUrl: '/game/server-time',
         })
-        const controller = await connectController(el)
 
-        expect(controller.syncInterval).not.toBeNull()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
     })
 
-    it('stops the sync interval when paused', async () => {
-        const el = buildElement({
-            gameStartedAt: startSec,
-            gameTotalPausedSeconds: 0,
+    it('drives the display with requestAnimationFrame and updates as time passes', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
             gameIsPaused: false,
-            serverTime,
-            serverTimeUrl: '/game/server-time',
         })
-        const controller = await connectController(el)
-        expect(controller.syncInterval).not.toBeNull()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
 
-        // Reset the fetch mock so we only observe calls triggered by the pause.
-        vi.clearAllMocks()
-
-        overrideValue(controller, 'gameIsPausedValue', true)
-        controller.gameIsPausedValueChanged()
-
-        expect(controller.syncInterval).toBeNull()
-        expect(globalThis.fetch).not.toHaveBeenCalled()
+        // Advance fake rAF frames so the countdown ticks down.
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:29:58')
     })
 
-    it('restarts the sync interval and re-syncs immediately on resume', async () => {
-        const el = buildElement({
-            gameStartedAt: startSec,
-            gameTotalPausedSeconds: 0,
-            gameIsPaused: true,
-            serverTime,
-            serverTimeUrl: '/game/server-time',
-        })
-        const controller = await connectController(el)
-        expect(controller.syncInterval).toBeNull()
-
-        ;(globalThis.fetch as any).mockResolvedValue(jsonResponse(serverTime + 7))
-        overrideValue(controller, 'gameIsPausedValue', false)
-        controller.gameIsPausedValueChanged()
-
-        expect(controller.syncInterval).not.toBeNull()
-
-        // The immediate re-sync is fire-and-forget; flush its fetch + resolution.
-        await vi.advanceTimersByTimeAsync(0)
-
-        expect(globalThis.fetch).toHaveBeenCalledWith('/game/server-time')
-        expect(controller.syncedServerTime).toBe(serverTime + 7)
-    })
-
-    it('stops the sync interval when the game finishes', async () => {
-        const el = buildElement({
-            gameStartedAt: startSec,
-            gameTotalPausedSeconds: 0,
+    it('accounts for a positive manual adjustment in the display', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
             gameIsPaused: false,
-            serverTime,
-            serverTimeUrl: '/game/server-time',
+            gameManualAdjustmentSeconds: 60,
         })
-        const controller = await connectController(el)
-        expect(controller.syncInterval).not.toBeNull()
 
-        overrideValue(controller, 'gameFinishedAtValue', serverTime)
-        controller.gameFinishedAtValueChanged()
-
-        expect(controller.syncInterval).toBeNull()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:31:00')
     })
 
-    it('never starts the sync interval when already paused at connect', async () => {
-        const el = buildElement({
-            gameStartedAt: startSec,
-            gameTotalPausedSeconds: 0,
-            gameIsPaused: true,
-            serverTime,
-            serverTimeUrl: '/game/server-time',
+    it('re-anchors the client clock on a Live re-render (serverTimeValueChanged)', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
+            gameIsPaused: false,
         })
-        const controller = await connectController(el)
 
-        expect(controller.syncInterval).toBeNull()
+        // Let the client clock tick forward a little, then simulate the Live
+        // re-render writing a fresh server timestamp.
+        await vi.advanceTimersByTimeAsync(100)
+        const anchorBefore = controller.clientTimeAtRender
+        controller.serverTimeValue = SERVER_TIME + 10
+        controller.serverTimeValueChanged()
 
-        // syncServerTime() must not poll the server while paused.
-        await controller.syncServerTime()
-        expect(globalThis.fetch).not.toHaveBeenCalled()
+        expect(controller.syncedServerTime).toBe(SERVER_TIME + 10)
+        expect(controller.clientTimeAtRender).not.toBe(anchorBefore)
+        // With the new anchor the game has 1810s elapsed -> 00:29:50 remaining.
+        controller.updateTimerDisplay()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:29:50')
     })
 
-    it('does not start the sync interval when the timer has not started', async () => {
-        const el = buildElement({
-            serverTime,
-            serverTimeUrl: '/game/server-time',
+    it('rejects a re-anchor captured before transmission (never rewinds the estimate)', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
+            gameIsPaused: false,
         })
-        const controller = await connectController(el)
 
-        expect(controller.syncInterval).toBeNull()
+        // Let the client clock tick forward: the extrapolated estimate is now
+        // ahead of the anchor by the elapsed time.
+        await vi.advanceTimersByTimeAsync(2000)
+        const anchorBefore = controller.syncedServerTime
+        const estimateBefore = controller.getCurrentServerTime()
+
+        // Simulate a Live re-render delivering a broadcast timestamp captured
+        // before transmission: newer than the current anchor but still behind the
+        // extrapolated estimate. Re-applying it would rewind the display.
+        controller.serverTimeValue = (estimateBefore - 500) / 1000
+        controller.serverTimeValueChanged()
+        expect(controller.syncedServerTime).toBe(anchorBefore)
+        expect(controller.getCurrentServerTime()).toBe(estimateBefore)
+    })
+
+    it('accepts a genuinely newer re-anchor (e.g. after the machine slept)', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
+            gameIsPaused: false,
+        })
+
+        // performance.now() froze while the machine slept: the estimate is stale
+        // and the first fresh broadcast is ahead of it, so it must be accepted.
+        const freshServerTime = controller.getCurrentServerTime() / 1000 + 60
+        controller.serverTimeValue = freshServerTime
+        controller.serverTimeValueChanged()
+
+        expect(controller.syncedServerTime).toBe(freshServerTime)
+        expect(controller.getCurrentServerTime()).toBeGreaterThanOrEqual(freshServerTime * 1000)
+    })
+
+    it('shows warning colour only while remaining is within 5s below a 10-minute mark', async () => {
+        // startedAt so remaining starts at exactly 00:40:00 (2400s).
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 1200,
+            gameIsPaused: false,
+        })
+        expect(controller.timerDisplayTarget.className).toBe('')
+
+        // Just below 00:40:00 (within 5s) -> warning colour.
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:39:58')
+        expect(controller.timerDisplayTarget.className).toContain('text-warning')
+
+        // More than 5s below the mark -> the colour disappears by itself (pure
+        // function, no timer/expiry state).
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(controller.timerDisplayTarget.className).toBe('')
+    })
+
+    it('keeps the last minute in continuous danger, including past 5s', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3541,
+            gameIsPaused: false,
+        })
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:59')
+        expect(controller.timerDisplayTarget.className).toContain('text-danger')
+
+        await vi.advanceTimersByTimeAsync(10_000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:49')
+        expect(controller.timerDisplayTarget.className).toContain('text-danger')
+    })
+
+    it('removes the colour immediately on set-to above the threshold and reapplies it on the natural re-cross (spec section 5/6)', async () => {
+        // startedAt so remaining starts at 00:30:41 (1841s), just above 00:30:00.
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 1759,
+            gameIsPaused: false,
+        })
+
+        // Natural countdown crosses 00:30:00 -> warning colour.
+        await vi.advanceTimersByTimeAsync(42_000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:29:59')
+        expect(controller.timerDisplayTarget.className).toContain('text-warning')
+
+        // Direct set-to 00:30:03 (above the threshold): the colour must vanish
+        // immediately — 00:30:03 is not within 5s below a 10-minute multiple.
+        controller.gameManualAdjustmentSecondsValue = 4
+        controller.updateTimerDisplay()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:30:03')
+        expect(controller.timerDisplayTarget.className).toBe('')
+
+        // Natural countdown re-passes under 00:30:00 -> the colour reappears
+        // automatically (pure function of the current remaining time).
+        await vi.advanceTimersByTimeAsync(4000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:29:59')
+        expect(controller.timerDisplayTarget.className).toContain('text-warning')
+    })
+
+    it('never oscillates between two adjacent displayed values under Live re-anchors (single display source)', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC, // 00:30:00 remaining
+            gameIsPaused: false,
+        })
+
+        // Walk the countdown frame by frame through the 00:30:00 boundary while
+        // periodically simulating a Live re-render (the serverTime anchor is
+        // re-written, re-anchoring the client clock exactly as serverTimeValueChanged
+        // does). The displayed value must stay monotonic: the client is the single
+        // writer of the display, so it can never alternate A, B, A with B != A.
+        const samples: string[] = []
+        for (let t = 0; t < 5000; t += 16) {
+            if (t > 0 && t % 700 === 0) {
+                controller.syncedServerTime = SERVER_TIME + t / 1000
+                controller.clientTimeAtRender = performance.now()
+            }
+            await vi.advanceTimersByTimeAsync(16)
+            samples.push(controller.timerDisplayTarget.textContent)
+        }
+
+        for (let i = 2; i < samples.length; i++) {
+            if (samples[i] === samples[i - 2]) {
+                expect(samples[i]).toBe(samples[i - 1])
+            }
+        }
+    })
+
+    // -----------------------------------------------------------------------
+    // Sound gating: only natural countdown may trigger sound (spec section 5).
+    // -----------------------------------------------------------------------
+
+    it('triggers sound on natural countdown crossing a threshold', async () => {
+        // Start at 00:05:01 remaining so natural countdown crosses 00:05:00.
+        // remaining = 3600 - (SERVER_TIME - startedAt) = 3600 - 3299 = 301.
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3299,
+            gameIsPaused: false,
+        })
+        const audio = controller.notificationAudio as any
+
+        // Natural countdown crosses 00:05:00 → sound must fire.
+        await vi.advanceTimersByTimeAsync(2000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:04:59')
+        expect(audio.play.mock.calls.length).toBeGreaterThan(0)
+    })
+
+    it('does NOT trigger sound on manual −1 minute crossing a threshold', async () => {
+        // Start at 00:06:00 remaining (360s), well above the 00:05:00 threshold.
+        // remaining = 3600 - 3240 = 360.
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3240,
+            gameIsPaused: false,
+        })
+        const audio = controller.notificationAudio as any
+
+        // Let rAF seed the reference at ~360s.
+        await vi.advanceTimersByTimeAsync(100)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:06:00')
+
+        const playsBefore = audio.play.mock.calls.length
+
+        // Simulate a −1 minute manual adjustment: the remaining time drops from
+        // ~360s to ~300s, crossing the 00:05:00 threshold. The sound must NOT
+        // fire because this is a manual mutation, not natural countdown.
+        controller.gameManualAdjustmentSecondsValue = -60
+        controller.gameManualAdjustmentSecondsValueChanged()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:05:00')
+
+        expect(audio.play.mock.calls.length).toBe(playsBefore)
+    })
+
+    it('plays the end sound (not the notification) when the countdown reaches zero', async () => {
+        // 00:00:02 remaining: remaining = 3600 - 3598 = 2.
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3598,
+            gameIsPaused: false,
+        })
+        const notification = controller.notificationAudio as any
+        const end = controller.endAudio as any
+        const notificationsBefore = notification.play.mock.calls.length
+
+        await vi.advanceTimersByTimeAsync(3000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
+        expect(end.play).toHaveBeenCalledTimes(1)
+        expect(notification.play.mock.calls.length).toBe(notificationsBefore)
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
+
+        // Overtime: staying at zero never replays the end sound.
+        await vi.advanceTimersByTimeAsync(5000)
+        expect(end.play).toHaveBeenCalledTimes(1)
+    })
+
+    it('does NOT play the end sound on a manual −1 minute reaching zero, but does on the later natural zero', async () => {
+        // 00:00:30 remaining: remaining = 3600 - 3570 = 30.
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3570,
+            gameIsPaused: false,
+        })
+        const end = controller.endAudio as any
+
+        await vi.advanceTimersByTimeAsync(100)
+
+        // Manual −1 minute: reaches zero silently, pause button hidden.
+        controller.gameManualAdjustmentSecondsValue = -60
+        controller.gameManualAdjustmentSecondsValueChanged()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
+        expect(end.play).not.toHaveBeenCalled()
+
+        // Manual +1 minute brings the time back: pause button visible again.
+        controller.gameManualAdjustmentSecondsValue = 0
+        controller.gameManualAdjustmentSecondsValueChanged()
+        expect(controller.timerDisplayTarget.textContent).not.toBe('00:00:00')
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
+        expect(end.play).not.toHaveBeenCalled()
+
+        // Natural countdown reaches zero → the end sound MUST fire.
+        await vi.advanceTimersByTimeAsync(31_000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
+        expect(end.play).toHaveBeenCalledTimes(1)
     })
 })

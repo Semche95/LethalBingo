@@ -9,6 +9,7 @@ export interface RemainingSecondsParams {
     gameStartedAt: number | null
     gameFinishedAt: number | null
     gameTotalPausedSeconds: number
+    gameManualAdjustmentSeconds: number
     gameLastPausedAt: number | null
     gameIsPaused: boolean
     // Current server time in milliseconds.
@@ -16,19 +17,15 @@ export interface RemainingSecondsParams {
 }
 
 /**
- * Computes the remaining seconds in the game.
- *
- * - If the game has not started, returns the full default duration.
- * - If the game is finished, returns 0.
- * - Otherwise subtracts elapsed time and all paused time (including the time
- *   elapsed since the current pause started, if the game is paused) from the
- *   default duration, floored to 0.
+ * Computes the remaining seconds in the game. Mirror of
+ * GameTimerService::getRemainingSeconds() on the PHP side.
  */
 export function calculateRemainingSeconds(params: RemainingSecondsParams): number {
     const {
         gameStartedAt,
         gameFinishedAt,
         gameTotalPausedSeconds,
+        gameManualAdjustmentSeconds,
         gameLastPausedAt,
         gameIsPaused,
         currentServerTime,
@@ -40,25 +37,13 @@ export function calculateRemainingSeconds(params: RemainingSecondsParams): numbe
         return 0
     }
 
-    // Get current server time and game start time in milliseconds
-    const serverNow = currentServerTime
-    const gameStartedAtMs = gameStartedAt * 1000
+    // While paused, use lastPausedAt directly instead of subtracting the
+    // current pause from now: the float residue would make the ceil flicker.
+    const endMs = gameIsPaused && gameLastPausedAt ? gameLastPausedAt * 1000 : currentServerTime
+    const elapsedSeconds = (endMs - gameStartedAt * 1000) / 1000 - gameTotalPausedSeconds
+    const remainingSeconds = GAME_DURATION_SECONDS - elapsedSeconds + gameManualAdjustmentSeconds
 
-    // Calculate elapsed seconds since game started
-    const elapsedSeconds = Math.floor((serverNow - gameStartedAtMs) / 1000)
-
-    // Subtract total paused time
-    let adjustedElapsedSeconds = elapsedSeconds - gameTotalPausedSeconds
-
-    // If the game is currently paused, subtract the time since it was paused
-    if (gameIsPaused && gameLastPausedAt) {
-        const lastPausedAtMs = gameLastPausedAt * 1000
-        const pausedSeconds = Math.floor((serverNow - lastPausedAtMs) / 1000)
-        adjustedElapsedSeconds -= pausedSeconds
-    }
-
-    // Calculate remaining seconds (don't go below zero)
-    return Math.max(0, GAME_DURATION_SECONDS - adjustedElapsedSeconds)
+    return Math.max(0, Math.ceil(remainingSeconds))
 }
 
 /**
@@ -84,45 +69,4 @@ export function formatGameDuration(gameStartedAt: number | null, gameFinishedAt:
     const seconds = remainingSeconds % 60
 
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
-
-// Checks if the remaining time is at a 10-minute interval (50, 40, 30, 20, 10 minutes)
-export function isAtTenMinuteInterval(remainingSeconds: number): boolean {
-    // Convert to minutes
-    const remainingMinutes = Math.floor(remainingSeconds / 60)
-    const remainingSecondsInMinute = remainingSeconds % 60
-
-    // Check if it's exactly at a 10-minute mark (50, 40, 30, 20, 10 minutes)
-    // Require exactly 0 seconds to ensure precise timing
-    return remainingMinutes > 0 && remainingMinutes <= 50 && remainingMinutes % 10 === 0 && remainingSecondsInMinute === 0
-}
-
-// Checks if the remaining time is at 5 minutes (00:05:00)
-export function isAtFiveMinutesExactly(remainingSeconds: number): boolean {
-    // Convert to minutes
-    const remainingMinutes = Math.floor(remainingSeconds / 60)
-    const remainingSecondsInMinute = remainingSeconds % 60
-
-    // Check if it's exactly at 5 minutes (00:05:00)
-    return remainingMinutes === 5 && remainingSecondsInMinute === 0
-}
-
-// Checks if the remaining time is at 3 minutes (00:03:00)
-export function isAtThreeMinutesExactly(remainingSeconds: number): boolean {
-    // Convert to minutes
-    const remainingMinutes = Math.floor(remainingSeconds / 60)
-    const remainingSecondsInMinute = remainingSeconds % 60
-
-    // Check if it's exactly at 3 minutes (00:03:00)
-    return remainingMinutes === 3 && remainingSecondsInMinute === 0
-}
-
-// Checks if the remaining time is exactly 1 minute (00:01:00) or less
-export function isOneMinuteOrLess(remainingSeconds: number): boolean {
-    // Convert to minutes
-    const remainingMinutes = Math.floor(remainingSeconds / 60)
-    const remainingSecondsInMinute = remainingSeconds % 60
-
-    // Check if it's exactly 1 minute (00:01:00) or less
-    return (remainingMinutes === 1 && remainingSecondsInMinute === 0) || remainingMinutes === 0
 }

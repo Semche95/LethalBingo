@@ -22,7 +22,7 @@ export default class extends Controller<HTMLDivElement> {
         this.es = new EventSource(this.mercureUrlValue)
         this.es.onmessage = async (event) => {
             const eventData = JSON.parse(event.data)
-            this.component.emit(eventData.event, null)
+            this.component.emit(eventData.event, { serverTime: eventData.serverTime })
         }
     }
 
