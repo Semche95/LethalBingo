@@ -73,6 +73,38 @@ readonly class BingoService
         return new BingoDto($gameRound->getSeason(), $gameRound->getNumber(), $squares);
     }
 
+    /**
+     * Squares of the game's round as a player sees them: until the game is
+     * over, the label and category of every square that is neither visible nor
+     * revealed (all of them before the start) are removed, so they never reach
+     * the browser. Referees get every square.
+     */
+    public function gameSquares(Game $game, bool $isReferee): array
+    {
+        $squares = $this->entityToDto($game->getRound())->squares;
+        if ($isReferee || $game->getFinishedAt() !== null) {
+            return $squares;
+        }
+
+        $revealedIds = array_map(
+            static fn(BingoSquareRevealed $revealed): ?int => $revealed->getBingoSquare()?->getId(),
+            $this->bingoSquareRevealedRepository->findBy(['game' => $game]),
+        );
+        $isStarted = $game->getStartedAt() !== null;
+
+        foreach ($squares as $row => $cols) {
+            foreach ($cols as $col => $square) {
+                if ($isStarted && (self::isSquareVisible($row, $col) || in_array($square['id'], $revealedIds, true))) {
+                    continue;
+                }
+                $squares[$row][$col]['label'] = null;
+                $squares[$row][$col]['category'] = null;
+            }
+        }
+
+        return $squares;
+    }
+
     public function create(BingoDto $bingoDto): GameRound
     {
         $gameRound = new GameRound()

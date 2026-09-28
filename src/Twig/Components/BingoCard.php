@@ -23,12 +23,16 @@ final class BingoCard extends AbstractController
     public bool $editMode = false;
     #[LiveProp]
     public string $squaresFieldName = '';
+    /** Squares being edited in the bingo form (edit mode only) */
     #[LiveProp]
-    public array $squares;
+    public array $squares = [];
     #[LiveProp]
     public array $duplicateCoords = [];
     #[LiveProp]
     public ?Game $game = null;
+
+    /** Squares of the game, loaded once per render */
+    private ?array $gameSquares = null;
 
     public function __construct(
         private readonly BingoService $bingo
@@ -40,6 +44,19 @@ final class BingoCard extends AbstractController
     #[LiveListener('bingoCardRefresh')]
     public function __invoke()
     {
+    }
+
+    /**
+     * In a game, squares are loaded at each render rather than kept in the
+     * props: the props are sent to the browser, hidden labels must not be.
+     */
+    public function getDisplayedSquares(): array
+    {
+        if ($this->editMode || $this->game === null) {
+            return $this->squares;
+        }
+
+        return $this->gameSquares ??= $this->bingo->gameSquares($this->game, $this->isGranted('ROLE_REFEREE'));
     }
 
     public function getMaxRows(): int
@@ -94,18 +111,11 @@ final class BingoCard extends AbstractController
         return BingoSquare::getRowLetter($row);
     }
 
-    private function refreshBingoCard(Game $game): void
-    {
-        $bingoDto = $this->bingo->entityToDto($game->getRound());
-        $this->squares = $bingoDto->squares;
-    }
-
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function reveal(#[LiveArg] int $squareId): void
     {
         $this->bingo->reveal($this->game, $squareId);
-        $this->refreshBingoCard($this->game);
     }
 
     #[LiveAction]
@@ -113,7 +123,6 @@ final class BingoCard extends AbstractController
     public function conceal(#[LiveArg] int $squareId): void
     {
         $this->bingo->conceal($this->game, $squareId);
-        $this->refreshBingoCard($this->game);
     }
 
     #[LiveAction]
@@ -121,7 +130,6 @@ final class BingoCard extends AbstractController
     public function validate(#[LiveArg] int $squareId): void
     {
         $this->bingo->validate($this->game, $squareId);
-        $this->refreshBingoCard($this->game);
     }
 
     #[LiveAction]
@@ -129,6 +137,5 @@ final class BingoCard extends AbstractController
     public function invalidate(#[LiveArg] int $squareId): void
     {
         $this->bingo->invalidate($this->game, $squareId);
-        $this->refreshBingoCard($this->game);
     }
 }

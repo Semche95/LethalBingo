@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\BingoSquare;
+use App\Entity\BingoSquareRevealed;
 use App\Entity\Game;
+use DateTimeImmutable;
 
 class GameControllerTest extends ControllerTestCase
 {
@@ -27,6 +30,52 @@ class GameControllerTest extends ControllerTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('[data-controller~="game--game-notes"]');
+    }
+
+    public function testPlayerReceivesNoLabelBeforeTheStart(): void
+    {
+        $game = $this->createGame();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('Square ', $this->client->getResponse()->getContent());
+    }
+
+    public function testPlayerReceivesOnlyVisibleAndRevealedLabelsDuringTheGame(): void
+    {
+        $game = $this->createGame()->setStartedAt(new DateTimeImmutable());
+        $this->revealSquare($game, 1, 1);
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        $html = $this->client->getResponse()->getContent();
+        self::assertStringContainsString('Square 1-3', $html);
+        self::assertStringContainsString('Square 1-1', $html);
+        self::assertStringNotContainsString('Square 1-2', $html);
+        self::assertStringNotContainsString('Square 5-5', $html);
+    }
+
+    public function testPlayerReceivesEveryLabelOnceTheGameIsOver(): void
+    {
+        $game = $this->createGame()
+            ->setStartedAt(new DateTimeImmutable('-1 hour'))
+            ->setFinishedAt(new DateTimeImmutable());
+        $this->em->flush();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertStringContainsString('Square 1-2', $this->client->getResponse()->getContent());
+    }
+
+    public function testRefereeReceivesEveryLabelBeforeTheStart(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createGame();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertStringContainsString('Square 1-2', $this->client->getResponse()->getContent());
     }
 
     public function testUnknownSlugReturnsNotFound(): void
@@ -96,6 +145,16 @@ class GameControllerTest extends ControllerTestCase
         $crawler = $this->client->request('GET', '/game/' . $game->getSlug());
 
         return (string) $crawler->filter('[data-game--game-notes-target="token"]')->attr('value');
+    }
+
+    private function revealSquare(Game $game, int $row, int $col): void
+    {
+        $square = $this->em->getRepository(BingoSquare::class)->findOneBy(['round' => $game->getRound(), 'row' => $row, 'col' => $col]);
+        $this->em->persist(new BingoSquareRevealed()
+            ->setGame($game)
+            ->setBingoSquare($square)
+            ->setRevealedAt(new DateTimeImmutable()));
+        $this->em->flush();
     }
 
     /**

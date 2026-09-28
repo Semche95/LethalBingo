@@ -1,4 +1,3 @@
-{% set square = this.squares[row][col] ?? null %}
 <p class="d-flex gap-1 mb-1">
     {% if this.squareVisible(row, col) %}
         {{ component('BingoSquareVisibility', {
