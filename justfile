@@ -1,7 +1,7 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
 # ==============================
-# Justfile LC Bingo (développement)
+# Justfile LethalBingo (développement)
 # ------------------------------
 # Raccourcis pour le workflow local décrit dans les guidelines.
 # Astuce: `just` sans argument liste toutes les commandes.

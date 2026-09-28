@@ -112,7 +112,7 @@
 | PHPUnit | ^9.5 | Unit and functional tests |
 | PHPStan | — | Static analysis (to be configured) |
 | PHP-CS-Fixer | — | Code style fixing (to be configured) |
-| Vitest | ^3.2.7 | Frontend tests (TypeScript) |
+| Vitest | ^4.1.11 | Frontend tests (TypeScript) |
 | FakerPHP | ^1.23 | Test data generation |
 | Doctrine Fixtures | ^3.6 | Database fixtures |
 
@@ -122,7 +122,6 @@
 |---|---|---|
 | `php` | FrankenPHP (custom) | Application server (dev + prod) |
 | `database` | `postgres:16-alpine` | Database |
-| `mercure` | `dunglas/mercure` | SSE Hub (development) |
 | `mailer` | `axllent/mailpit` | Catch-all SMTP (development) |
 
 PHP extensions installed: `apcu`, `intl`, `opcache`, `zip`, `pdo_pgsql`, `xdebug` (dev)
@@ -170,7 +169,7 @@ pnpm install
 
 # Create .env.local with your secrets
 cp .env .env.local
-# Edit .env.local with your actual passwords / keys
+# Set APP_SECRET, MERCURE_JWT_SECRET, POSTGRES_PASSWORD and DATABASE_URL (see docs/SECURITY.md)
 
 # Start Docker + the dev server
 just dev
