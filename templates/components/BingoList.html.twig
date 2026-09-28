@@ -1,9 +1,12 @@
 <div {{ attributes }}>
     <div class="d-flex align-items-center gap-2 mb-5">
         <h1 class="dashboard-title mb-0">Bingos</h1>
-        <a href="{{ path('app_referee_bingo_add_season') }}" class="btn btn-outline-primary px-2">
-            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }} Nouvelle saison
-        </a>
+        <form method="post" action="{{ path('app_referee_bingo_add_season') }}">
+            <input type="hidden" name="token" value="{{ csrf_token('add-season') }}">
+            <button type="submit" class="btn btn-outline-primary px-2">
+                {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }} Nouvelle saison
+            </button>
+        </form>
     </div>
 
     {% if this.bingosBySeason is empty %}
@@ -32,10 +35,12 @@
                     <div class="d-flex align-items-center mb-2 gap-2">
                         <h3 class="card-title mb-2">Saison {{ season }}</h3>
                         <span class="badge season-count-badge">{{ rounds|length }} rounds</span>
-                        <a href="{{ path('app_referee_bingo_add_round', {season: season}) }}"
-                           class="btn btn-sm btn-outline-primary">
-                            {{ ux_icon('tabler:plus', {height: '14', width: '14'}) }}&nbsp;Nouveau round
-                        </a>
+                        <form method="post" action="{{ path('app_referee_bingo_add_round', {season: season}) }}">
+                            <input type="hidden" name="token" value="{{ csrf_token('add-round-' ~ season) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                {{ ux_icon('tabler:plus', {height: '14', width: '14'}) }}&nbsp;Nouveau round
+                            </button>
+                        </form>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 mb-2">

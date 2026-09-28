@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -33,6 +34,11 @@ class GameController extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function saveNotes(Request $request, EntityManagerInterface $em, Game $game): Response
     {
+        $submittedToken = $request->headers->get('X-CSRF-Token');
+        if (!$this->isCsrfTokenValid('save-notes-' . $game->getId(), $submittedToken)) {
+            throw new BadRequestHttpException('Token invalid');
+        }
+
         $data = json_decode($request->getContent(), true);
         $notes = $data['notes'] ?? '';
 

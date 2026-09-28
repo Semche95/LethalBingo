@@ -5,6 +5,7 @@ export default class extends Controller<HTMLDivElement> {
     static override values = {
         gameId: Number,
         saveUrl: String,
+        csrfToken: String,
     }
 
     declare readonly notesTarget: HTMLTextAreaElement
@@ -13,6 +14,7 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly toggleTarget: HTMLButtonElement
     declare readonly gameIdValue: number
     declare readonly saveUrlValue: string
+    declare readonly csrfTokenValue: string
 
     private saveTimeout: number | null = null
     private heightSaveTimeout: number | null = null
@@ -42,6 +44,7 @@ export default class extends Controller<HTMLDivElement> {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'X-CSRF-Token': this.csrfTokenValue,
                 },
                 body: JSON.stringify({
                     notes: this.notesTarget.value,

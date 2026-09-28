@@ -52,9 +52,14 @@ class BingoController extends AbstractController
         ]);
     }
 
-    #[Route('/add-round/{season}', name: 'app_referee_bingo_add_round', requirements: ['season' => '\d+'])]
-    public function addRound(int $season, BingoService $bingo): RedirectResponse
+    #[Route('/add-round/{season}', name: 'app_referee_bingo_add_round', requirements: ['season' => '\d+'], methods: [Request::METHOD_POST])]
+    public function addRound(Request $request, int $season, BingoService $bingo): RedirectResponse
     {
+        $submittedToken = $request->getPayload()->get('token');
+        if (!$this->isCsrfTokenValid('add-round-' . $season, $submittedToken)) {
+            throw new BadRequestHttpException('Token invalid');
+        }
+
         $maxRound = $bingo->findMaxRoundForSeason($season);
         $gameRound = $bingo->createEmptyRound($season, $maxRound + 1);
 
@@ -65,9 +70,14 @@ class BingoController extends AbstractController
         ]);
     }
 
-    #[Route('/add-season', name: 'app_referee_bingo_add_season')]
-    public function addSeason(BingoService $bingo): RedirectResponse
+    #[Route('/add-season', name: 'app_referee_bingo_add_season', methods: [Request::METHOD_POST])]
+    public function addSeason(Request $request, BingoService $bingo): RedirectResponse
     {
+        $submittedToken = $request->getPayload()->get('token');
+        if (!$this->isCsrfTokenValid('add-season', $submittedToken)) {
+            throw new BadRequestHttpException('Token invalid');
+        }
+
         $maxSeason = $bingo->findMaxSeason();
         $newSeason = $maxSeason + 1;
         $gameRound = $bingo->createEmptyRound($newSeason, 1);

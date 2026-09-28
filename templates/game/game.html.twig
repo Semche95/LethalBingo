@@ -20,7 +20,8 @@
     {% if is_granted('ROLE_REFEREE') %}
         <div {{ stimulus_controller('game--game-notes', {
             gameId: game.id,
-            saveUrl: path('app_game_save_notes', {id: game.id})
+            saveUrl: path('app_game_save_notes', {id: game.id}),
+            csrfToken: csrf_token('save-notes-' ~ game.id),
         }) }}>
             <div class="notes-sidebar" {{ stimulus_target('game--game-notes', 'panel') }}>
                 <div class="card h-100 border-0 rounded-0">
