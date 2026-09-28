@@ -1,5 +1,13 @@
 # AGENTS.md — Règles spécifiques au projet LethalBingo
 
+## Délégation aux sous-agents
+
+- **Chaque tâche d'implémentation ou d'exploration** doit être confiée à un sous-agent dédié, lancé avec un **contexte minimal** :
+  - la description précise de la tâche (objectif, fichiers ou zones concernés, critères de fin) ;
+  - le **contenu complet de ce fichier `AGENTS.md`**, pour que le sous-agent applique les mêmes règles.
+- Ne pas transmettre l'historique de la conversation ni d'informations sans rapport avec la tâche.
+- L'agent principal coordonne, vérifie le résultat rendu par le sous-agent et en rend compte à l'utilisateur.
+
 ## Commandes obligatoires avant chaque commit
 
 ```bash
