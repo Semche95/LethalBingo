@@ -17,6 +17,7 @@
         "phpstan/phpdoc-parser": "^1.28",
         "runtime/frankenphp-symfony": "^0.2.0",
         "symfony/asset": "*",
+        "symfony/clock": "7.4.*",
         "symfony/console": "*",
         "symfony/doctrine-messenger": "*",
         "symfony/dotenv": "*",

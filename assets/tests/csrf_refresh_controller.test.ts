@@ -1,13 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Application } from '@hotwired/stimulus'
+import { visit } from '@hotwired/turbo'
 import CsrfRefreshController from '../controllers/csrf_refresh_controller'
+
+vi.mock('@hotwired/turbo', () => ({ visit: vi.fn() }))
 
 let app: Application
 let element: HTMLDivElement
 let fetchMock: ReturnType<typeof vi.fn>
 
-function mockResponse(tokens: Record<string, string>, init: { ok?: boolean, redirected?: boolean } = {}) {
-    fetchMock.mockResolvedValue({ ok: init.ok ?? true, redirected: init.redirected ?? false, json: async () => tokens })
+function mockResponse(tokens: Record<string, string>, init: { status?: number, redirected?: boolean } = {}) {
+    const status = init.status ?? 200
+    fetchMock.mockResolvedValue({ ok: status < 300, status, redirected: init.redirected ?? false, json: async () => tokens })
 }
 
 function addTokenInput(tokenId: string, value = 'old'): HTMLInputElement {
@@ -24,6 +28,7 @@ async function connectController(interval?: number) {
     element = document.createElement('div')
     element.setAttribute('data-controller', 'csrf-refresh')
     element.setAttribute('data-csrf-refresh-url-value', '/csrf-tokens')
+    element.setAttribute('data-csrf-refresh-login-url-value', '/user/login')
     if (interval !== undefined) {
         element.setAttribute('data-csrf-refresh-interval-value', String(interval))
     }
@@ -39,6 +44,15 @@ async function flush() {
 
 function requestedIds(call = 0): string[] {
     return new URL(fetchMock.mock.calls[call][0]).searchParams.getAll('ids[]')
+}
+
+function reportedIdle(call = 0): string | null {
+    return new URL(fetchMock.mock.calls[call][0]).searchParams.get('idle')
+}
+
+async function ping() {
+    window.dispatchEvent(new Event('online'))
+    await flush()
 }
 
 beforeEach(() => {
@@ -57,6 +71,7 @@ afterEach(async () => {
     app.stop()
     vi.unstubAllGlobals()
     vi.useRealTimers()
+    vi.mocked(visit).mockReset()
 })
 
 describe('csrf_refresh_controller', () => {
@@ -130,6 +145,87 @@ describe('csrf_refresh_controller', () => {
         await flush()
 
         expect(input.value).toBe('old')
+    })
+
+    it('reports the seconds elapsed since the page was loaded', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        await connectController()
+
+        vi.setSystemTime(Date.now() + 90_500)
+        await ping()
+
+        expect(reportedIdle()).toBe('90')
+    })
+
+    it.each(['pointerdown', 'keydown', 'wheel', 'touchstart'])('reports the seconds elapsed since the last %s', async (type) => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        await connectController()
+
+        vi.setSystemTime(Date.now() + 120_000)
+        document.body.dispatchEvent(new Event(type, { bubbles: true }))
+        vi.setSystemTime(Date.now() + 5_000)
+        await ping()
+
+        expect(reportedIdle()).toBe('5')
+    })
+
+    it('never reports a negative idle time when the clock goes back', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        await connectController()
+
+        vi.setSystemTime(Date.now() - 60_000)
+        await ping()
+
+        expect(reportedIdle()).toBe('0')
+    })
+
+    it('pings at once on the first interaction after a pause longer than the interval', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        await connectController(60_000)
+
+        vi.setSystemTime(Date.now() + 30_000)
+        document.dispatchEvent(new Event('keydown'))
+        await flush()
+        expect(fetchMock).not.toHaveBeenCalled()
+
+        vi.setSystemTime(Date.now() + 60_000)
+        document.dispatchEvent(new Event('pointerdown'))
+        await flush()
+        expect(fetchMock).toHaveBeenCalledOnce()
+        expect(reportedIdle()).toBe('0')
+    })
+
+    it('goes to the login page when logged out for inactivity', async () => {
+        const input = addTokenInput('delete-team')
+        mockResponse({ error: 'session_expired' }, { status: 401 })
+        await connectController()
+
+        await ping()
+
+        expect(visit).toHaveBeenCalledWith('/user/login')
+        expect(input.value).toBe('old')
+    })
+
+    it('stays on the page for other errors', async () => {
+        mockResponse({}, { status: 500 })
+        await connectController()
+
+        await ping()
+
+        expect(visit).not.toHaveBeenCalled()
+    })
+
+    it('stops watching interactions once disconnected', async () => {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        await connectController(60_000)
+        element.remove()
+        await Promise.resolve()
+
+        vi.setSystemTime(Date.now() + 120_000)
+        document.dispatchEvent(new Event('pointerdown'))
+        await flush()
+
+        expect(fetchMock).not.toHaveBeenCalled()
     })
 
     it('stops refreshing once disconnected', async () => {

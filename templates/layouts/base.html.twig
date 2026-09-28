@@ -26,7 +26,7 @@
 {% include 'layouts/_toasts.html.twig' only %}
 
 {% if app.user %}
-    <div hidden {{ stimulus_controller('csrf-refresh', {url: path('app_csrf_tokens')}) }}></div>
+    <div hidden {{ stimulus_controller('csrf-refresh', {url: path('app_csrf_tokens'), loginUrl: path('app_login')}) }}></div>
 {% endif %}
 {% block body %}{% endblock %}
 </body>

@@ -4,6 +4,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Logs the user out after this many seconds without activity (clicks, key presses,
+    # page loads). Long enough for a referee watching a game page without touching it.
+    app.session_idle_timeout: 28800 # 8 hours
 
 services:
     # default configuration for services in *this* file
