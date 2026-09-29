@@ -58,6 +58,26 @@ readonly class BingoService
         return $this->bingoSquareValidatedRepository->findOneBy(['game' => $game, 'bingoSquare' => $squareId]);
     }
 
+    /**
+     * Ids of the squares revealed in the game, as keys for isset() lookups.
+     *
+     * @return array<int, int>
+     */
+    public function getRevealedSquareIds(Game $game): array
+    {
+        return array_flip($this->bingoSquareRevealedRepository->findSquareIdsByGame($game));
+    }
+
+    /**
+     * Ids of the squares validated in the game, as keys for isset() lookups.
+     *
+     * @return array<int, int>
+     */
+    public function getValidatedSquareIds(Game $game): array
+    {
+        return array_flip($this->bingoSquareValidatedRepository->findSquareIdsByGame($game));
+    }
+
     public function entityToDto(GameRound $gameRound): BingoDto
     {
         $squares = [];
@@ -78,23 +98,21 @@ readonly class BingoService
      * over, the label and category of every square that is neither visible nor
      * revealed (all of them before the start) are removed, so they never reach
      * the browser. Referees get every square.
+     *
+     * @param array<int, int> $revealedSquareIds revealed square ids as keys (see getRevealedSquareIds())
      */
-    public function gameSquares(Game $game, bool $isReferee): array
+    public function gameSquares(Game $game, bool $isReferee, array $revealedSquareIds): array
     {
         $squares = $this->entityToDto($game->getRound())->squares;
         if ($isReferee || $game->getFinishedAt() !== null) {
             return $squares;
         }
 
-        $revealedIds = array_map(
-            static fn(BingoSquareRevealed $revealed): ?int => $revealed->getBingoSquare()?->getId(),
-            $this->bingoSquareRevealedRepository->findBy(['game' => $game]),
-        );
         $isStarted = $game->getStartedAt() !== null;
 
         foreach ($squares as $row => $cols) {
             foreach ($cols as $col => $square) {
-                if ($isStarted && (self::isSquareVisible($row, $col) || in_array($square['id'], $revealedIds, true))) {
+                if ($isStarted && (self::isSquareVisible($row, $col) || isset($revealedSquareIds[$square['id']]))) {
                     continue;
                 }
                 $squares[$row][$col]['label'] = null;

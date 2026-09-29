@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Game;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GameController extends AbstractController
 {
     #[Route('/{slug}', name: 'app_game', requirements: ['slug' => '[a-zA-Z0-9]{12}'])]
-    public function game(Game $game): Response
+    public function game(#[MapEntity(expr: 'repository.findOneForPlay(slug)')] Game $game): Response
     {
         return $this->render('game/game.html.twig', [
             'game' => $game,

@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\BingoSquare;
-use App\Entity\BingoSquareCategory;
 use App\Entity\GameRound;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -18,16 +17,23 @@ class BingoSquareRepository extends ServiceEntityRepository
         parent::__construct($registry, BingoSquare::class);
     }
 
-    public function findNotValidated(GameRound $round, BingoSquareCategory $category): array
+    /**
+     * Squares of the round that have a category and are not validated, all
+     * categories at once (grouping by category is left to the caller).
+     *
+     * @return list<BingoSquare>
+     */
+    public function findNotValidatedWithCategory(GameRound $round): array
     {
         $qb = $this->createQueryBuilder('s');
         return $qb
             ->leftJoin('s.bingoSquareValidated', 'v')
             ->andWhere($qb->expr()->eq('s.round', ':round'))
-            ->andWhere($qb->expr()->eq('s.category', ':category'))
+            ->andWhere($qb->expr()->isNotNull('s.category'))
             ->andWhere($qb->expr()->isNull('v.id'))
             ->setParameter('round', $round)
-            ->setParameter('category', $category)
+            ->orderBy('s.row', 'ASC')
+            ->addOrderBy('s.col', 'ASC')
             ->getQuery()
             ->getResult();
     }

@@ -1,6 +1,6 @@
 <select {{ attributes }} class="form-control" title="">
     <option value="">- Catégorie -</option>
-    {% for category in this.categories %}
+    {% for category in categories %}
         <option value="{{ category.id }}"{{ category.id == value ? ' selected' }}>{{ category.label }}</option>
     {% endfor %}
 </select>

@@ -46,6 +46,19 @@ class BingoControllerTest extends ControllerTestCase
         self::assertNull($this->findRound(12, 4));
     }
 
+    public function testEditPageRunsAFixedNumberOfQueries(): void
+    {
+        $round = $this->createRound(12, 4, complete: true);
+
+        $this->countNextRequestQueries();
+        $this->client->request('GET', '/referee/bingo/edit/' . $round->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(GameRound::EXPECTED_SQUARES, '#bingo-form select');
+        // user, round with its squares, categories shared by the 25 selectors
+        $this->assertQueryCountAtMost(3);
+    }
+
     public function testEditsABingo(): void
     {
         $round = $this->createRound(12, 4, complete: true);

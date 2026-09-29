@@ -9,6 +9,7 @@ use App\Entity\GameRound;
 use App\Form\BingoFormType;
 use App\Service\BingoService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -103,7 +104,11 @@ class BingoController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_referee_bingo_edit', requirements: ['id' => '\d+'])]
-    public function edit(Request $request, BingoService $bingo, GameRound $gameRound): Response
+    public function edit(
+        Request $request,
+        BingoService $bingo,
+        #[MapEntity(expr: 'repository.findOneWithSquares(id)')] GameRound $gameRound,
+    ): Response
     {
         $bingoDto = $bingo->entityToDto($gameRound);
         $form = $this->createForm(BingoFormType::class, $bingoDto);

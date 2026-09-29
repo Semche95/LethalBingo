@@ -17,6 +17,23 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * Game shown on the play page, with its round, team and team members
+     * fetched in the same query.
+     */
+    public function findOneForPlay(string $slug): ?Game
+    {
+        return $this->createQueryBuilder('g')
+            ->addSelect('r', 't', 'm')
+            ->join('g.round', 'r')
+            ->join('g.team', 't')
+            ->leftJoin('t.members', 'm')
+            ->where('g.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * Find all games sorted by round, season, then team
      *
      * @return Game[]

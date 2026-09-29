@@ -6,11 +6,14 @@ namespace App\Tests\Controller;
 
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
+use App\Entity\BingoSquareRevealed;
+use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
 use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -112,6 +115,61 @@ abstract class ControllerTestCase extends WebTestCase
     }
 
     /**
+     * Game in progress with two revealed squares (A1, B2) and two validated
+     * squares (A3, B2).
+     */
+    protected function createPlayedGame(): Game
+    {
+        $game = $this->createGame()->setStartedAt(new DateTimeImmutable('-5 minutes'));
+        $this->revealSquare($game, 1, 1);
+        $this->revealSquare($game, 2, 2);
+        $this->validateSquare($game, 1, 3);
+        $this->validateSquare($game, 2, 2);
+
+        return $game;
+    }
+
+    protected function revealSquare(Game $game, int $row, int $col): void
+    {
+        $this->save(new BingoSquareRevealed()
+            ->setGame($game)
+            ->setBingoSquare($this->findSquare($game, $row, $col))
+            ->setRevealedAt(new DateTimeImmutable()));
+    }
+
+    protected function validateSquare(Game $game, int $row, int $col): void
+    {
+        $this->save(new BingoSquareValidated()
+            ->setGame($game)
+            ->setBingoSquare($this->findSquare($game, $row, $col))
+            ->setValidatedAt(new DateTimeImmutable()));
+    }
+
+    /**
+     * Starts counting the SQL queries of the next request. The identity map is
+     * emptied first, so that the entities created by the test are loaded by
+     * the request itself as they would be in production.
+     */
+    protected function countNextRequestQueries(): void
+    {
+        $this->em->clear();
+        self::getContainer()->get('doctrine.debug_data_holder')->reset();
+        $this->client->enableProfiler();
+    }
+
+    protected function assertQueryCountAtMost(int $max): void
+    {
+        $collector = $this->client->getProfile()->getCollector('db');
+        $queries = array_column($collector->getQueries()['default'] ?? [], 'sql');
+
+        self::assertLessThanOrEqual(
+            $max,
+            $collector->getQueryCount(),
+            sprintf("Too many SQL queries:\n%s", implode("\n", $queries)),
+        );
+    }
+
+    /**
      * Opens the page holding a confirmation form and returns its CSRF token.
      */
     protected function fetchToken(string $url, string $formSelector): string
@@ -141,6 +199,11 @@ abstract class ControllerTestCase extends WebTestCase
         $this->em->clear();
 
         return $this->em->find($class, $id);
+    }
+
+    private function findSquare(Game $game, int $row, int $col): BingoSquare
+    {
+        return $this->em->getRepository(BingoSquare::class)->findOneBy(['round' => $game->getRound(), 'row' => $row, 'col' => $col]);
     }
 
     /**

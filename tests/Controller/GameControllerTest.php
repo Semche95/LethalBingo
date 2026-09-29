@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
-use App\Entity\BingoSquare;
-use App\Entity\BingoSquareRevealed;
 use App\Entity\Game;
 use DateTimeImmutable;
 
@@ -78,6 +76,32 @@ class GameControllerTest extends ControllerTestCase
         self::assertStringContainsString('Square 1-2', $this->client->getResponse()->getContent());
     }
 
+    public function testPlayerGamePageRunsAFixedNumberOfQueries(): void
+    {
+        $game = $this->createPlayedGame();
+
+        $this->countNextRequestQueries();
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertResponseIsSuccessful();
+        // game with round and team, squares, revealed ids, validated ids
+        $this->assertQueryCountAtMost(4);
+    }
+
+    public function testRefereeGamePageRunsAFixedNumberOfQueries(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createPlayedGame();
+
+        $this->countNextRequestQueries();
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertResponseIsSuccessful();
+        // user, game with round and team, squares, revealed ids, validated ids,
+        // categories and not validated squares of the steps
+        $this->assertQueryCountAtMost(7);
+    }
+
     public function testUnknownSlugReturnsNotFound(): void
     {
         $this->client->request('GET', '/game/unknownSlug0');
@@ -145,16 +169,6 @@ class GameControllerTest extends ControllerTestCase
         $crawler = $this->client->request('GET', '/game/' . $game->getSlug());
 
         return (string) $crawler->filter('[data-game--game-notes-target="token"]')->attr('value');
-    }
-
-    private function revealSquare(Game $game, int $row, int $col): void
-    {
-        $square = $this->em->getRepository(BingoSquare::class)->findOneBy(['round' => $game->getRound(), 'row' => $row, 'col' => $col]);
-        $this->em->persist(new BingoSquareRevealed()
-            ->setGame($game)
-            ->setBingoSquare($square)
-            ->setRevealedAt(new DateTimeImmutable()));
-        $this->em->flush();
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Twig\Components;
 
-use App\Repository\BingoSquareCategoryRepository;
+use App\Entity\BingoSquareCategory;
 use Symfony\UX\TwigComponent\Attribute\AsTwigComponent;
 
 #[AsTwigComponent]
@@ -10,12 +10,11 @@ final class BingoSquareCategorySelector
 {
     public ?string $value = null;
 
-    public function __construct(private readonly BingoSquareCategoryRepository $repository)
-    {
-    }
-
-    public function getCategories(): array
-    {
-        return $this->repository->findAllOrdered();
-    }
+    /**
+     * Passed by the parent so that the categories are loaded once for the
+     * whole grid instead of once per selector.
+     *
+     * @var list<BingoSquareCategory>
+     */
+    public array $categories = [];
 }

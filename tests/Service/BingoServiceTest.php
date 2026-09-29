@@ -150,6 +150,36 @@ class BingoServiceTest extends TestCase
         $this->assertNull($result);
     }
 
+    public function testGetRevealedSquareIdsReturnsTheIdsAsKeysFromASingleQuery(): void
+    {
+        $game = new Game();
+
+        $this->revealedRepository->expects($this->once())
+            ->method('findSquareIdsByGame')
+            ->with($game)
+            ->willReturn([4, 9]);
+
+        $ids = $this->bingoService->getRevealedSquareIds($game);
+
+        $this->assertTrue(isset($ids[4], $ids[9]));
+        $this->assertFalse(isset($ids[5]));
+    }
+
+    public function testGetValidatedSquareIdsReturnsTheIdsAsKeysFromASingleQuery(): void
+    {
+        $game = new Game();
+
+        $this->validatedRepository->expects($this->once())
+            ->method('findSquareIdsByGame')
+            ->with($game)
+            ->willReturn([7]);
+
+        $ids = $this->bingoService->getValidatedSquareIds($game);
+
+        $this->assertTrue(isset($ids[7]));
+        $this->assertFalse(isset($ids[4]));
+    }
+
     public function testEntityToDtoConvertsRoundToDto(): void
     {
         $round = new GameRound();

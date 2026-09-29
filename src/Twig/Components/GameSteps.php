@@ -2,6 +2,7 @@
 
 namespace App\Twig\Components;
 
+use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
 use App\Repository\BingoSquareCategoryRepository;
@@ -16,6 +17,11 @@ final class GameSteps
     #[LiveProp]
     public ?Game $game = null;
 
+    /** @var list<BingoSquareCategory>|null loaded once per render */
+    private ?array $categories = null;
+    /** @var list<BingoSquare>|null loaded once per render */
+    private ?array $notValidatedSquares = null;
+
     public function __construct(
         private readonly BingoSquareCategoryRepository $categoryRepository,
         private readonly BingoSquareRepository         $squareRepository,
@@ -29,13 +35,22 @@ final class GameSteps
     {
     }
 
+    /**
+     * @return list<BingoSquareCategory>
+     */
     public function getCategories(): array
     {
-        return $this->categoryRepository->findAllOrdered();
+        return $this->categories ??= $this->categoryRepository->findAllOrdered();
     }
 
-    public function getNotValidatedSquares(BingoSquareCategory $category): array
+    /**
+     * Not validated squares of every category, loaded in a single query: the
+     * template groups them by category.
+     *
+     * @return list<BingoSquare>
+     */
+    public function getNotValidatedSquares(): array
     {
-        return $this->squareRepository->findNotValidated($this->game->getRound(), $category);
+        return $this->notValidatedSquares ??= $this->squareRepository->findNotValidatedWithCategory($this->game->getRound());
     }
 }

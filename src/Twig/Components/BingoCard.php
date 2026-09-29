@@ -3,7 +3,9 @@
 namespace App\Twig\Components;
 
 use App\Entity\BingoSquare;
+use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
+use App\Repository\BingoSquareCategoryRepository;
 use App\Service\BingoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -33,9 +35,16 @@ final class BingoCard extends AbstractController
 
     /** Squares of the game, loaded once per render */
     private ?array $gameSquares = null;
+    /** @var array<int, int>|null revealed square ids as keys, loaded once per render */
+    private ?array $revealedSquareIds = null;
+    /** @var array<int, int>|null validated square ids as keys, loaded once per render */
+    private ?array $validatedSquareIds = null;
+    /** @var list<BingoSquareCategory>|null categories of the edit mode selectors, loaded once per render */
+    private ?array $categories = null;
 
     public function __construct(
-        private readonly BingoService $bingo
+        private readonly BingoService $bingo,
+        private readonly BingoSquareCategoryRepository $categoryRepository,
     )
     {
     }
@@ -56,7 +65,21 @@ final class BingoCard extends AbstractController
             return $this->squares;
         }
 
-        return $this->gameSquares ??= $this->bingo->gameSquares($this->game, $this->isGranted('ROLE_REFEREE'));
+        return $this->gameSquares ??= $this->bingo->gameSquares(
+            $this->game,
+            $this->isGranted('ROLE_REFEREE'),
+            $this->getRevealedSquareIds(),
+        );
+    }
+
+    /**
+     * Shared by the 25 category selectors of the edit mode.
+     *
+     * @return list<BingoSquareCategory>
+     */
+    public function getCategories(): array
+    {
+        return $this->categories ??= $this->categoryRepository->findAllOrdered();
     }
 
     public function getMaxRows(): int
@@ -96,14 +119,28 @@ final class BingoCard extends AbstractController
 
     public function isSquareRevealed(int $squareId): bool
     {
-        $square = $this->bingo->getRevealedSquare($this->game, $squareId);
-        return $square?->getRevealedAt() !== null;
+        return isset($this->getRevealedSquareIds()[$squareId]);
     }
 
     public function isSquareValidated(int $squareId): bool
     {
-        $square = $this->bingo->getValidatedSquare($this->game, $squareId);
-        return $square?->getValidatedAt() !== null;
+        return isset($this->getValidatedSquareIds()[$squareId]);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function getRevealedSquareIds(): array
+    {
+        return $this->revealedSquareIds ??= $this->bingo->getRevealedSquareIds($this->game);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function getValidatedSquareIds(): array
+    {
+        return $this->validatedSquareIds ??= $this->bingo->getValidatedSquareIds($this->game);
     }
 
     public function getRowLetter(int $row): string

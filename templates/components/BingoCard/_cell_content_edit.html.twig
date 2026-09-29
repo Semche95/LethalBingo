@@ -15,6 +15,7 @@
     {{ component('BingoSquareCategorySelector', {
         'name': this.squaresFieldName ~ '[' ~ row ~ '][' ~ col ~ '][category]',
         'value': square.category ?? null,
+        'categories': this.categories,
     }) }}
 </p>
 <p class="h-full mb-0">

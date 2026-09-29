@@ -17,6 +17,20 @@ class GameRoundRepository extends ServiceEntityRepository
         parent::__construct($registry, GameRound::class);
     }
 
+    /**
+     * Round with its squares fetched in the same query.
+     */
+    public function findOneWithSquares(int $id): ?GameRound
+    {
+        return $this->createQueryBuilder('gr')
+            ->addSelect('s')
+            ->leftJoin('gr.bingoSquares', 's')
+            ->where('gr.id = :id')
+            ->setParameter('id', $id, Types::INTEGER)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findByNumberAndSeason(?int $number, ?int $season): ?GameRound
     {
         return $this->createQueryBuilder('gr')
