@@ -15,6 +15,8 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
     use ClockSensitiveTrait;
 
     private const int TIMEOUT = 8 * 3600;
+    private const int REMEMBERED_TIMEOUT = 30 * 24 * 3600;
+    private const string REMEMBER_ME_COOKIE = 'REMEMBERME';
 
     private MockClock $clock;
 
@@ -30,6 +32,11 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
     public function testDefaultTimeoutIsEightHours(): void
     {
         self::assertSame(self::TIMEOUT, self::getContainer()->getParameter('app.session_idle_timeout'));
+    }
+
+    public function testDefaultRememberedTimeoutIsThirtyDays(): void
+    {
+        self::assertSame(self::REMEMBERED_TIMEOUT, self::getContainer()->getParameter('app.remembered_session_idle_timeout'));
     }
 
     public function testLoginStartsTheSessionAsActive(): void
@@ -65,6 +72,46 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
         $this->client->submitForm('Se connecter', ['_username' => $user->getUsername(), '_password' => self::PASSWORD]);
 
         self::assertResponseRedirects('http://localhost/referee/team');
+    }
+
+    public function testRememberedSessionOutlivesTheDefaultTimeout(): void
+    {
+        $this->logInRemembered();
+
+        $this->clock->sleep(self::TIMEOUT + 1);
+        $this->client->request('GET', '/referee/team');
+
+        self::assertResponseIsSuccessful();
+    }
+
+    public function testRequestAfterTheRememberedTimeoutLogsOutAndClearsTheRememberMeCookie(): void
+    {
+        $this->logInRemembered();
+
+        $this->clock->sleep(self::REMEMBERED_TIMEOUT + 1);
+        $this->client->request('GET', '/referee/team');
+
+        self::assertResponseRedirects('/user/login', 303);
+        self::assertNull($this->client->getCookieJar()->get(self::REMEMBER_ME_COOKIE));
+        $this->client->followRedirect();
+        self::assertFlash('warning', SessionIdleTimeoutListener::FLASH_MESSAGE);
+        $this->assertLoggedOut();
+    }
+
+    public function testLoginByTheRememberMeCookieKeepsTheRememberedTimeout(): void
+    {
+        $this->logInRemembered();
+        $sessionName = $this->client->getRequest()->getSession()->getName();
+
+        // Session lost (browser closed): only the remember-me cookie logs the user back in.
+        $this->client->getCookieJar()->expire($sessionName);
+        $this->client->request('GET', '/referee/team');
+        self::assertResponseIsSuccessful();
+
+        $this->clock->sleep(self::TIMEOUT + 1);
+        $this->client->request('GET', '/referee/team');
+
+        self::assertResponseIsSuccessful();
     }
 
     public function testRequestBeforeTheTimeoutKeepsTheSessionAndRefreshesTheActivity(): void
@@ -236,6 +283,19 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
         self::assertSame($this->clock->now()->getTimestamp(), $this->lastActivity());
 
         return $user;
+    }
+
+    private function logInRemembered(): void
+    {
+        $user = $this->createUser(['ROLE_REFEREE']);
+
+        $this->client->request('GET', '/user/login');
+        $this->client->submitForm('Se connecter', [
+            '_username' => $user->getUsername(),
+            '_password' => self::PASSWORD,
+            '_remember_me' => true,
+        ]);
+        self::assertNotNull($this->client->getCookieJar()->get(self::REMEMBER_ME_COOKIE));
     }
 
     private function ping(int $idle): void

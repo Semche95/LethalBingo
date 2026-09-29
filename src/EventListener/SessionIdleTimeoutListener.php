@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
@@ -31,15 +33,20 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
  * only trigger Live Component actions are reported by the ping as the number of
  * seconds since the last interaction in the page ("idle"). The ping runs every
  * few minutes and the timeout is hours long, so that lag does not matter.
+ *
+ * The timeout is longer (days) when "Se souvenir de moi" was ticked at login.
  */
 #[AsEventListener(event: KernelEvents::REQUEST, method: 'onRequest', priority: 4)]
-#[AsEventListener(event: LoginSuccessEvent::class, method: 'onLoginSuccess')]
+// After CheckRememberMeConditionsListener (-32), which enables the remember-me badge.
+#[AsEventListener(event: LoginSuccessEvent::class, method: 'onLoginSuccess', priority: -48)]
 final readonly class SessionIdleTimeoutListener
 {
     use TargetPathTrait;
 
     /** Unix time of the last activity of the logged-in user */
     public const string LAST_ACTIVITY = '_last_activity';
+    /** Set when "Se souvenir de moi" was ticked at login: longer timeout */
+    public const string REMEMBERED = '_remembered';
     /** Left in the new anonymous session so a later ping still gets a 401 */
     public const string LOGGED_OUT_FOR_INACTIVITY = '_logged_out_for_inactivity';
     public const string FLASH_MESSAGE = 'Vous avez été déconnecté après une longue période d\'inactivité.';
@@ -55,6 +62,8 @@ final readonly class SessionIdleTimeoutListener
         private UrlGeneratorInterface $urlGenerator,
         #[Autowire(param: 'app.session_idle_timeout')]
         private int $idleTimeout,
+        #[Autowire(param: 'app.remembered_session_idle_timeout')]
+        private int $rememberedIdleTimeout,
     ) {
     }
 
@@ -85,7 +94,8 @@ final readonly class SessionIdleTimeoutListener
             $lastActivity = max($lastActivity, $now - $idle);
         }
 
-        if ($now - $lastActivity > $this->idleTimeout) {
+        $idleTimeout = $session->get(self::REMEMBERED) ? $this->rememberedIdleTimeout : $this->idleTimeout;
+        if ($now - $lastActivity > $idleTimeout) {
             $event->setResponse($this->logOut($request));
 
             return;
@@ -107,6 +117,15 @@ final readonly class SessionIdleTimeoutListener
         $session = $request->getSession();
         $session->set(self::LAST_ACTIVITY, $this->clock->now()->getTimestamp());
         $session->remove(self::LOGGED_OUT_FOR_INACTIVITY);
+
+        // Box ticked on the login form, or logged back in by the remember-me cookie itself.
+        $remembered = $event->getPassport()->getBadge(RememberMeBadge::class)?->isEnabled()
+            || $event->getAuthenticatedToken() instanceof RememberMeToken;
+        if ($remembered) {
+            $session->set(self::REMEMBERED, true);
+        } else {
+            $session->remove(self::REMEMBERED);
+        }
     }
 
     private function logOut(Request $request): Response

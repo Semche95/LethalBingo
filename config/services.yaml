@@ -7,6 +7,9 @@ parameters:
     # Logs the user out after this many seconds without activity (clicks, key presses,
     # page loads). Long enough for a referee watching a game page without touching it.
     app.session_idle_timeout: 28800 # 8 hours
+    # Same, when "Se souvenir de moi" was ticked at login; also the lifetime of the
+    # remember-me cookie.
+    app.remembered_session_idle_timeout: 2592000 # 30 days
 
 services:
     # default configuration for services in *this* file
