@@ -146,15 +146,20 @@ assets/
 - **Jamais de trailer `Co-Authored-By`** (ni aucune autre ligne d'attribution) dans les commits
 - Scopes courants : `game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`
 
-## Workflow Git (branches)
+## Workflow Git
 
-- `main` reste toujours stable et déployable
-- Nommage des branches : `<type>/<scope>-description-courte`
-  - Types : `feature`, `fix`, `chore`, `hotfix`
-  - Scopes : les mêmes que pour les commits (`game`, `bingo`, `referee`, `timer`, `datatable`, `template`, `env`, `config`, `migrations`)
-  - Exemples : `feature/bingo-scoring-rules`, `fix/timer-drift`, `chore/config-docker-secrets`
-- **Jamais de commit de merge** : pour intégrer une branche dans `main`, la rebaser sur `main` (`git rebase main`) puis avancer `main` en fast-forward (`git merge --ff-only <branche>`) ; l'historique de `main` reste linéaire
-- Réécriture d'historique (`rebase`, `amend`, `force-push`) autorisée librement sur les branches de travail tant qu'elles ne sont pas mergées dans `main`
+- **Tout se fait directement sur `main`** : pas de branche de travail par défaut
+- Si une branche est exceptionnellement nécessaire : jamais de commit de merge (rebase sur `main` puis `git merge --ff-only`), et les fichiers de tâches `.backlog/` restent sur `main`
+
+## Gestion des tâches (Backlog.md)
+
+- Les tâches sont dans `.backlog/`, manipulées uniquement via `pnpm exec backlog` (jamais `pnpm dlx` ni `npx`)
+- **Seule source de vérité : la branche `main`**. L'état des tâches ne se lit et ne se modifie que sur `main`, jamais sur une autre branche (`check_active_branches: false` dans `.backlog/config.yml`)
+- **Au démarrage d'une tâche** : la passer en cours automatiquement, sans attendre de demande
+  `pnpm exec backlog task edit <id> -s "In Progress"`
+- **À la fin d'une tâche** (tests et lint passés) : cocher ses critères d'acceptation et la passer à terminée automatiquement
+  `pnpm exec backlog task edit <id> --check-ac <n> -s "Done"`
+- Les changements de fichiers `.backlog/` sont commités avec le code de la tâche
 
 ## Sécurité
 
