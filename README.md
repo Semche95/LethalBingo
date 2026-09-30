@@ -254,4 +254,4 @@ erDiagram
 
 ## Roadmap
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the full list of completed and upcoming features.
+Tasks (completed and upcoming) are managed with [Backlog.md](https://github.com/MrLesk/Backlog.md) in the [`.backlog/`](.backlog/) folder. It is a pinned dev dependency: after `pnpm install`, run `pnpm exec backlog board` to display the Kanban board, or `pnpm exec backlog browser` for the web interface.
