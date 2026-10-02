@@ -331,4 +331,8 @@ Tasks (completed and upcoming) are managed with [Backlog.md](https://github.com/
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+The source code of this project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+Some files are third-party works and are **not** covered by the MIT License: the Lethal Company logo and favicons, GIF images, sounds and icons. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for their owners and licenses.
+
+Lethal Company is a game developed by Zeekerss. LethalBingo is an unofficial fan project, not affiliated with or endorsed by Zeekerss.
