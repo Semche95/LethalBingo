@@ -19,6 +19,7 @@ trait FakerTrait
     {
         $faker = Factory::create('fr_FR');
         $faker->seed(1337);
+
         return $faker;
     }
 }

@@ -1,0 +1,177 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    # Dummy, non-sensitive values: locally these come from .env.local (never committed).
+    APP_SECRET: ci-dummy-app-secret
+    MERCURE_JWT_SECRET: ci-dummy-mercure-jwt-secret-not-a-real-key
+    DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=16&charset=utf8
+    PHP_VERSION: '8.4'
+    PHP_EXTENSIONS: ctype, iconv, intl, pdo_pgsql, zip, apcu
+
+jobs:
+    tests:
+        name: PHPUnit
+        runs-on: ubuntu-latest
+
+        services:
+            database:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_DB: app
+                    POSTGRES_USER: app
+                    POSTGRES_PASSWORD: app
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -d app -U app"
+                    --health-interval 5s
+                    --health-timeout 5s
+                    --health-retries 10
+
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ env.PHP_VERSION }}
+                  extensions: ${{ env.PHP_EXTENSIONS }}
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+
+            - name: Install Composer dependencies
+              run: composer install --no-interaction --no-progress --prefer-dist
+
+            # The layouts call vite_entry_*_tags() and asset(), which read
+            # public/build/.vite/entrypoints.json. Locally the Vite dev server
+            # writes it; here a dev-server-style stub avoids running a build
+            # (the tests never fetch the assets).
+            - name: Stub the Vite entrypoints file
+              run: |
+                  mkdir -p public/build/.vite
+                  echo '{"base":"/build/","entryPoints":{"app":{"js":["http://localhost:5173/build/assets/app.ts"]}},"legacy":false,"metadatas":{},"version":["8.2.4",8,2,4],"viteServer":"http://localhost:5173"}' > public/build/.vite/entrypoints.json
+
+            # Test database "app_test" (dbname_suffix of when@test): the schema,
+            # the unaccent extension and the reference categories come from the migrations.
+            - name: Create the test database
+              run: |
+                  bin/console doctrine:database:create --env=test --if-not-exists --no-interaction
+                  bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration
+
+            - name: Run PHPUnit
+              run: vendor/bin/phpunit
+
+    static-analysis:
+        name: PHPStan / PHP-CS-Fixer
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ env.PHP_VERSION }}
+                  extensions: ${{ env.PHP_EXTENSIONS }}
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+
+            - name: Install Composer dependencies
+              id: composer
+              run: composer install --no-interaction --no-progress --prefer-dist
+
+            # phpstan.dist.neon reads var/cache/dev/App_KernelDevDebugContainer.xml
+            # and tests/object-manager.php boots the dev kernel.
+            - name: Warm up the dev cache
+              run: bin/console cache:warmup --env=dev
+
+            - name: Run PHPStan
+              run: vendor/bin/phpstan analyse --no-progress
+
+            - name: Run PHP-CS-Fixer
+              if: ${{ !cancelled() && steps.composer.outcome == 'success' }}
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+    frontend:
+        name: Vitest
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v7
+
+            # package.json links the Symfony UX packages from vendor/ (file:vendor/...)
+            - name: Set up PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ env.PHP_VERSION }}
+                  extensions: ${{ env.PHP_EXTENSIONS }}
+                  tools: composer:v2
+                  coverage: none
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+
+            - name: Install Composer dependencies
+              run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: 11
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v7
+              with:
+                  node-version: lts/*
+                  cache: pnpm
+
+            - name: Install pnpm dependencies
+              run: pnpm install --frozen-lockfile
+
+            # "pnpm exec" rather than "pnpm test": no dependency check/reinstall
+            # before running, and never a Vite build.
+            - name: Run Vitest
+              run: pnpm exec vitest run

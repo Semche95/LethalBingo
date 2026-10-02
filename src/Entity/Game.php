@@ -93,7 +93,7 @@ class Game
 
     public function generateSlug(): static
     {
-        $this->slug = (string)ByteString::fromRandom(12);
+        $this->slug = (string) ByteString::fromRandom(12);
 
         return $this;
     }

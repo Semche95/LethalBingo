@@ -45,8 +45,7 @@ final class BingoCard extends AbstractController
     public function __construct(
         private readonly BingoService $bingo,
         private readonly BingoSquareCategoryRepository $categoryRepository,
-    )
-    {
+    ) {
     }
 
     #[LiveListener('gameFrameRefresh')]

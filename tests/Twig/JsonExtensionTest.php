@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Twig;
 
 use App\Twig\JsonExtension;
+use JsonException;
 use PHPUnit\Framework\TestCase;
 
 class JsonExtensionTest extends TestCase
@@ -60,7 +61,7 @@ class JsonExtensionTest extends TestCase
         $filters = $this->extension->getFilters();
         $callable = $filters[0]->getCallable();
 
-        $this->expectException(\JsonException::class);
+        $this->expectException(JsonException::class);
 
         $callable('not valid json');
     }

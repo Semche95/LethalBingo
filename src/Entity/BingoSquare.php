@@ -159,6 +159,7 @@ class BingoSquare implements Stringable
         if ($this->row === null || $this->col === null) {
             return '';
         }
+
         return self::getRowLetter($this->row) . $this->col;
     }
 

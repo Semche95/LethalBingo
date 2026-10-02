@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Twig;
 
 use App\Twig\TeamColorExtension;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class TeamColorExtensionTest extends TestCase
@@ -24,9 +25,7 @@ class TeamColorExtensionTest extends TestCase
         $this->assertSame('team_color', $functions[0]->getName());
     }
 
-    /**
-     * @dataProvider teamIdProvider
-     */
+    #[DataProvider('teamIdProvider')]
     public function testGetTeamColorReturnsValidHexColor(int $teamId): void
     {
         $color = $this->extension->getTeamColor($teamId);

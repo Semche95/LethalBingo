@@ -22,11 +22,9 @@ final class GameFrame extends AbstractController
     #[LiveProp]
     public Game $game;
 
-
     public function __construct(
         private readonly GameService $gameService,
-    )
-    {
+    ) {
     }
 
     #[LiveListener('gameFrameRefresh')]

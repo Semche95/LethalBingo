@@ -63,6 +63,18 @@ cc:
 test *args:
     @docker compose exec php ./vendor/bin/phpunit {{args}}
 
+# Analyse statique du code avec PHPStan dans le conteneur PHP
+phpstan *args:
+    @docker compose exec php ./vendor/bin/phpstan analyse {{args}}
+
+# Vérifie le style du code avec PHP-CS-Fixer (sans modifier, affiche le diff)
+cs *args:
+    @docker compose exec php ./vendor/bin/php-cs-fixer fix --dry-run --diff {{args}}
+
+# Corrige le style du code avec PHP-CS-Fixer
+cs-fix *args:
+    @docker compose exec php ./vendor/bin/php-cs-fixer fix {{args}}
+
 # Exécute les migrations en base
 migrate:
     @just sf doctrine:migrations:migrate --no-interaction

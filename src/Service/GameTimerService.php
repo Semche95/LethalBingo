@@ -11,8 +11,7 @@ readonly class GameTimerService
 
     public function __construct(
         private GameService $gameService,
-    )
-    {
+    ) {
     }
 
     public function refreshGameTimer(Game $game): float
@@ -34,9 +33,9 @@ readonly class GameTimerService
             return 0;
         }
 
-        $nowMs = $nowMs ?? microtime(true) * 1000;
+        $nowMs ??= microtime(true) * 1000;
 
-        return max(0, (int)ceil($this->computeRawRemainingSeconds($game, $nowMs)));
+        return max(0, (int) ceil($this->computeRawRemainingSeconds($game, $nowMs)));
     }
 
     /**
@@ -50,7 +49,7 @@ readonly class GameTimerService
             return;
         }
 
-        $nowMs = $nowMs ?? microtime(true) * 1000;
+        $nowMs ??= microtime(true) * 1000;
         $rawRemaining = $this->computeRawRemainingSeconds($game, $nowMs);
 
         if ($rawRemaining <= 0) {
@@ -70,7 +69,7 @@ readonly class GameTimerService
         }
 
         if ($game->getLastPausedAt()) {
-            $nowMs = $nowMs ?? microtime(true) * 1000;
+            $nowMs ??= microtime(true) * 1000;
             $pauseSeconds = ($nowMs - self::toMilliseconds($game->getLastPausedAt())) / 1000;
             $game->setTotalPausedSeconds($game->getTotalPausedSeconds() + $pauseSeconds);
         }
@@ -100,6 +99,6 @@ readonly class GameTimerService
 
     private static function toMilliseconds(DateTimeImmutable $date): float
     {
-        return ((float)$date->format('U.u')) * 1000;
+        return ((float) $date->format('U.u')) * 1000;
     }
 }

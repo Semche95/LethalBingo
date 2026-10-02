@@ -34,7 +34,7 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all games sorted by round, season, then team
+     * Find all games sorted by round, season, then team.
      *
      * @return Game[]
      */
@@ -79,7 +79,7 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the most recently created games
+     * Find the most recently created games.
      *
      * @return Game[]
      */

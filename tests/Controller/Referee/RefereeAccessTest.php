@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Controller\Referee;
 
 use App\Tests\Controller\ControllerTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * The whole /referee area is reserved to referees.
  */
 class RefereeAccessTest extends ControllerTestCase
 {
-    /**
-     * @dataProvider refereePagesProvider
-     */
+    #[DataProvider('refereePagesProvider')]
     public function testAnonymousVisitorIsRedirectedToLogin(string $url): void
     {
         $this->client->request('GET', $url);
@@ -21,9 +20,7 @@ class RefereeAccessTest extends ControllerTestCase
         self::assertResponseRedirects('/user/login');
     }
 
-    /**
-     * @dataProvider refereePagesProvider
-     */
+    #[DataProvider('refereePagesProvider')]
     public function testPlayerIsForbidden(string $url): void
     {
         $this->client->loginUser($this->createUser());
@@ -33,9 +30,7 @@ class RefereeAccessTest extends ControllerTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
-    /**
-     * @dataProvider refereePagesProvider
-     */
+    #[DataProvider('refereePagesProvider')]
     public function testRefereeCanOpenThePage(string $url): void
     {
         $this->loginAsReferee();

@@ -17,8 +17,7 @@ class BingoDto
         #[Assert\Positive]
         public ?int $round = null,
         public array $squares = [],
-    )
-    {
+    ) {
     }
 
     #[Assert\Callback]

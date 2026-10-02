@@ -24,9 +24,8 @@ final class GameSteps
 
     public function __construct(
         private readonly BingoSquareCategoryRepository $categoryRepository,
-        private readonly BingoSquareRepository         $squareRepository,
-    )
-    {
+        private readonly BingoSquareRepository $squareRepository,
+    ) {
     }
 
     #[LiveListener('gameFrameRefresh')]

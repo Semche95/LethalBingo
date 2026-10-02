@@ -28,11 +28,11 @@ class BingoSquareFixtures extends Fixture implements DependentFixtureInterface
         $bingosCount = GameRoundFixtures::SEASON_COUNT * GameRoundFixtures::ROUND_COUNT;
         $squaresCount = BingoService::MAX_ROWS * BingoService::MAX_ROWS;
 
-        for ($bingo = 1; $bingo <= $bingosCount; $bingo++) {
+        for ($bingo = 1; $bingo <= $bingosCount; ++$bingo) {
             $season = (int) ceil($bingo / GameRoundFixtures::ROUND_COUNT);
             $round = ($bingo - 1) % GameRoundFixtures::ROUND_COUNT + 1;
 
-            for ($square = 1; $square <= $squaresCount; $square++) {
+            for ($square = 1; $square <= $squaresCount; ++$square) {
                 $row = (int) ceil($square / BingoService::MAX_COLS);
                 $col = ($square - 1) % BingoService::MAX_COLS + 1;
 

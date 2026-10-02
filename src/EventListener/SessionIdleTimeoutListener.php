@@ -76,7 +76,7 @@ final readonly class SessionIdleTimeoutListener
         }
 
         $session = $request->getSession();
-        if (null === $this->security->getUser()) {
+        if ($this->security->getUser() === null) {
             // Logged out meanwhile by another request of the page (Live re-render, timer
             // resync...): the ping must still tell the page to show the login page.
             if ($this->isPing($request) && $session->has(self::LOGGED_OUT_FOR_INACTIVITY)) {
@@ -90,7 +90,7 @@ final readonly class SessionIdleTimeoutListener
         // Sessions opened before this rule existed start counting now.
         $lastActivity = $session->get(self::LAST_ACTIVITY) ?? $now;
         $idle = $this->isPing($request) ? $this->reportedIdle($request) : null;
-        if (null !== $idle) {
+        if ($idle !== null) {
             $lastActivity = max($lastActivity, $now - $idle);
         }
 
@@ -171,7 +171,7 @@ final readonly class SessionIdleTimeoutListener
 
     private function isPing(Request $request): bool
     {
-        return self::PING_ROUTE === $request->attributes->get('_route');
+        return $request->attributes->get('_route') === self::PING_ROUTE;
     }
 
     /**
@@ -182,7 +182,7 @@ final readonly class SessionIdleTimeoutListener
     {
         $idle = filter_var($request->query->get('idle'), \FILTER_VALIDATE_INT);
 
-        return false === $idle ? null : max(0, $idle);
+        return $idle === false ? null : max(0, $idle);
     }
 
     private function isLiveComponent(Request $request): bool

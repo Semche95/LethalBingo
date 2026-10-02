@@ -6,6 +6,10 @@
 
 <p align="center">
   Create, manage and play bingo games in the world of <strong>Lethal Company</strong>.
+  <br /><br />
+  <a href="https://github.com/Semche95/LethalBingo/actions/workflows/ci.yml"><img src="https://github.com/Semche95/LethalBingo/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&amp;logoColor=white" alt="PHP 8.4" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" /></a>
 </p>
 
 <p align="center">
@@ -109,9 +113,9 @@
 
 | Tool | Version | Usage |
 |---|---|---|
-| PHPUnit | ^9.5 | Unit and functional tests |
-| PHPStan | — | Static analysis (to be configured) |
-| PHP-CS-Fixer | — | Code style fixing (to be configured) |
+| PHPUnit | ^13 | Unit and functional tests (`just test`) |
+| PHPStan | ^2.2 | Static analysis, level 6 + baseline (`just phpstan`) |
+| PHP-CS-Fixer | ^3.95 | Code style, `@Symfony` + PHP 8.4 migration rules (`just cs` / `just cs-fix`) |
 | Vitest | ^4.1.11 | Frontend tests (TypeScript) |
 | FakerPHP | ^1.23 | Test data generation |
 | Doctrine Fixtures | ^3.6 | Database fixtures |
@@ -183,6 +187,9 @@ just dev
 | `just up` | Starts Docker containers |
 | `just down` | Stops containers |
 | `just test` | Runs PHPUnit tests |
+| `just phpstan` | Runs PHPStan static analysis |
+| `just cs` | Checks code style with PHP-CS-Fixer (dry run, shows the diff) |
+| `just cs-fix` | Fixes code style with PHP-CS-Fixer |
 | `just sf <cmd>` | Runs a Symfony command |
 | `just migrate` | Applies Doctrine migrations |
 | `just diff` | Generates a migration from entities |
@@ -227,21 +234,84 @@ assets/
 ```mermaid
 erDiagram
     User {
+        int id PK
+        string username UK
+        json roles
+        string password
     }
-    Team ||--o{ TeamMember : ""
-    Team ||--o{ Game : ""
-    Game }o--|| GameRound : ""
-    GameRound ||--o{ BingoSquare : ""
-    BingoSquare }o--|| BingoSquareCategory : ""
-    Game ||--o{ BingoSquareRevealed : ""
-    BingoSquare ||--o{ BingoSquareRevealed : ""
-    Game ||--o{ BingoSquareValidated : ""
-    BingoSquare ||--o{ BingoSquareValidated : ""
+    Rule {
+        int id PK
+        string label
+    }
+    Team {
+        int id PK
+        string name UK
+    }
+    TeamMember {
+        int id PK
+        string name
+        bool captain
+        int team_id FK
+    }
+    GameRound {
+        int id PK
+        int number
+        int season
+    }
+    Game {
+        int id PK
+        string slug UK
+        int team_id FK
+        int round_id FK
+        datetime startedAt
+        datetime finishedAt
+        text notes
+        bool isPaused
+        float totalPausedSeconds
+        int manualAdjustmentSeconds
+        datetime lastPausedAt
+    }
+    BingoSquareCategory {
+        int id PK
+        text label UK
+        int position
+    }
+    BingoSquare {
+        int id PK
+        text label
+        int row
+        int col
+        bool visible
+        int round_id FK
+        int category_id FK
+    }
+    BingoSquareRevealed {
+        int id PK
+        int game_id FK
+        int bingo_square_id FK
+        datetime revealedAt
+    }
+    BingoSquareValidated {
+        int id PK
+        int game_id FK
+        int bingo_square_id FK
+        datetime validatedAt
+    }
+
+    Team ||--o{ TeamMember : "has members"
+    Team ||--o{ Game : "plays"
+    GameRound ||--o{ Game : "played as"
+    GameRound ||--o{ BingoSquare : "contains"
+    BingoSquareCategory |o--o{ BingoSquare : "categorizes"
+    Game ||--o{ BingoSquareRevealed : "reveals"
+    BingoSquare ||--o{ BingoSquareRevealed : "revealed in"
+    Game ||--o{ BingoSquareValidated : "validates"
+    BingoSquare ||--o{ BingoSquareValidated : "validated in"
 ```
 
-- Doctrine entities with ManyToOne/OneToMany relationships
-- **Uniqueness constraints**: (team, round), (game, bingoSquare), (round, label), (round, row, col)
-- **Custom DQL functions**: `json_agg`, `json_build_object`, `string_agg`, `unaccent`
+- Doctrine entities with ManyToOne/OneToMany relationships; `User` (authentication) and `Rule` (game rules list) have no relationship
+- **Uniqueness constraints**: User (username), Team (name), TeamMember (team, name), Game (slug), Game (team, round), BingoSquareCategory (label), BingoSquare (round, row, col), BingoSquareRevealed (game, bingoSquare), BingoSquareValidated (game, bingoSquare)
+- **Custom DQL functions**: `json_agg`, `json_build_object`, `unaccent` (in `src/Dql/`) and `string_agg` (from `beberlei/doctrineextensions`)
 
 ## Security
 
@@ -255,3 +325,7 @@ erDiagram
 ## Roadmap
 
 Tasks (completed and upcoming) are managed with [Backlog.md](https://github.com/MrLesk/Backlog.md) in the [`.backlog/`](.backlog/) folder. It is a pinned dev dependency: after `pnpm install`, run `pnpm exec backlog board` to display the Kanban board, or `pnpm exec backlog browser` for the web interface.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

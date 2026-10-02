@@ -29,17 +29,16 @@ final class GameTimer extends AbstractController
     public float $serverTime = 0.0;
 
     public function __construct(
-        private readonly GameTimerService       $gameTimerService,
+        private readonly GameTimerService $gameTimerService,
         private readonly EntityManagerInterface $entityManager,
-    )
-    {
+    ) {
     }
 
     public function mount(): void
     {
         // The first render has no Mercure message yet. Every later refresh
         // receives the shared timestamp carried by that message.
-        if (0.0 === $this->serverTime) {
+        if ($this->serverTime === 0.0) {
             $this->serverTime = microtime(true);
         }
     }
@@ -54,7 +53,7 @@ final class GameTimer extends AbstractController
     }
 
     /**
-     * Persists game changes and notifies clients of the update
+     * Persists game changes and notifies clients of the update.
      */
     private function persistGameChangesAndNotifyClients(): void
     {

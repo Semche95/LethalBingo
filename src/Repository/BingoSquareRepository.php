@@ -26,6 +26,7 @@ class BingoSquareRepository extends ServiceEntityRepository
     public function findNotValidatedWithCategory(GameRound $round): array
     {
         $qb = $this->createQueryBuilder('s');
+
         return $qb
             ->leftJoin('s.bingoSquareValidated', 'v')
             ->andWhere($qb->expr()->eq('s.round', ':round'))

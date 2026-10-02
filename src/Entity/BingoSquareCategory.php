@@ -95,6 +95,7 @@ class BingoSquareCategory implements Stringable
         $criteria = Criteria::create()
             ->andWhere(Criteria::expr()->eq('round', $gameRound))
             ->orderBy(['row' => 'ASC', 'col' => 'ASC']);
+
         return $this->bingoSquares->matching($criteria);
     }
 

@@ -57,7 +57,7 @@ class SecurityControllerTest extends ControllerTestCase
     {
         $user = $this->createUser(['ROLE_REFEREE']);
 
-        for ($attempt = 0; $attempt < 5; $attempt++) {
+        for ($attempt = 0; $attempt < 5; ++$attempt) {
             $this->client->request('GET', '/user/login');
             $this->client->submitForm('Se connecter', [
                 '_username' => $user->getUsername(),
@@ -80,7 +80,7 @@ class SecurityControllerTest extends ControllerTestCase
     {
         $user = $this->createUser(['ROLE_REFEREE']);
 
-        for ($attempt = 0; $attempt < 10; $attempt++) {
+        for ($attempt = 0; $attempt < 10; ++$attempt) {
             $this->client->request('GET', '/user/login');
             $this->client->submitForm('Se connecter', [
                 '_username' => 'unknown-' . $attempt,

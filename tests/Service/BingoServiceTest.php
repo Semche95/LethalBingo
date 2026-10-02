@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
-use App\Dto\BingoDto;
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\BingoSquareRevealed;
@@ -16,43 +15,34 @@ use App\Repository\BingoSquareValidatedRepository;
 use App\Repository\GameRoundRepository;
 use App\Service\BingoService;
 use App\Service\GameService;
-use App\Service\RefreshEvent;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\HubInterface;
 
 class BingoServiceTest extends TestCase
 {
-    private BingoService $bingoService;
-    private EntityManagerInterface $em;
-    private GameRoundRepository $gameRoundRepository;
-    private BingoSquareRevealedRepository $revealedRepository;
-    private BingoSquareValidatedRepository $validatedRepository;
-    private GameService $gameService;
+    /**
+     * Builds the service, replacing every collaborator not given by a stub.
+     */
+    private function createBingoService(
+        ?EntityManagerInterface $em = null,
+        ?BingoSquareRevealedRepository $revealedRepository = null,
+        ?BingoSquareValidatedRepository $validatedRepository = null,
+        ?HubInterface $hub = null,
+    ): BingoService {
+        $em ??= $this->createStub(EntityManagerInterface::class);
 
-    protected function setUp(): void
-    {
-        $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->gameRoundRepository = $this->createMock(GameRoundRepository::class);
-        $this->revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
-        $this->validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
-
-        $hub = $this->createMock(HubInterface::class);
-        $this->gameService = new GameService($this->em, $hub);
-
-        $this->bingoService = new BingoService(
-            $this->em,
-            $this->gameRoundRepository,
-            $this->revealedRepository,
-            $this->validatedRepository,
-            $this->gameService,
+        return new BingoService(
+            $em,
+            $this->createStub(GameRoundRepository::class),
+            $revealedRepository ?? $this->createStub(BingoSquareRevealedRepository::class),
+            $validatedRepository ?? $this->createStub(BingoSquareValidatedRepository::class),
+            new GameService($em, $hub ?? $this->createStub(HubInterface::class)),
         );
     }
 
-    /**
-     * @dataProvider visibleSquaresProvider
-     */
+    #[DataProvider('visibleSquaresProvider')]
     public function testIsSquareVisibleReturnsTrueForCrossPattern(int $row, int $col): void
     {
         $this->assertTrue(BingoService::isSquareVisible($row, $col));
@@ -71,9 +61,7 @@ class BingoServiceTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider hiddenSquaresProvider
-     */
+    #[DataProvider('hiddenSquaresProvider')]
     public function testIsSquareVisibleReturnsFalseForNonCrossPattern(int $row, int $col): void
     {
         $this->assertFalse(BingoService::isSquareVisible($row, $col));
@@ -94,72 +82,82 @@ class BingoServiceTest extends TestCase
 
     public function testGetRevealedSquareDelegatesToRepository(): void
     {
+        $revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
+
         $game = new Game();
         $squareId = 42;
         $expected = new BingoSquareRevealed();
 
-        $this->revealedRepository->expects($this->once())
+        $revealedRepository->expects($this->once())
             ->method('findOneBy')
             ->with(['game' => $game, 'bingoSquare' => $squareId])
             ->willReturn($expected);
 
-        $result = $this->bingoService->getRevealedSquare($game, $squareId);
+        $result = $this->createBingoService(revealedRepository: $revealedRepository)->getRevealedSquare($game, $squareId);
 
         $this->assertSame($expected, $result);
     }
 
     public function testGetRevealedSquareReturnsNullWhenNotFound(): void
     {
+        $revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
+
         $game = new Game();
 
-        $this->revealedRepository->expects($this->once())
+        $revealedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn(null);
 
-        $result = $this->bingoService->getRevealedSquare($game, 1);
+        $result = $this->createBingoService(revealedRepository: $revealedRepository)->getRevealedSquare($game, 1);
 
         $this->assertNull($result);
     }
 
     public function testGetValidatedSquareDelegatesToRepository(): void
     {
+        $validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
+
         $game = new Game();
         $squareId = 42;
         $expected = new BingoSquareValidated();
 
-        $this->validatedRepository->expects($this->once())
+        $validatedRepository->expects($this->once())
             ->method('findOneBy')
             ->with(['game' => $game, 'bingoSquare' => $squareId])
             ->willReturn($expected);
 
-        $result = $this->bingoService->getValidatedSquare($game, $squareId);
+        $result = $this->createBingoService(validatedRepository: $validatedRepository)->getValidatedSquare($game, $squareId);
 
         $this->assertSame($expected, $result);
     }
 
     public function testGetValidatedSquareReturnsNullWhenNotFound(): void
     {
+        $validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
+
         $game = new Game();
 
-        $this->validatedRepository->expects($this->once())
+        $validatedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn(null);
 
-        $result = $this->bingoService->getValidatedSquare($game, 1);
+        $result = $this->createBingoService(validatedRepository: $validatedRepository)->getValidatedSquare($game, 1);
 
         $this->assertNull($result);
     }
 
     public function testGetRevealedSquareIdsReturnsTheIdsAsKeysFromASingleQuery(): void
     {
+        $revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
+
         $game = new Game();
 
-        $this->revealedRepository->expects($this->once())
+        $revealedRepository->expects($this->once())
             ->method('findSquareIdsByGame')
             ->with($game)
             ->willReturn([4, 9]);
 
-        $ids = $this->bingoService->getRevealedSquareIds($game);
+        $ids = $this->createBingoService(revealedRepository: $revealedRepository)->getRevealedSquareIds($game);
 
         $this->assertTrue(isset($ids[4], $ids[9]));
         $this->assertFalse(isset($ids[5]));
@@ -167,14 +165,16 @@ class BingoServiceTest extends TestCase
 
     public function testGetValidatedSquareIdsReturnsTheIdsAsKeysFromASingleQuery(): void
     {
+        $validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
+
         $game = new Game();
 
-        $this->validatedRepository->expects($this->once())
+        $validatedRepository->expects($this->once())
             ->method('findSquareIdsByGame')
             ->with($game)
             ->willReturn([7]);
 
-        $ids = $this->bingoService->getValidatedSquareIds($game);
+        $ids = $this->createBingoService(validatedRepository: $validatedRepository)->getValidatedSquareIds($game);
 
         $this->assertTrue(isset($ids[7]));
         $this->assertFalse(isset($ids[4]));
@@ -185,7 +185,7 @@ class BingoServiceTest extends TestCase
         $round = new GameRound();
         $round->setSeason(2)->setNumber(3);
 
-        $category = $this->createConfiguredMock(BingoSquareCategory::class, [
+        $category = $this->createConfiguredStub(BingoSquareCategory::class, [
             'getId' => 1,
         ]);
 
@@ -193,7 +193,7 @@ class BingoServiceTest extends TestCase
         $square->setRow(1)->setCol(1)->setLabel('Test')->setVisible(true)->setCategory($category);
         $round->addBingoSquare($square);
 
-        $dto = $this->bingoService->entityToDto($round);
+        $dto = $this->createBingoService()->entityToDto($round);
 
         $this->assertSame(2, $dto->season);
         $this->assertSame(3, $dto->round);
@@ -210,7 +210,7 @@ class BingoServiceTest extends TestCase
         $round = new GameRound();
         $round->setSeason(1)->setNumber(1);
 
-        $category = $this->createConfiguredMock(BingoSquareCategory::class, [
+        $category = $this->createConfiguredStub(BingoSquareCategory::class, [
             'getId' => 1,
         ]);
 
@@ -218,7 +218,7 @@ class BingoServiceTest extends TestCase
         $square->setRow(2)->setCol(3)->setLabel('Hidden')->setVisible(false)->setCategory($category);
         $round->addBingoSquare($square);
 
-        $dto = $this->bingoService->entityToDto($round);
+        $dto = $this->createBingoService()->entityToDto($round);
 
         $this->assertSame(0, $dto->squares[2][3]['visible']);
     }
@@ -228,17 +228,18 @@ class BingoServiceTest extends TestCase
         $round = new GameRound();
         $round->setSeason(1)->setNumber(1);
 
-        $dto = $this->bingoService->entityToDto($round);
+        $dto = $this->createBingoService()->entityToDto($round);
 
         $this->assertSame([], $dto->squares);
     }
 
     public function testCreateEmptyRoundPersistsAndFlushes(): void
     {
-        $this->em->expects($this->once())->method('persist')->with($this->isInstanceOf(GameRound::class));
-        $this->em->expects($this->once())->method('flush');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('persist')->with($this->isInstanceOf(GameRound::class));
+        $em->expects($this->once())->method('flush');
 
-        $result = $this->bingoService->createEmptyRound(2, 5);
+        $result = $this->createBingoService(em: $em)->createEmptyRound(2, 5);
 
         $this->assertSame(2, $result->getSeason());
         $this->assertSame(5, $result->getNumber());
@@ -251,41 +252,35 @@ class BingoServiceTest extends TestCase
 
         $hub = $this->createMock(HubInterface::class);
         $hub->expects($this->exactly(2))->method('publish');
-        $gameService = new GameService($this->em, $hub);
-        $bingoService = new BingoService(
-            $this->em,
-            $this->gameRoundRepository,
-            $this->revealedRepository,
-            $this->validatedRepository,
-            $gameService,
-        );
 
-        $bingoService->refreshBingoCard($game);
+        $this->createBingoService(hub: $hub)->refreshBingoCard($game);
     }
 
     public function testRevealCreatesBingoSquareRevealedAndFlushes(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
         $squareId = 42;
 
         $squareReference = new BingoSquare();
 
-        $this->em->expects($this->atLeastOnce())
+        $em->expects($this->atLeastOnce())
             ->method('getReference')
             ->with(BingoSquare::class, $squareId)
             ->willReturn($squareReference);
 
         $persisted = [];
-        $this->em->expects($this->once())
+        $em->expects($this->once())
             ->method('persist')
             ->willReturnCallback(function ($entity) use (&$persisted): void {
                 $persisted[] = $entity;
             });
 
-        $this->em->expects($this->once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
-        $this->bingoService->reveal($game, $squareId);
+        $this->createBingoService(em: $em)->reveal($game, $squareId);
 
         $this->assertCount(1, $persisted);
         $this->assertInstanceOf(BingoSquareRevealed::class, $persisted[0]);
@@ -293,68 +288,76 @@ class BingoServiceTest extends TestCase
 
     public function testConcealRemovesBingoSquareRevealedWhenFound(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
         $squareId = 42;
 
         $revealedSquare = new BingoSquareRevealed();
 
-        $this->revealedRepository->expects($this->once())
+        $revealedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn($revealedSquare);
 
         $removed = [];
-        $this->em->expects($this->once())
+        $em->expects($this->once())
             ->method('remove')
             ->willReturnCallback(function ($entity) use (&$removed): void {
                 $removed[] = $entity;
             });
 
-        $this->em->expects($this->once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
-        $this->bingoService->conceal($game, $squareId);
+        $this->createBingoService(em: $em, revealedRepository: $revealedRepository)->conceal($game, $squareId);
 
         $this->assertSame([$revealedSquare], $removed);
     }
 
     public function testConcealDoesNotRemoveWhenNotFound(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $revealedRepository = $this->createMock(BingoSquareRevealedRepository::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
 
-        $this->revealedRepository->expects($this->once())
+        $revealedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn(null);
 
-        $this->em->expects($this->never())->method('remove');
-        $this->em->expects($this->never())->method('flush');
+        $em->expects($this->never())->method('remove');
+        $em->expects($this->never())->method('flush');
 
-        $this->bingoService->conceal($game, 1);
+        $this->createBingoService(em: $em, revealedRepository: $revealedRepository)->conceal($game, 1);
     }
 
     public function testValidateCreatesBingoSquareValidatedAndFlushes(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
         $squareId = 10;
 
         $squareReference = new BingoSquare();
 
-        $this->em->expects($this->once())
+        $em->expects($this->once())
             ->method('getReference')
             ->with(BingoSquare::class, $squareId)
             ->willReturn($squareReference);
 
         $persisted = [];
-        $this->em->expects($this->once())
+        $em->expects($this->once())
             ->method('persist')
             ->willReturnCallback(function ($entity) use (&$persisted): void {
                 $persisted[] = $entity;
             });
 
-        $this->em->expects($this->once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
-        $this->bingoService->validate($game, $squareId);
+        $this->createBingoService(em: $em)->validate($game, $squareId);
 
         $this->assertCount(1, $persisted);
         $this->assertInstanceOf(BingoSquareValidated::class, $persisted[0]);
@@ -362,42 +365,48 @@ class BingoServiceTest extends TestCase
 
     public function testInvalidateRemovesBingoSquareValidatedWhenFound(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
         $squareId = 10;
 
         $validatedSquare = new BingoSquareValidated();
 
-        $this->validatedRepository->expects($this->once())
+        $validatedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn($validatedSquare);
 
         $removed = [];
-        $this->em->expects($this->once())
+        $em->expects($this->once())
             ->method('remove')
             ->willReturnCallback(function ($entity) use (&$removed): void {
                 $removed[] = $entity;
             });
 
-        $this->em->expects($this->once())->method('flush');
+        $em->expects($this->once())->method('flush');
 
-        $this->bingoService->invalidate($game, $squareId);
+        $this->createBingoService(em: $em, validatedRepository: $validatedRepository)->invalidate($game, $squareId);
 
         $this->assertSame([$validatedSquare], $removed);
     }
 
     public function testInvalidateDoesNotRemoveWhenNotFound(): void
     {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $validatedRepository = $this->createMock(BingoSquareValidatedRepository::class);
+
         $game = new Game();
         $game->setSlug('test-slug');
 
-        $this->validatedRepository->expects($this->once())
+        $validatedRepository->expects($this->once())
             ->method('findOneBy')
             ->willReturn(null);
 
-        $this->em->expects($this->never())->method('remove');
-        $this->em->expects($this->never())->method('flush');
+        $em->expects($this->never())->method('remove');
+        $em->expects($this->never())->method('flush');
 
-        $this->bingoService->invalidate($game, 1);
+        $this->createBingoService(em: $em, validatedRepository: $validatedRepository)->invalidate($game, 1);
     }
 }

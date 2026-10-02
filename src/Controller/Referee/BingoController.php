@@ -108,8 +108,7 @@ class BingoController extends AbstractController
         Request $request,
         BingoService $bingo,
         #[MapEntity(expr: 'repository.findOneWithSquares(id)')] GameRound $gameRound,
-    ): Response
-    {
+    ): Response {
         $bingoDto = $bingo->entityToDto($gameRound);
         $form = $this->createForm(BingoFormType::class, $bingoDto);
         $form->handleRequest($request);

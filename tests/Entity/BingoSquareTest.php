@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\BingoSquare;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class BingoSquareTest extends TestCase
 {
-    /**
-     * @dataProvider rowLetterProvider
-     */
+    #[DataProvider('rowLetterProvider')]
     public function testGetRowLetter(int $row, string $expected): void
     {
         $this->assertSame($expected, BingoSquare::getRowLetter($row));

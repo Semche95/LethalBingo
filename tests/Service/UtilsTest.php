@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Service\Utils;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class UtilsTest extends TestCase
 {
-    /**
-     * @dataProvider num2alphaProvider
-     */
+    #[DataProvider('num2alphaProvider')]
     public function testNum2alpha(int $input, string $expected): void
     {
         $this->assertSame($expected, Utils::num2alpha($input));

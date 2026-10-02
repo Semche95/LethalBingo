@@ -48,7 +48,7 @@ class TeamRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the most recently created teams
+     * Find the most recently created teams.
      *
      * @return Team[]
      */

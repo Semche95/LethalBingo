@@ -7,6 +7,7 @@ namespace App\Tests\Controller\Referee;
 use App\Entity\BingoSquareCategory;
 use App\Entity\GameRound;
 use App\Tests\Controller\ControllerTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class BingoControllerTest extends ControllerTestCase
 {
@@ -103,9 +104,7 @@ class BingoControllerTest extends ControllerTestCase
         self::assertFlash('success', 'Saison 13 créée (round 1)');
     }
 
-    /**
-     * @dataProvider creationUrlsProvider
-     */
+    #[DataProvider('creationUrlsProvider')]
     public function testCreationWithAnInvalidTokenIsRejected(string $url): void
     {
         $this->createRound(12, 1);
@@ -117,9 +116,7 @@ class BingoControllerTest extends ControllerTestCase
         self::assertNull($this->findRound(13, 1));
     }
 
-    /**
-     * @dataProvider creationUrlsProvider
-     */
+    #[DataProvider('creationUrlsProvider')]
     public function testCreationThroughASimpleLinkIsRefused(string $url): void
     {
         $this->createRound(12, 1);

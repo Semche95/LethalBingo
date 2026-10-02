@@ -47,6 +47,18 @@
             "migrations/.gitignore"
         ]
     },
+    "friendsofphp/php-cs-fixer": {
+        "version": "3.95",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.39",
+            "ref": "97aaf9026490db73b86c23d49e5774bc89d2b232"
+        },
+        "files": [
+            ".php-cs-fixer.dist.php"
+        ]
+    },
     "pentatrion/vite-bundle": {
         "version": "8.2",
         "recipe": {
@@ -55,6 +67,9 @@
             "version": "6.5",
             "ref": "3a6673f248f8fc1dd364dadfef4c5b381d1efab6"
         }
+    },
+    "phpstan/phpstan": {
+        "version": "2.2.16"
     },
     "phpunit/phpunit": {
         "version": "9.6",
@@ -206,21 +221,6 @@
         },
         "files": [
             "config/packages/notifier.yaml"
-        ]
-    },
-    "symfony/phpunit-bridge": {
-        "version": "7.3",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "6.3",
-            "ref": "a411a0480041243d97382cac7984f7dce7813c08"
-        },
-        "files": [
-            ".env.test",
-            "bin/phpunit",
-            "phpunit.xml.dist",
-            "tests/bootstrap.php"
         ]
     },
     "symfony/property-info": {

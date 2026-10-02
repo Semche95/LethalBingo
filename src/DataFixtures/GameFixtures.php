@@ -29,34 +29,34 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
 
         foreach ($teams as $team) {
             // Create a game for each team in each round of the first season
-            for ($round = 1; $round <= GameRoundFixtures::ROUND_COUNT; $round++) {
+            for ($round = 1; $round <= GameRoundFixtures::ROUND_COUNT; ++$round) {
                 $gameRound = $this->getReference('game_round_1_' . $round, GameRound::class);
-                
+
                 $game = new Game();
                 $game->setTeam($team);
                 $game->setRound($gameRound);
-                
+
                 // Randomly set some games as started or finished
                 if ($faker->boolean(70)) { // 70% chance of being started
                     $startedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-3 months', '-1 week'));
                     $game->setStartedAt($startedAt);
-                    
+
                     // 50% chance of being finished if started
                     if ($faker->boolean(50)) {
                         $finishedAt = DateTimeImmutable::createFromMutable(
                             $faker->dateTimeBetween(
-                                $startedAt->format('Y-m-d H:i:s'), 
+                                $startedAt->format('Y-m-d H:i:s'),
                                 'now'
                             )
                         );
                         $game->setFinishedAt($finishedAt);
                     }
                 }
-                
+
                 $manager->persist($game);
             }
         }
-        
+
         $manager->flush();
     }
 

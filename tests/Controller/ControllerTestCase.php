@@ -88,8 +88,8 @@ abstract class ControllerTestCase extends WebTestCase
 
         if ($complete) {
             $category = $this->em->getRepository(BingoSquareCategory::class)->findOneBy([]);
-            for ($row = 1; $row <= GameRound::MAX_ROWS; $row++) {
-                for ($col = 1; $col <= GameRound::MAX_COLS; $col++) {
+            for ($row = 1; $row <= GameRound::MAX_ROWS; ++$row) {
+                for ($col = 1; $col <= GameRound::MAX_COLS; ++$col) {
                     $square = new BingoSquare()
                         ->setRow($row)
                         ->setCol($col)

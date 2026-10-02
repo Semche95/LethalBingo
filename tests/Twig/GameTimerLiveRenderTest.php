@@ -99,8 +99,8 @@ class GameTimerLiveRenderTest extends KernelTestCase
 
     public function testInvokeWithoutServerTimeSetsFreshAnchor(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $hub = $this->createMock(HubInterface::class);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $hub = $this->createStub(HubInterface::class);
         $gameService = new GameService($em, $hub);
         $timerService = new GameTimerService($gameService);
         $component = new GameTimer($timerService, $em);

@@ -23,8 +23,8 @@ class ServerTimeHeaderListenerTest extends TestCase
 
         $this->assertMatchesRegularExpression('/^app-time;desc="(\d+\.\d{6})"$/', $response->headers->get('Server-Timing'));
         preg_match('/desc="([^"]+)"/', $response->headers->get('Server-Timing'), $matches);
-        $this->assertGreaterThanOrEqual(floor($before * 1e6) / 1e6, (float)$matches[1]);
-        $this->assertLessThanOrEqual($after, (float)$matches[1]);
+        $this->assertGreaterThanOrEqual(floor($before * 1e6) / 1e6, (float) $matches[1]);
+        $this->assertLessThanOrEqual($after, (float) $matches[1]);
     }
 
     public function testKeepsExistingServerTimingMetrics(): void

@@ -43,7 +43,7 @@ class GameRoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find game rounds grouped by season, aggregated as JSON
+     * Find game rounds grouped by season, aggregated as JSON.
      *
      * @return list<array{season: int, rounds: string}>
      */
@@ -59,7 +59,7 @@ class GameRoundRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find the most recently created game rounds
+     * Find the most recently created game rounds.
      *
      * @return GameRound[]
      */

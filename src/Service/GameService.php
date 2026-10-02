@@ -14,9 +14,8 @@ readonly class GameService
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private HubInterface           $hub,
-    )
-    {
+        private HubInterface $hub,
+    ) {
     }
 
     public function refreshGameFrame(Game $game, RefreshEvent $event = RefreshEvent::GameFrame): float

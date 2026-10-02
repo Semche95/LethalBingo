@@ -21,8 +21,8 @@ class GameRoundFixtures extends Fixture
      */
     public function load(ObjectManager $manager): void
     {
-        for ($season = 1; $season <= self::SEASON_COUNT; $season++) {
-            for ($round = 1; $round <= self::ROUND_COUNT; $round++) {
+        for ($season = 1; $season <= self::SEASON_COUNT; ++$season) {
+            for ($round = 1; $round <= self::ROUND_COUNT; ++$round) {
                 $gameRound = new GameRound()
                     ->setSeason($season)
                     ->setNumber($round);

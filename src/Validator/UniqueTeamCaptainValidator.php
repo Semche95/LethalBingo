@@ -18,7 +18,7 @@ class UniqueTeamCaptainValidator extends ConstraintValidator
             return;
         }
 
-        $captainCount = $value->filter(fn(TeamMember $member) => $member->isCaptain())->count();
+        $captainCount = $value->filter(fn (TeamMember $member) => $member->isCaptain())->count();
         if ($captainCount <= 1) {
             return;
         }

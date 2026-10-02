@@ -9,6 +9,7 @@ use App\Service\GameService;
 use App\Service\GameTimerService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\HubInterface;
 
@@ -18,8 +19,8 @@ class GameTimerServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $hub = $this->createMock(HubInterface::class);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $hub = $this->createStub(HubInterface::class);
         $gameService = new GameService($em, $hub);
 
         $this->timerService = new GameTimerService($gameService);
@@ -49,7 +50,7 @@ class GameTimerServiceTest extends TestCase
 
         $remaining = $this->timerService->getRemainingSeconds($game);
 
-        $elapsed = (int) floor((microtime(true) - $startedAt->getTimestamp()));
+        $elapsed = (int) floor(microtime(true) - $startedAt->getTimestamp());
         $this->assertSame(max(0, 3600 - $elapsed), $remaining);
     }
 
@@ -63,7 +64,7 @@ class GameTimerServiceTest extends TestCase
 
         $remaining = $this->timerService->getRemainingSeconds($game);
 
-        $elapsed = (int) floor((microtime(true) - $startedAt->getTimestamp()));
+        $elapsed = (int) floor(microtime(true) - $startedAt->getTimestamp());
         $this->assertSame(max(0, 3600 - ($elapsed - 1800)), $remaining);
     }
 
@@ -251,9 +252,7 @@ class GameTimerServiceTest extends TestCase
         $this->assertSame(30, $this->timerService->getRemainingSeconds($game, $nowMs));
     }
 
-    /**
-     * @dataProvider provideParityFixture
-     */
+    #[DataProvider('provideParityFixture')]
     public function testPhpMatchesCommittedTsFixture(
         ?int $gameStartedAt,
         ?int $gameFinishedAt,

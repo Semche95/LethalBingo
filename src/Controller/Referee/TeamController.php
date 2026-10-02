@@ -6,7 +6,6 @@ namespace App\Controller\Referee;
 
 use App\Entity\Team;
 use App\Entity\TeamMember;
-use App\Repository\TeamRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;

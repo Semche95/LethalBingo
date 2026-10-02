@@ -59,13 +59,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
      */
     public function getUserIdentifier(): string
     {
-        return (string)$this->username;
+        return (string) $this->username;
     }
 
     /**
      * @return list<string>
-     * @see UserInterface
      *
+     * @see UserInterface
      */
     public function getRoles(): array
     {

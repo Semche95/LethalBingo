@@ -34,13 +34,12 @@ readonly class BingoService
     ];
 
     public function __construct(
-        private EntityManagerInterface         $em,
-        private GameRoundRepository            $gameRoundRepository,
-        private BingoSquareRevealedRepository  $bingoSquareRevealedRepository,
+        private EntityManagerInterface $em,
+        private GameRoundRepository $gameRoundRepository,
+        private BingoSquareRevealedRepository $bingoSquareRevealedRepository,
         private BingoSquareValidatedRepository $bingoSquareValidatedRepository,
-        private GameService                    $gameService,
-    )
-    {
+        private GameService $gameService,
+    ) {
     }
 
     public static function isSquareVisible(int $row, int $col): bool
@@ -90,6 +89,7 @@ readonly class BingoService
             ];
             $squares[$bingoSquare->getRow()][$bingoSquare->getCol()] = $data;
         }
+
         return new BingoDto($gameRound->getSeason(), $gameRound->getNumber(), $squares);
     }
 

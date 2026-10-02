@@ -20,9 +20,8 @@ class ProfileController extends AbstractController
 {
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly EntityManagerInterface      $entityManager
-    )
-    {
+        private readonly EntityManagerInterface $entityManager
+    ) {
     }
 
     #[Route('/profile', name: 'app_user_profile')]
@@ -46,6 +45,7 @@ class ProfileController extends AbstractController
             // Verify current password
             if (!$this->passwordHasher->isPasswordValid($user, $data['currentPassword'])) {
                 $this->addFlash('danger', 'Le mot de passe actuel est incorrect.');
+
                 return $this->redirectToRoute('app_user_profile');
             }
 

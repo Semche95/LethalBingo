@@ -161,8 +161,8 @@ class GameRound implements Stringable
         }
 
         $missing = [];
-        for ($row = 1; $row <= self::MAX_ROWS; $row++) {
-            for ($col = 1; $col <= self::MAX_COLS; $col++) {
+        for ($row = 1; $row <= self::MAX_ROWS; ++$row) {
+            for ($col = 1; $col <= self::MAX_COLS; ++$col) {
                 if (!isset($existing[$row . '-' . $col])) {
                     $missing[] = BingoSquare::getRowLetter($row) . $col;
                 }
@@ -177,6 +177,7 @@ class GameRound implements Stringable
         if ($this->number !== null && $this->season !== null) {
             return 'Round ' . $this->number . ' Saison ' . $this->season;
         }
+
         return '';
     }
 }

@@ -26,8 +26,7 @@ final class TeamList
 
     public function __construct(
         private readonly TeamRepository $teamRepository,
-    )
-    {
+    ) {
     }
 
     public function mount(): void

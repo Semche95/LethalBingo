@@ -90,8 +90,8 @@ final class TeamForm extends AbstractController
             $data = [];
         }
 
-        $index = [] !== $data ? max(array_keys($data)) + 1 : 0;
-        $propertyAccessor->setValue($this->formValues, $propertyPath.'['.$index.']', ['name' => '', 'captain' => false]);
+        $index = $data !== [] ? max(array_keys($data)) + 1 : 0;
+        $propertyAccessor->setValue($this->formValues, $propertyPath . '[' . $index . ']', ['name' => '', 'captain' => false]);
 
         $this->ensureCaptainSelected();
     }

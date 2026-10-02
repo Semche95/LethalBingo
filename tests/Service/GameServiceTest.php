@@ -10,23 +10,21 @@ use App\Entity\Game;
 use App\Service\GameService;
 use App\Service\RefreshEvent;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\HubInterface;
 
 class GameServiceTest extends TestCase
 {
-    private GameService $gameService;
-    private EntityManagerInterface $em;
-    private HubInterface $hub;
-
-    protected function setUp(): void
+    /**
+     * Builds the service, replacing every collaborator not given by a stub.
+     */
+    private function createGameService(?EntityManagerInterface $em = null, ?HubInterface $hub = null): GameService
     {
-        $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->hub = $this->createMock(HubInterface::class);
-
-        $this->gameService = new GameService($this->em, $this->hub);
+        return new GameService(
+            $em ?? $this->createStub(EntityManagerInterface::class),
+            $hub ?? $this->createStub(HubInterface::class),
+        );
     }
 
     public function testRefreshGameFramePublishesMercureUpdate(): void
@@ -34,7 +32,8 @@ class GameServiceTest extends TestCase
         $game = new Game();
         $game->setSlug('my-game-slug');
 
-        $this->hub->expects($this->once())
+        $hub = $this->createMock(HubInterface::class);
+        $hub->expects($this->once())
             ->method('publish')
             ->with($this->callback(function ($update): bool {
                 $this->assertSame(['game/my-game-slug'], $update->getTopics());
@@ -46,7 +45,7 @@ class GameServiceTest extends TestCase
                 return true;
             }));
 
-        $this->gameService->refreshGameFrame($game);
+        $this->createGameService(hub: $hub)->refreshGameFrame($game);
     }
 
     public function testRefreshGameFrameWithCustomEvent(): void
@@ -54,7 +53,8 @@ class GameServiceTest extends TestCase
         $game = new Game();
         $game->setSlug('my-game');
 
-        $this->hub->expects($this->once())
+        $hub = $this->createMock(HubInterface::class);
+        $hub->expects($this->once())
             ->method('publish')
             ->with($this->callback(function ($update): bool {
                 $data = json_decode($update->getData(), true, 512, JSON_THROW_ON_ERROR);
@@ -64,7 +64,7 @@ class GameServiceTest extends TestCase
                 return true;
             }));
 
-        $this->gameService->refreshGameFrame($game, RefreshEvent::BingoCard);
+        $this->createGameService(hub: $hub)->refreshGameFrame($game, RefreshEvent::BingoCard);
     }
 
     public function testStartSetsStartedAtAndResetsPauseState(): void
@@ -72,11 +72,13 @@ class GameServiceTest extends TestCase
         $game = new Game();
         $game->setSlug('test');
 
-        $this->em->expects($this->once())->method('persist')->with($game);
-        $this->em->expects($this->once())->method('flush');
-        $this->hub->expects($this->once())->method('publish');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('persist')->with($game);
+        $em->expects($this->once())->method('flush');
+        $hub = $this->createMock(HubInterface::class);
+        $hub->expects($this->once())->method('publish');
 
-        $this->gameService->start($game);
+        $this->createGameService($em, $hub)->start($game);
 
         $this->assertInstanceOf(DateTimeImmutable::class, $game->getStartedAt());
         $this->assertNull($game->getFinishedAt());
@@ -91,11 +93,7 @@ class GameServiceTest extends TestCase
         $game->setSlug('test');
         $game->setFinishedAt(new DateTimeImmutable());
 
-        $this->em->method('persist');
-        $this->em->method('flush');
-        $this->hub->method('publish');
-
-        $this->gameService->start($game);
+        $this->createGameService()->start($game);
 
         $this->assertNull($game->getFinishedAt());
     }
@@ -105,11 +103,13 @@ class GameServiceTest extends TestCase
         $game = new Game();
         $game->setSlug('test');
 
-        $this->em->expects($this->once())->method('persist')->with($game);
-        $this->em->expects($this->once())->method('flush');
-        $this->hub->expects($this->once())->method('publish');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('persist')->with($game);
+        $em->expects($this->once())->method('flush');
+        $hub = $this->createMock(HubInterface::class);
+        $hub->expects($this->once())->method('publish');
 
-        $this->gameService->stop($game);
+        $this->createGameService($em, $hub)->stop($game);
 
         $this->assertInstanceOf(DateTimeImmutable::class, $game->getFinishedAt());
     }
@@ -126,19 +126,21 @@ class GameServiceTest extends TestCase
         $game->getBingoSquareValidated()->add(new BingoSquareValidated());
         $game->getBingoSquareValidated()->add(new BingoSquareValidated());
 
-        $this->hub->expects($this->once())->method('publish');
+        $hub = $this->createMock(HubInterface::class);
+        $hub->expects($this->once())->method('publish');
 
         $removedEntities = [];
-        $this->em->method('remove')->willReturnCallback(function ($entity) use (&$removedEntities): void {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('remove')->willReturnCallback(function ($entity) use (&$removedEntities): void {
             $removedEntities[] = $entity;
         });
 
-        $this->em->method('persist')->with($game);
-        $this->em->method('wrapInTransaction')->willReturnCallback(function (callable $callable) use ($game): void {
-            $callable($this->em);
+        $em->expects($this->once())->method('persist')->with($game);
+        $em->method('wrapInTransaction')->willReturnCallback(static function (callable $callable) use ($em): void {
+            $callable($em);
         });
 
-        $this->gameService->reset($game);
+        $this->createGameService($em, $hub)->reset($game);
 
         $this->assertNull($game->getStartedAt());
         $this->assertNull($game->getFinishedAt());
@@ -156,12 +158,12 @@ class GameServiceTest extends TestCase
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
 
-        $this->hub->method('publish');
-        $this->em->method('wrapInTransaction')->willReturnCallback(function (callable $callable) use ($game): void {
-            $callable($this->em);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('wrapInTransaction')->willReturnCallback(static function (callable $callable) use ($em): void {
+            $callable($em);
         });
 
-        $this->gameService->reset($game);
+        $this->createGameService($em)->reset($game);
 
         $this->assertCount(0, $game->getBingoSquareRevealed());
     }

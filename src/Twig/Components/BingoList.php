@@ -25,8 +25,7 @@ final class BingoList
 
     public function __construct(
         private readonly GameRoundRepository $gameRoundRepository,
-    )
-    {
+    ) {
     }
 
     public function mount(): void
