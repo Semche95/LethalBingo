@@ -1,4 +1,5 @@
 /.idea/
+/.phpactor.json
 /.claude/*
 !/.claude/settings.json
 !/.claude/skills/

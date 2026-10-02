@@ -31,6 +31,11 @@
 
 **LethalBingo** is a web application for organizing and playing 5×5 bingo games set in the world of **Lethal Company**. A **referee** runs each game from a dashboard (revealing and validating squares, controlling the timer), while the **players** follow the game on a public page that updates live, without any account.
 
+> [!NOTE]
+> LethalBingo is still under active development, so no public demo is available yet. Upcoming work is tracked in [`.backlog/`](.backlog/).
+>
+> The user interface is currently in French only. An English translation is planned, with English as the default language and French still available.
+
 ## Screenshots
 
 ### Home
