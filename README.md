@@ -15,17 +15,21 @@
 <p align="center">
   <a href="#screenshots">Screenshots</a> ·
   <a href="#features">Features</a> ·
-  <a href="#technology">Technology</a> ·
+  <a href="#tech-stack">Tech Stack</a> ·
   <a href="#architecture">Architecture</a> ·
-  <a href="#quick-start">Quick Start</a> ·
-  <a href="#roadmap">Roadmap</a>
+  <a href="#security">Security</a> ·
+  <a href="#getting-started">Getting Started</a> ·
+  <a href="#development">Development</a> ·
+  <a href="#project-structure">Project Structure</a> ·
+  <a href="#database">Database</a> ·
+  <a href="#license">License</a>
 </p>
 
 ---
 
 ## Description
 
-**LethalBingo** is a web application for organizing and playing 5×5 bingo games set in the world of **Lethal Company**. A **referee** controls the game in real time (square reveal, validation, timer management), while **players** access the game via a unique URL and watch the board update live.
+**LethalBingo** is a web application for organizing and playing 5×5 bingo games set in the world of **Lethal Company**. A **referee** runs each game from a dashboard (revealing and validating squares, controlling the timer), while the **players** follow the game on a public page that updates live, without any account.
 
 ## Screenshots
 
@@ -41,100 +45,32 @@
 
 ### Players
 
-- Access the game via a **unique URL** (12-character slug)
-- 5×5 bingo board with **squares revealed in real time** by the referee
-- **Timer synced** with server time, with pause/resume/adjust controls
-- **Visual and audio notifications** tied to the timer (color changes, animations, sounds)
-- Instant board, timer, and step updates via **Mercure (SSE)**
+- Join a game through its **unique link**, no login required
+- Watch the 5×5 board as the referee **reveals and validates squares**, live
+- Follow a **countdown timer** that stays identical on every screen, with color changes, animations and sounds as time runs out
 
 ### Referee
 
-- **Dashboard** with an overview (games, bingos, teams)
-- **Game management** (CRUD): create, edit, delete, regenerate link
-- **Bingo management** (CRUD): 5×5 boards per season/round, square editor, duplicate and gap detection
-- **Team management** (CRUD): members, single captain, search
-- **Real-time controls**: start/stop/reset a game, reveal/hide/validate/invalidate squares, manage the timer
-- **Steps panel**: remaining squares per category with quick navigation
-- **Notes area** with auto-save
+- **Games**: create, edit, delete, regenerate the player link
+- **Live controls**: start, stop or reset a game; reveal, hide, validate or invalidate squares; pause, resume or adjust the timer
+- **Steps panel**: remaining squares per category, with quick navigation to each square
+- **Notes** saved automatically during the game
+- **Bingos**: 5×5 boards organized by season and round, with a square editor, square categories and detection of duplicate or missing squares
+- **Teams**: members with a single captain, and search
+- **Profile**: account details and password change
 
-### Security
+## Tech Stack
 
-- Role hierarchy: `ROLE_ADMIN > ROLE_REFEREE > ROLE_USER`
-- Login form with **CSRF** protection and **throttling**
-- `/referee/*` routes restricted to `ROLE_REFEREE`, `/admin/*` routes to `ROLE_ADMIN`
-- Custom error pages (403, 404, 500) with themed GIFs
-
-## Technology
-
-### Backend
-
-| Component | Technology | Version |
-|---|---|---|
-| Language | PHP | >= 8.4 |
-| Framework | Symfony | 7.4.* |
-| ORM | Doctrine ORM | ^3.1 |
-| Migrations | Doctrine Migrations | ^3.3 |
-| Database | PostgreSQL | 16 |
-| Server | FrankenPHP (Caddy) | 1.9 |
-| Real-time | Symfony Mercure Bundle | ^0.3.9 |
-| Messenger | Symfony Messenger + Doctrine transport | * |
-| Mailer | Symfony Mailer | * |
-| Notifier | Symfony Notifier | * |
-| Validation | Symfony Validator | * |
-| Rate Limiter | Symfony Rate Limiter | * |
-| Logger | Symfony Monolog Bundle | ^3.0 |
-| Internationalization | symfony/intl + twig/intl-extra | * / ^3.9 |
-| Code Generation | Symfony Maker Bundle | ^1.0 |
-| Profiling | Symfony Web Profiler Bundle | * |
-| Doctrine Extensions | beberlei/doctrineextensions | ^1.5 |
-| Vite | pentatrion/vite-bundle | ^8.2 |
-
-### Frontend
-
-| Component | Technology | Version |
-|---|---|---|
-| Language | TypeScript | ^5.8.3 |
-| Build | Vite | ^6.4.3 |
-| Vite Plugin | vite-plugin-symfony | ^8.0 |
-| CSS | Bootstrap | ^5.3.6 |
-| UI Kit | Tabler Core | ^1.2.0 |
-| Turbo | Hotwired Turbo | ^8.0.0 |
-| Stimulus | @hotwired/stimulus | ^3.0.0 |
-| Stimulus Bridge | @symfony/stimulus-bridge | ^3.2.0 / ^4.0.0 |
-| Live Components | @symfony/ux-live-component | (vendor) |
-| UX Turbo | @symfony/ux-turbo | ^2.27 |
-| UX Icons | symfony/ux-icons | ^2.17 |
-| UX Twig Components | symfony/ux-twig-component | ^2.17 |
-| UX Live Component | symfony/ux-live-component | ^2.17 |
-| PDF Generation | pdfmake | ^0.2.20 |
-| ZIP Handling | jszip | ^3.10.1 |
-
-### Tests / Quality
-
-| Tool | Version | Usage |
-|---|---|---|
-| PHPUnit | ^13 | Unit and functional tests (`just test`) |
-| PHPStan | ^2.2 | Static analysis, level 6 (`just phpstan`) |
-| PHP-CS-Fixer | ^3.95 | Code style, `@Symfony` + PHP 8.4 migration rules (`just cs` / `just cs-fix`) |
-| Rector | ^2.6 | Automated upgrades: PHP 8.4 syntax, Symfony / Doctrine / PHPUnit deprecations (`just rector` / `just rector-fix`) |
-| Vitest | ^4.1.11 | Frontend tests (TypeScript) |
-| FakerPHP | ^1.23 | Test data generation |
-| Doctrine Fixtures | ^3.6 | Database fixtures |
-
-### Infrastructure
-
-| Service | Image | Usage |
-|---|---|---|
-| `php` | FrankenPHP (custom) | Application server (dev + prod) |
-| `database` | `postgres:16-alpine` | Database |
-| `mailer` | `axllent/mailpit` | Catch-all SMTP (development) |
-
-PHP extensions installed: `apcu`, `intl`, `opcache`, `zip`, `pdo_pgsql`, `xdebug` (dev)
+- **Backend**: PHP 8.4, Symfony 7, Doctrine ORM 3, PostgreSQL 16
+- **Frontend**: TypeScript 5, Vite 6, Bootstrap 5 with the Tabler UI kit, Hotwired Turbo and Stimulus, Symfony UX (Live Components, Twig Components, Icons, Autocomplete)
+- **Real-time**: Mercure, served by the Caddy module built into FrankenPHP
+- **Server**: FrankenPHP, in Docker for development and production
+- **Tests and quality**: PHPUnit, Vitest, PHPStan, PHP-CS-Fixer, Rector
 
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Browsers
         J["🎮 Players"]
         A["🎛️ Referee"]
@@ -144,92 +80,149 @@ flowchart LR
         F["FrankenPHP + Caddy + Mercure"]
     end
 
-    DB[("PostgreSQL 16")]
+    DB[("PostgreSQL")]
 
-    J -- "SSE (real-time)" --> F
-    A -- "HTTP / Live Components" <--> F
+    J <-- "HTTP / Live Components<br/>SSE (Mercure)" --> F
+    A <-- "HTTP / Live Components<br/>SSE (Mercure)" --> F
     F -- "Doctrine ORM" --> DB
 ```
 
-> **Mercure** (SSE via the Caddy module) pushes real-time updates. Each game has a dedicated topic (`game/{slug}`) and events (`bingoCardRefresh`, `gameTimerRefresh`, `gameStepsRefresh`, etc.) are broadcast to all connected clients. On the client side, a **Stimulus controller** subscribes to the Mercure stream and triggers updates to Symfony **Live Components**.
+Each referee action is saved, then broadcast through **Mercure** on the game's own topic (`game/{slug}`). Every open page, the referee's and the players', receives the event and refreshes the affected **Live Components** (board, timer, steps).
 
-## Quick Start
+The **timer** relies on server time only: each browser recomputes the countdown locally from the times sent by the server, so every screen shows the same value without polling. See [docs/TIMER.md](docs/TIMER.md) for the full specification.
+
+## Security
+
+- Players need no account; the referee area requires a referee account, and the admin role only adds timer debug shortcuts
+- CSRF protection on login and every mutation, login throttling
+- Automatic logout after a period of inactivity
+- Content Security Policy and HTTP security headers
+- Secrets only in `.env.local`, never committed
+
+See [docs/SECURITY.md](docs/SECURITY.md) for details.
+
+## Getting Started
 
 ### Prerequisites
 
-- PHP 8.4+
-- Node.js + pnpm
-- Docker + Docker Compose
-- [just](https://github.com/casey/just) (task runner)
+- [Docker](https://docs.docker.com/get-docker/) with Docker Compose: PHP, PostgreSQL and the web server all run in containers
+- [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/): the Vite dev server runs on the host
+- [just](https://github.com/casey/just): command runner for the project tasks
+- A locally trusted HTTPS certificate for `lethalbingo.localhost`, for example created with [mkcert](https://github.com/FiloSottile/mkcert)
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/Semche95/LethalBingo.git
-cd LethalBingo
+1. Clone the repository:
 
-# Install JS dependencies
-pnpm install
+   ```bash
+   git clone https://github.com/Semche95/LethalBingo.git
+   cd LethalBingo
+   ```
 
-# Create .env.local with your secrets
-cp .env .env.local
-# Set APP_SECRET, MERCURE_JWT_SECRET, POSTGRES_PASSWORD and DATABASE_URL (see docs/SECURITY.md)
+2. Put the HTTPS certificate for `lethalbingo.localhost` in `certs/cert.pem` and its key in `certs/cert-key.pem`. With mkcert:
 
-# Start Docker + the dev server
-just dev
-```
+   ```bash
+   mkcert -install
+   mkcert -cert-file certs/cert.pem -key-file certs/cert-key.pem lethalbingo.localhost
+   ```
 
-### Available Commands
+3. Create a `.env.local` file (never committed) with your secrets, for example generated with `openssl rand -hex 32`:
+
+   ```dotenv
+   APP_SECRET=...
+   MERCURE_JWT_SECRET=...
+   POSTGRES_PASSWORD=...
+   DATABASE_URL=postgresql://app:<POSTGRES_PASSWORD>@database:5432/app?serverVersion=16&charset=utf8
+   FIXTURES_PASSWORD=...
+   ```
+
+   See [docs/SECURITY.md](docs/SECURITY.md) for the role of each secret.
+
+4. Start the containers alone first. On first start, the PHP container installs the Composer dependencies and runs the database migrations.
+
+   ```bash
+   just up
+   just logs -f php    # wait for "PHP app ready!", then Ctrl+C
+   ```
+
+5. Install the JavaScript dependencies (some of them come from the Composer `vendor/` folder, hence the order) and load the demo data:
+
+   ```bash
+   pnpm install
+   just fixtures
+   ```
+
+6. Start the Vite dev server and open <https://lethalbingo.localhost>:
+
+   ```bash
+   just dev
+   ```
+
+   From now on, `just dev` is enough: it also starts the containers.
+
+The fixtures create two accounts, both using the `FIXTURES_PASSWORD` password: `bracken` (admin) and `yippee` (referee).
+
+## Development
+
+### Common Commands
+
+Run `just` to list every available recipe.
 
 | Command | Description |
 |---|---|
-| `just dev` | Starts Docker + Vite dev server |
-| `just up` | Starts Docker containers |
-| `just down` | Stops containers |
-| `just test` | Runs PHPUnit tests |
-| `just phpstan` | Runs PHPStan static analysis |
-| `just cs` | Checks code style with PHP-CS-Fixer (dry run, shows the diff) |
-| `just cs-fix` | Fixes code style with PHP-CS-Fixer |
-| `just rector` | Checks the code with Rector (dry run, shows diff) |
-| `just rector-fix` | Applies Rector upgrades (modern syntax, deprecations) |
-| `just sf <cmd>` | Runs a Symfony command |
-| `just migrate` | Applies Doctrine migrations |
-| `just diff` | Generates a migration from entities |
-| `just fixtures` | Reloads fixtures (truncate + reload) |
-| `just cc` | Clears Symfony cache |
-| `just build-assets` | Builds assets for production |
-| `just logs` | Shows Docker logs |
+| `just dev` | Starts the containers and the Vite dev server |
+| `just up` / `just down` | Starts / stops the containers |
+| `just logs` | Shows the container logs |
+| `just sh` | Opens a shell in the PHP container |
+| `just sf <cmd>` | Runs a Symfony console command |
+| `just composer <cmd>` | Runs a Composer command |
+| `just diff` | Generates a migration from the entity changes |
+| `just migrate` | Applies the migrations |
+| `just fixtures` | Resets the database with the demo data |
+| `just sql "<query>"` | Runs a SQL query |
+| `just cc` | Clears the Symfony cache |
+
+### Tests and Code Quality
+
+| Command | Description |
+|---|---|
+| `just test` | PHPUnit tests |
+| `just sf lint:container` | Checks the service container configuration |
+| `pnpm test` | Vitest tests for the TypeScript code |
+| `just phpstan` | PHPStan static analysis (level 6) |
+| `just cs` / `just cs-fix` | Checks / fixes the code style with PHP-CS-Fixer |
+| `just rector` / `just rector-fix` | Checks / applies Rector upgrades (PHP 8.4 syntax, deprecations) |
+
+Before each commit, `just test`, `just sf lint:container`, `just phpstan`, `just cs` and `just rector` must pass. The GitHub CI runs PHPUnit, PHPStan, PHP-CS-Fixer, Rector and Vitest on every push to `main` and on pull requests.
+
+### Tasks
+
+Tasks (completed and upcoming) are managed with [Backlog.md](https://github.com/MrLesk/Backlog.md) in the [`.backlog/`](.backlog/) folder. Run `pnpm exec backlog board` to display the Kanban board, or `pnpm exec backlog browser` for the web interface.
 
 ## Project Structure
 
 ```
 src/
-├── Controller/              # HTTP Controllers (routing attributes)
+├── Controller/              # HTTP controllers
 │   └── Referee/             # Referee area
-├── DataFixtures/            # Test fixtures
-├── Dto/                     # Data Transfer Objects
-├── Entity/                  # Doctrine Entities
-├── Form/                    # Symfony Form Types
-├── Repository/              # Doctrine Repositories
-├── Service/                 # Business logic (BingoService, GameService, etc.)
-├── Twig/Components/         # Symfony UX Live Components
+├── DataFixtures/            # Demo data
+├── Dql/                     # Custom DQL functions
+├── Dto/                     # Form data objects
+├── Entity/                  # Doctrine entities
+├── EventListener/           # Security headers, session inactivity, server time
+├── Form/                    # Form types
+├── Repository/              # Doctrine repositories
+├── Service/                 # Business logic
+├── Twig/Components/         # Live Components
 └── Validator/               # Custom validation constraints
 
-templates/
-├── layouts/                 # Layouts (base, main, referee)
-├── game/                    # Game view (player)
-├── referee/                 # Referee area views
-├── components/              # Live Component templates
-└── security/                # Login
-
+templates/                   # Twig templates (components/ for the Live Components)
 assets/
 ├── controllers/             # Stimulus controllers
-│   ├── game/                # Real-time controllers (Mercure, timer, notes)
-│   └── referee/             # Referee form controllers
-├── icons/                   # SVG icons (Tabler, MDI, Symfony)
-├── img/                     # Images and themed GIFs
-└── sounds/                  # Audio files (timer)
+├── tests/                   # Vitest tests
+└── icons/, img/, sounds/    # Icons, images, GIFs and timer sounds
+tests/                       # PHPUnit tests, mirroring src/
+docs/                        # Security guide and timer specification
 ```
 
 ## Database
@@ -241,10 +234,6 @@ erDiagram
         string username UK
         json roles
         string password
-    }
-    Rule {
-        int id PK
-        string label
     }
     Team {
         int id PK
@@ -312,22 +301,7 @@ erDiagram
     BingoSquare ||--o{ BingoSquareValidated : "validated in"
 ```
 
-- Doctrine entities with ManyToOne/OneToMany relationships; `User` (authentication) and `Rule` (game rules list) have no relationship
-- **Uniqueness constraints**: User (username), Team (name), TeamMember (team, name), Game (slug), Game (team, round), BingoSquareCategory (label), BingoSquare (round, row, col), BingoSquareRevealed (game, bingoSquare), BingoSquareValidated (game, bingoSquare)
-- **Custom DQL functions**: `json_agg`, `json_build_object`, `unaccent` (in `src/Dql/`) and `string_agg` (from `beberlei/doctrineextensions`)
-
-## Security
-
-- Passwords hashed with the `auto` algorithm (bcrypt/argon2)
-- CSRF protection on all mutations (double-submit cookie)
-- Login throttling enabled
-- Role hierarchy: `ROLE_ADMIN > ROLE_REFEREE > ROLE_USER`
-- Secrets managed via `.env.local` (never committed)
-- See [docs/SECURITY.md](docs/SECURITY.md) for best practices
-
-## Roadmap
-
-Tasks (completed and upcoming) are managed with [Backlog.md](https://github.com/MrLesk/Backlog.md) in the [`.backlog/`](.backlog/) folder. It is a pinned dev dependency: after `pnpm install`, run `pnpm exec backlog board` to display the Kanban board, or `pnpm exec backlog browser` for the web interface.
+- `User` holds the referee and admin accounts; it has no relationship with the game data
 
 ## License
 
