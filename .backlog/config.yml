@@ -14,3 +14,11 @@ bypass_git_hooks: false
 check_active_branches: false
 active_branch_days: 30
 task_prefix: "task"
+definition_of_done:
+  - "Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test"
+  - "Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour"
+  - "`just test` passe"
+  - "`just sf lint:container` passe"
+  - "`just phpstan` passe"
+  - "`just cs` passe"
+  - "`just rector` passe"

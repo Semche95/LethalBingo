@@ -154,15 +154,14 @@ assets/
 - **Tout se fait directement sur `main`** : pas de branche de travail par défaut
 - Si une branche est exceptionnellement nécessaire : jamais de commit de merge (rebase sur `main` puis `git merge --ff-only`), et les fichiers de tâches `.backlog/` restent sur `main`
 
-## Gestion des tâches (Backlog.md)
+## Gestion des tâches et notes de travail (Backlog.md)
 
-- Les tâches sont dans `.backlog/`, manipulées uniquement via `pnpm exec backlog` (jamais `pnpm dlx` ni `npx`)
+Toutes les notes du projet (constats d'investigation, détails d'implémentation, TODO, bugs, plans par fonctionnalité, questions ouvertes, décisions) sont tenues dans Backlog.md, stocké dans `.backlog/` et manipulé uniquement via `pnpm exec backlog` (jamais `pnpm dlx` ni `npx`). Ne jamais écrire de note dans un fichier Markdown libre ailleurs.
+
 - **Seule source de vérité : la branche `main`**. L'état des tâches ne se lit et ne se modifie que sur `main`, jamais sur une autre branche (`check_active_branches: false` dans `.backlog/config.yml`)
-- **Au démarrage d'une tâche** : la passer en cours automatiquement, sans attendre de demande
-  `pnpm exec backlog task edit <id> -s "In Progress"`
-- **À la fin d'une tâche** (tests et lint passés) : cocher ses critères d'acceptation et la passer à terminée automatiquement
-  `pnpm exec backlog task edit <id> --check-ac <n> -s "Done"`
 - Les changements de fichiers `.backlog/` sont commités avec le code de la tâche
+
+Toutes les règles de gestion des tâches, documents et décisions (démarrage, clôture, Definition of Done, types et labels) sont dans la skill `backlog-tasks`, chargée automatiquement dans la session principale par un hook. Un sous-agent ne la reçoit pas : s'il doit lire ou modifier Backlog.md, il l'invoque (outil `Skill`) avant d'agir.
 
 ## Sécurité
 

@@ -4,6 +4,7 @@
 !/.claude/skills/
 !/.claude/commands/
 !/.claude/agents/
+!/.claude/hooks/
 /.serena/
 
 ###> symfony/framework-bundle ###
