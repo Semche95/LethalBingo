@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Dto\GameDto;
 use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
+use App\Entity\GameRound;
+use App\Entity\Team;
 use App\Service\GameService;
 use App\Service\RefreshEvent;
 use DateTimeImmutable;
@@ -96,6 +99,49 @@ class GameServiceTest extends TestCase
         $this->createGameService()->start($game);
 
         $this->assertNull($game->getFinishedAt());
+    }
+
+    public function testEntityToDtoCopiesTeamAndRound(): void
+    {
+        $team = new Team();
+        $round = new GameRound();
+        $game = new Game()->setTeam($team)->setRound($round);
+
+        $gameDto = $this->createGameService()->entityToDto($game);
+
+        $this->assertSame($team, $gameDto->team);
+        $this->assertSame($round, $gameDto->round);
+    }
+
+    public function testCreatePersistsANewGameFromTheDto(): void
+    {
+        $team = new Team();
+        $round = new GameRound();
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('persist')->with($this->isInstanceOf(Game::class));
+        $em->expects($this->once())->method('flush');
+
+        $game = $this->createGameService($em)->create(new GameDto($team, $round));
+
+        $this->assertSame($team, $game->getTeam());
+        $this->assertSame($round, $game->getRound());
+    }
+
+    public function testUpdateAppliesTheDtoToTheGame(): void
+    {
+        $game = new Game()->setTeam(new Team())->setRound(new GameRound());
+        $team = new Team();
+        $round = new GameRound();
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('persist')->with($game);
+        $em->expects($this->once())->method('flush');
+
+        $this->createGameService($em)->update(new GameDto($team, $round), $game);
+
+        $this->assertSame($team, $game->getTeam());
+        $this->assertSame($round, $game->getRound());
     }
 
     public function testStopSetsFinishedAt(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\GameDto;
 use App\Entity\Game;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,31 @@ readonly class GameService
         ));
 
         return $serverTime;
+    }
+
+    public function entityToDto(Game $game): GameDto
+    {
+        return new GameDto($game->getTeam(), $game->getRound());
+    }
+
+    public function create(GameDto $gameDto): Game
+    {
+        $game = new Game()
+            ->setTeam($gameDto->team)
+            ->setRound($gameDto->round);
+        $this->em->persist($game);
+        $this->em->flush();
+
+        return $game;
+    }
+
+    public function update(GameDto $gameDto, Game $game): void
+    {
+        $game
+            ->setTeam($gameDto->team)
+            ->setRound($gameDto->round);
+        $this->em->persist($game);
+        $this->em->flush();
     }
 
     public function start(Game $game): void

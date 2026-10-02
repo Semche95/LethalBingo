@@ -33,6 +33,10 @@ class BingoControllerTest extends ControllerTestCase
         $square = $round->getBingoSquares()->findFirst(static fn (int $key, $square): bool => $square->getRow() === 1 && $square->getCol() === 1);
         self::assertSame('Kill a Bracken', $square->getLabel());
         self::assertSame($categoryId, $square->getCategory()->getId());
+        self::assertFalse($square->isVisible());
+        $visibleSquare = $round->getBingoSquares()->findFirst(static fn (int $key, $square): bool => $square->getRow() === 1 && $square->getCol() === 3);
+        self::assertTrue($visibleSquare->isVisible());
+        self::assertNull($visibleSquare->getCategory());
     }
 
     public function testRejectsDuplicateLabels(): void

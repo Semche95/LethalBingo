@@ -6,9 +6,9 @@ namespace App\Form;
 
 use App\Dto\BingoDto;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -21,13 +21,16 @@ class BingoFormType extends AbstractType
         $builder
             ->add('round', IntegerType::class, ['attr' => ['min' => 1, 'pattern' => '[0-9]*']])
             ->add('season', IntegerType::class, ['label' => 'Saison', 'attr' => ['min' => 1, 'pattern' => '[0-9]*']])
-            ->add('squares', options: [
-                'compound' => true,
-                'allow_extra_fields' => true,
-                'getter' => fn (BingoDto $bingoDto): array => $bingoDto->squares,
-                'setter' => function (BingoDto $bingoDto, mixed $value, FormInterface $form): void {
-                    $bingoDto->squares = $form->getExtraData();
-                },
+            // Squares indexed by row then column, rendered by the BingoCard component
+            ->add('squares', CollectionType::class, [
+                'entry_type' => CollectionType::class,
+                'entry_options' => [
+                    'entry_type' => BingoSquareFormType::class,
+                    'allow_add' => true,
+                    'prototype' => false,
+                ],
+                'allow_add' => true,
+                'prototype' => false,
             ]);
     }
 

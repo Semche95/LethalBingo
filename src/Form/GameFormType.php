@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Game;
+use App\Dto\GameDto;
 use App\Entity\GameRound;
 use App\Entity\Team;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
- * @extends AbstractType<Game>
+ * @extends AbstractType<GameDto>
  */
 class GameFormType extends AbstractType
 {
@@ -27,13 +24,6 @@ class GameFormType extends AbstractType
                 'class' => Team::class,
                 'label' => 'Équipe',
                 'placeholder' => '- Choisir -',
-                'constraints' => [new NotBlank(message: 'Veuillez sélectionner une équipe.')],
-                // A game always has a team: an empty choice is left to the NotBlank constraint
-                'setter' => static function (Game $game, ?Team $team): void {
-                    if ($team !== null) {
-                        $game->setTeam($team);
-                    }
-                },
                 'attr' => [
                     'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
                 ],
@@ -57,21 +47,6 @@ class GameFormType extends AbstractType
 
                     return [];
                 },
-                'constraints' => [
-                    new NotBlank(message: 'Veuillez sélectionner un bingo.'),
-                    new Callback(static function (?GameRound $gameRound, ExecutionContextInterface $context): void {
-                        if ($gameRound !== null && !$gameRound->isComplete()) {
-                            $context->buildViolation('Le bingo sélectionné est incomplet et ne peut pas être utilisé pour une partie.')
-                                ->addViolation();
-                        }
-                    }),
-                ],
-                // A game always has a round: an empty choice is left to the NotBlank constraint
-                'setter' => static function (Game $game, ?GameRound $gameRound): void {
-                    if ($gameRound !== null) {
-                        $game->setRound($gameRound);
-                    }
-                },
                 'attr' => [
                     'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
                 ],
@@ -81,7 +56,7 @@ class GameFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Game::class,
+            'data_class' => GameDto::class,
         ]);
     }
 }

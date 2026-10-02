@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller\Referee;
 
+use App\Dto\GameDto;
 use App\Entity\Game;
 use App\Form\GameFormType;
+use App\Service\GameService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -26,15 +28,13 @@ class GameController extends AbstractController
     }
 
     #[Route('/add', name: 'app_referee_game_add')]
-    public function add(Request $request, EntityManagerInterface $em): Response
+    public function add(Request $request, GameService $gameService): Response
     {
-        $game = new Game();
-        $form = $this->createForm(GameFormType::class, $game);
+        $form = $this->createForm(GameFormType::class, new GameDto());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($game);
-            $em->flush();
+            $game = $gameService->create($form->getData());
 
             $this->addFlash('success', 'Partie enregistrée');
 
@@ -50,14 +50,13 @@ class GameController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_referee_game_edit', requirements: ['id' => '\d+'])]
-    public function edit(Request $request, EntityManagerInterface $em, Game $game): Response
+    public function edit(Request $request, GameService $gameService, Game $game): Response
     {
-        $form = $this->createForm(GameFormType::class, $game, ['disabled' => $game->isReadOnly()]);
+        $form = $this->createForm(GameFormType::class, $gameService->entityToDto($game), ['disabled' => $game->isReadOnly()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && !$game->isReadOnly()) {
-            $em->persist($game);
-            $em->flush();
+            $gameService->update($form->getData(), $game);
 
             $this->addFlash('success', 'Partie enregistrée');
 

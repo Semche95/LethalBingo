@@ -70,6 +70,37 @@ class GameControllerTest extends ControllerTestCase
         self::assertSame($otherTeam->getId(), $this->reload(Game::class, $game->getId())->getTeam()->getId());
     }
 
+    public function testEditFormIsPrefilledWithTheGame(): void
+    {
+        $game = $this->createGame();
+
+        $this->client->request('GET', '/referee/game/edit/' . $game->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists(sprintf('select[name="game_form[team]"] option[value="%d"][selected]', $game->getTeam()->getId()));
+        self::assertSelectorExists(sprintf('select[name="game_form[round]"] option[value="%d"][selected]', $game->getRound()->getId()));
+    }
+
+    public function testEditRejectsAnEmptyFormAndKeepsTheGame(): void
+    {
+        $game = $this->createGame();
+        $teamId = $game->getTeam()->getId();
+        $roundId = $game->getRound()->getId();
+        $crawler = $this->client->request('GET', '/referee/game/edit/' . $game->getId());
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['game_form[team]'] = '';
+        $form['game_form[round]'] = '';
+
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez sélectionner une équipe.');
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez sélectionner un bingo.');
+        $reloaded = $this->reload(Game::class, $game->getId());
+        self::assertSame($teamId, $reloaded->getTeam()->getId());
+        self::assertSame($roundId, $reloaded->getRound()->getId());
+    }
+
     public function testStartedGameIsReadOnly(): void
     {
         $game = $this->createGame()->setStartedAt(new DateTimeImmutable());
