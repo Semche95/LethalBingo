@@ -12,6 +12,14 @@ use Stringable;
 
 #[ORM\Entity(repositoryClass: BingoSquareRepository::class)]
 #[ORM\UniqueConstraint(fields: ['round', 'row', 'col'])]
+// Partial index: two squares of a round cannot share a non-empty label. The
+// condition is written as PostgreSQL returns it, so the schema comparison
+// sees no difference with the index created by the migrations.
+#[ORM\UniqueConstraint(
+    name: 'uniq_bingo_square_round_label_non_empty',
+    fields: ['round', 'label'],
+    options: ['where' => "(label <> ''::text)"],
+)]
 class BingoSquare implements Stringable
 {
     #[ORM\Id]

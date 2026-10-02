@@ -61,7 +61,7 @@ class Game
     #[ORM\Column(type: 'float')]
     private float $totalPausedSeconds = 0.0;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $manualAdjustmentSeconds = 0;
 
     #[ORM\Column(nullable: true)]
