@@ -285,6 +285,9 @@ class GameTimerServiceTest extends TestCase
         $this->assertSame($expected, $remaining);
     }
 
+    /**
+     * @return array<string, array{int|null, int|null, int, int, int|null, bool, float|int, int}>
+     */
     public static function provideParityFixture(): array
     {
         $fixtureFile = dirname(__DIR__, 2) . '/tests/fixtures/game_timer_parity.json';

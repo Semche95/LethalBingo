@@ -14,9 +14,11 @@ use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Entity\User;
 use DateTimeImmutable;
+use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
@@ -159,7 +161,10 @@ abstract class ControllerTestCase extends WebTestCase
 
     protected function assertQueryCountAtMost(int $max): void
     {
-        $collector = $this->client->getProfile()->getCollector('db');
+        $profile = $this->client->getProfile();
+        self::assertInstanceOf(Profile::class, $profile, 'The profiler must be enabled before the request.');
+        $collector = $profile->getCollector('db');
+        self::assertInstanceOf(DoctrineDataCollector::class, $collector);
         $queries = array_column($collector->getQueries()['default'] ?? [], 'sql');
 
         self::assertLessThanOrEqual(

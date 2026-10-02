@@ -47,6 +47,21 @@ class BingoControllerTest extends ControllerTestCase
         self::assertNull($this->findRound(12, 4));
     }
 
+    public function testRejectsAnEmptySeasonAndRound(): void
+    {
+        $crawler = $this->client->request('GET', '/referee/bingo/add');
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form->disableValidation();
+        $form['bingo_form[season]'] = '';
+        $form['bingo_form[round]'] = '';
+
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez saisir une saison.');
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez saisir un numéro de round.');
+    }
+
     public function testEditPageRunsAFixedNumberOfQueries(): void
     {
         $round = $this->createRound(12, 4, complete: true);

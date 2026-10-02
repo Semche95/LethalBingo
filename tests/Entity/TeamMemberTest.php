@@ -40,19 +40,17 @@ class TeamMemberTest extends TestCase
         $this->assertSame('Alice', (string) $member);
     }
 
-    public function testToStringReturnsEmptyStringWhenNameIsNull(): void
+    public function testToStringReturnsEmptyStringWhenNameIsNotSet(): void
     {
         $member = new TeamMember();
 
         $this->assertSame('', (string) $member);
     }
 
-    public function testSetNullName(): void
+    public function testNameDefaultsToEmptyString(): void
     {
         $member = new TeamMember();
-        $member->setName('Alice');
-        $member->setName(null);
 
-        $this->assertNull($member->getName());
+        $this->assertSame('', $member->getName());
     }
 }

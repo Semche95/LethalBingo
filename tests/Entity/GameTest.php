@@ -47,7 +47,6 @@ class GameTest extends TestCase
         $game = new Game();
         $slug = $game->getSlug();
 
-        $this->assertIsString($slug);
         $this->assertSame(12, strlen($slug));
     }
 

@@ -16,6 +16,9 @@ class UtilsTest extends TestCase
         $this->assertSame($expected, Utils::num2alpha($input));
     }
 
+    /**
+     * @return array<string, array{int, string}>
+     */
     public static function num2alphaProvider(): array
     {
         return [

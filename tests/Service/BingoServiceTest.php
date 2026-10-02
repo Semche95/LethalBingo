@@ -48,6 +48,9 @@ class BingoServiceTest extends TestCase
         $this->assertTrue(BingoService::isSquareVisible($row, $col));
     }
 
+    /**
+     * @return array<string, array{int, int}>
+     */
     public static function visibleSquaresProvider(): array
     {
         return [
@@ -67,6 +70,9 @@ class BingoServiceTest extends TestCase
         $this->assertFalse(BingoService::isSquareVisible($row, $col));
     }
 
+    /**
+     * @return array<string, array{int, int}>
+     */
     public static function hiddenSquaresProvider(): array
     {
         return [

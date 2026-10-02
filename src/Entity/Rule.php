@@ -14,14 +14,14 @@ class Rule
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $label = null;
+    private string $label = '';
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getLabel(): ?string
+    public function getLabel(): string
     {
         return $this->label;
     }

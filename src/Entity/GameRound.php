@@ -21,7 +21,7 @@ class GameRound implements Stringable
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?int $number = null;
+    private int $number;
 
     /**
      * @var Collection<int, BingoSquare>
@@ -36,11 +36,10 @@ class GameRound implements Stringable
     private Collection $games;
 
     #[ORM\Column]
-    private ?int $season = null;
+    private int $season = 1;
 
     public function __construct()
     {
-        $this->season = 1;
         $this->bingoSquares = new ArrayCollection();
         $this->games = new ArrayCollection();
     }
@@ -50,7 +49,7 @@ class GameRound implements Stringable
         return $this->id;
     }
 
-    public function getNumber(): ?int
+    public function getNumber(): int
     {
         return $this->number;
     }
@@ -82,12 +81,8 @@ class GameRound implements Stringable
 
     public function removeBingoSquare(BingoSquare $bingoSquare): static
     {
-        if ($this->bingoSquares->removeElement($bingoSquare)) {
-            // set the owning side to null (unless already changed)
-            if ($bingoSquare->getRound() === $this) {
-                $bingoSquare->setRound(null);
-            }
-        }
+        // a square always has a round: attach it to another round or remove it
+        $this->bingoSquares->removeElement($bingoSquare);
 
         return $this;
     }
@@ -112,17 +107,13 @@ class GameRound implements Stringable
 
     public function removeGame(Game $game): static
     {
-        if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getRound() === $this) {
-                $game->setRound(null);
-            }
-        }
+        // a game always has a round: attach it to another round or remove it
+        $this->games->removeElement($game);
 
         return $this;
     }
 
-    public function getSeason(): ?int
+    public function getSeason(): int
     {
         return $this->season;
     }
@@ -142,7 +133,7 @@ class GameRound implements Stringable
     public function hasIncompleteContent(): bool
     {
         foreach ($this->bingoSquares as $square) {
-            if ($square->getCategory() === null || trim($square->getLabel() ?? '') === '') {
+            if ($square->getCategory() === null || trim($square->getLabel()) === '') {
                 return true;
             }
         }
@@ -174,7 +165,7 @@ class GameRound implements Stringable
 
     public function __toString(): string
     {
-        if ($this->number !== null && $this->season !== null) {
+        if (isset($this->number)) {
             return 'Round ' . $this->number . ' Saison ' . $this->season;
         }
 

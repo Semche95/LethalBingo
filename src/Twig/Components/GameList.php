@@ -19,6 +19,7 @@ final class GameList
 
     private const COOKIE_NAME = 'referee_game_seasons_open';
 
+    /** @var list<array{season: int, round_number: int, team_id: int, team_name: string, game_id: int, startedAt: ?string, finishedAt: ?string}> */
     #[LiveProp]
     public array $games = [];
 

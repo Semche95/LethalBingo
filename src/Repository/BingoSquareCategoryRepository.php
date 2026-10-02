@@ -16,6 +16,9 @@ class BingoSquareCategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, BingoSquareCategory::class);
     }
 
+    /**
+     * @return list<BingoSquareCategory>
+     */
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('c')

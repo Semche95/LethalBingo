@@ -15,7 +15,7 @@ final class BingoCardTitle
 
     #[LiveListener('gameFrameRefresh')]
     #[LiveListener('bingoCardTitleRefresh')]
-    public function __invoke()
+    public function __invoke(): void
     {
     }
 }

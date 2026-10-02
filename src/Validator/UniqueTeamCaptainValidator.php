@@ -8,12 +8,16 @@ use App\Entity\TeamMember;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 class UniqueTeamCaptainValidator extends ConstraintValidator
 {
     public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var UniqueTeamCaptain $constraint */
+        if (!$constraint instanceof UniqueTeamCaptain) {
+            throw new UnexpectedTypeException($constraint, UniqueTeamCaptain::class);
+        }
+
         if (!$value instanceof Collection) {
             return;
         }

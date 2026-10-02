@@ -20,10 +20,10 @@ class BingoSquareCategory implements Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $label = null;
+    private string $label = '';
 
     #[ORM\Column(options: ['default' => 0])]
-    private ?int $position = null;
+    private int $position = 0;
 
     /**
      * @var Collection<int, BingoSquare>
@@ -41,7 +41,7 @@ class BingoSquareCategory implements Stringable
         return $this->id;
     }
 
-    public function getLabel(): ?string
+    public function getLabel(): string
     {
         return $this->label;
     }
@@ -53,7 +53,7 @@ class BingoSquareCategory implements Stringable
         return $this;
     }
 
-    public function getPosition(): ?int
+    public function getPosition(): int
     {
         return $this->position;
     }
@@ -90,6 +90,9 @@ class BingoSquareCategory implements Stringable
         return $this;
     }
 
+    /**
+     * @return Collection<int, BingoSquare>
+     */
     public function getChildSquares(GameRound $gameRound): Collection
     {
         $criteria = Criteria::create()
@@ -101,6 +104,6 @@ class BingoSquareCategory implements Stringable
 
     public function __toString(): string
     {
-        return $this->label ?? '';
+        return $this->label;
     }
 }

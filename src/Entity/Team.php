@@ -23,7 +23,7 @@ class Team implements Stringable
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private ?string $name = null;
+    private string $name = '';
 
     /**
      * @var Collection<int, TeamMember>
@@ -51,7 +51,7 @@ class Team implements Stringable
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -83,12 +83,8 @@ class Team implements Stringable
 
     public function removeMember(TeamMember $member): static
     {
-        if ($this->members->removeElement($member)) {
-            // set the owning side to null (unless already changed)
-            if ($member->getTeam() === $this) {
-                $member->setTeam(null);
-            }
-        }
+        // orphanRemoval deletes the member: its team cannot be null
+        $this->members->removeElement($member);
 
         return $this;
     }
@@ -113,18 +109,14 @@ class Team implements Stringable
 
     public function removeGame(Game $game): static
     {
-        if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getTeam() === $this) {
-                $game->setTeam(null);
-            }
-        }
+        // a game always has a team: attach it to another team or remove it
+        $this->games->removeElement($game);
 
         return $this;
     }
 
     public function __toString(): string
     {
-        return ($this->name ?? '') . (count($this->members) > 0 ? ' (' . implode(', ', $this->members->toArray()) . ')' : '');
+        return $this->name . (count($this->members) > 0 ? ' (' . implode(', ', $this->members->toArray()) . ')' : '');
     }
 }

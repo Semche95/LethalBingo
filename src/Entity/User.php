@@ -21,7 +21,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    private ?string $username = null;
+    private string $username;
 
     /**
      * @var list<string> The user roles
@@ -30,17 +30,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
     private array $roles = [];
 
     /**
-     * @var ?string The hashed password
+     * @var string The hashed password
      */
     #[ORM\Column]
-    private ?string $password = null;
+    private string $password;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUsername(): ?string
+    public function getUsername(): string
     {
         return $this->username;
     }
@@ -59,7 +59,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->username;
+        return $this->username;
     }
 
     /**

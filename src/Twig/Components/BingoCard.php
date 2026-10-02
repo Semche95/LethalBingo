@@ -2,6 +2,7 @@
 
 namespace App\Twig\Components;
 
+use App\Dto\BingoDto;
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
@@ -16,6 +17,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentToolsTrait;
 
+/**
+ * @phpstan-import-type BingoSquareGrid from BingoDto
+ */
 #[AsLiveComponent(template: 'components/BingoCard/BingoCard.html.twig')]
 final class BingoCard extends AbstractController
 {
@@ -25,15 +29,16 @@ final class BingoCard extends AbstractController
     public bool $editMode = false;
     #[LiveProp]
     public string $squaresFieldName = '';
-    /** Squares being edited in the bingo form (edit mode only) */
+    /** @var BingoSquareGrid squares being edited in the bingo form (edit mode only) */
     #[LiveProp]
     public array $squares = [];
+    /** @var list<string> coordinates ("row-col") of the squares sharing a label */
     #[LiveProp]
     public array $duplicateCoords = [];
     #[LiveProp]
     public ?Game $game = null;
 
-    /** Squares of the game, loaded once per render */
+    /** @var BingoSquareGrid|null squares of the game, loaded once per render */
     private ?array $gameSquares = null;
     /** @var array<int, int>|null revealed square ids as keys, loaded once per render */
     private ?array $revealedSquareIds = null;
@@ -50,13 +55,15 @@ final class BingoCard extends AbstractController
 
     #[LiveListener('gameFrameRefresh')]
     #[LiveListener('bingoCardRefresh')]
-    public function __invoke()
+    public function __invoke(): void
     {
     }
 
     /**
      * In a game, squares are loaded at each render rather than kept in the
      * props: the props are sent to the browser, hidden labels must not be.
+     *
+     * @return BingoSquareGrid
      */
     public function getDisplayedSquares(): array
     {

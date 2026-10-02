@@ -114,7 +114,7 @@
 | Tool | Version | Usage |
 |---|---|---|
 | PHPUnit | ^13 | Unit and functional tests (`just test`) |
-| PHPStan | ^2.2 | Static analysis, level 6 + baseline (`just phpstan`) |
+| PHPStan | ^2.2 | Static analysis, level 6 (`just phpstan`) |
 | PHP-CS-Fixer | ^3.95 | Code style, `@Symfony` + PHP 8.4 migration rules (`just cs` / `just cs-fix`) |
 | Vitest | ^4.1.11 | Frontend tests (TypeScript) |
 | FakerPHP | ^1.23 | Test data generation |

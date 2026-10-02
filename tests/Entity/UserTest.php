@@ -39,7 +39,6 @@ class UserTest extends TestCase
 
         // Test default values
         $this->assertNull($user->getId());
-        $this->assertNull($user->getUsername());
         $this->assertEquals('', (string) $user);
         $this->assertEquals(['ROLE_USER'], $user->getRoles());
     }

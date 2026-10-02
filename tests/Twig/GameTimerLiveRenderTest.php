@@ -84,13 +84,8 @@ class GameTimerLiveRenderTest extends KernelTestCase
                 $cleanupEm->remove($cleanupGame);
                 $cleanupEm->flush();
 
-                if ($roundToRemove instanceof GameRound) {
-                    $cleanupEm->remove($roundToRemove);
-                }
-
-                if ($teamToRemove instanceof Team) {
-                    $cleanupEm->remove($teamToRemove);
-                }
+                $cleanupEm->remove($roundToRemove);
+                $cleanupEm->remove($teamToRemove);
 
                 $cleanupEm->flush();
             }

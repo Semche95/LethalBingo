@@ -18,6 +18,9 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
+/**
+ * @phpstan-import-type BingoSquareGrid from BingoDto
+ */
 readonly class BingoService
 {
     public const int MAX_ROWS = 5;
@@ -100,6 +103,8 @@ readonly class BingoService
      * the browser. Referees get every square.
      *
      * @param array<int, int> $revealedSquareIds revealed square ids as keys (see getRevealedSquareIds())
+     *
+     * @return BingoSquareGrid
      */
     public function gameSquares(Game $game, bool $isReferee, array $revealedSquareIds): array
     {
@@ -217,7 +222,7 @@ readonly class BingoService
                         ->setCol($col);
                 }
                 $bingoSquare
-                    ->setLabel($label)
+                    ->setLabel($label ?? '')
                     ->setVisible($visible === '1');
 
                 if ($category !== null && $category !== '') {

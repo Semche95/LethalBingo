@@ -16,6 +16,7 @@ final class BingoList
 {
     use DefaultActionTrait;
 
+    /** @var list<array{season: int, rounds: string}> */
     #[LiveProp]
     public array $bingosBySeason = [];
 

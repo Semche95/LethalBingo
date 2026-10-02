@@ -20,26 +20,26 @@ class TeamMember implements Stringable
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private ?string $name = null;
+    private string $name = '';
 
     #[ORM\Column(options: ['default' => false])]
     private bool $captain = false;
 
     #[ORM\ManyToOne(inversedBy: 'members')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Team $team = null;
+    private Team $team;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function setName(?string $name): static
+    public function setName(string $name): static
     {
         $this->name = $name;
 
@@ -58,12 +58,12 @@ class TeamMember implements Stringable
         return $this;
     }
 
-    public function getTeam(): ?Team
+    public function getTeam(): Team
     {
         return $this->team;
     }
 
-    public function setTeam(?Team $team): static
+    public function setTeam(Team $team): static
     {
         $this->team = $team;
 
@@ -72,6 +72,6 @@ class TeamMember implements Stringable
 
     public function __toString(): string
     {
-        return $this->name ?? '';
+        return $this->name;
     }
 }

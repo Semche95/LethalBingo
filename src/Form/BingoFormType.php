@@ -11,6 +11,9 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @extends AbstractType<BingoDto>
+ */
 class BingoFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void

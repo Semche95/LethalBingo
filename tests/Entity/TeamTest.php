@@ -59,7 +59,7 @@ class TeamTest extends TestCase
         $this->assertCount(1, $team->getMembers());
     }
 
-    public function testRemoveMemberClearsTeamReference(): void
+    public function testRemoveMemberRemovesItFromTheTeam(): void
     {
         $team = new Team();
         $team->setName('Test');
@@ -70,7 +70,7 @@ class TeamTest extends TestCase
         $team->removeMember($member);
 
         $this->assertCount(0, $team->getMembers());
-        $this->assertNull($member->getTeam());
+        $this->assertFalse($team->getMembers()->contains($member));
     }
 
     public function testToStringWithMembers(): void

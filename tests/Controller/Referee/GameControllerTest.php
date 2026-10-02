@@ -43,6 +43,22 @@ class GameControllerTest extends ControllerTestCase
         self::assertNull($this->em->getRepository(Game::class)->findOneBy(['team' => $team]));
     }
 
+    public function testRejectsAnEmptyForm(): void
+    {
+        $gameCount = $this->em->getRepository(Game::class)->count();
+        $crawler = $this->client->request('GET', '/referee/game/add');
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['game_form[team]'] = '';
+        $form['game_form[round]'] = '';
+
+        $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez sélectionner un bingo.');
+        self::assertAnySelectorTextContains('.invalid-feedback', 'Veuillez sélectionner une équipe.');
+        self::assertSame($gameCount, $this->em->getRepository(Game::class)->count());
+    }
+
     public function testEditsAGameThatHasNotStarted(): void
     {
         $game = $this->createGame();

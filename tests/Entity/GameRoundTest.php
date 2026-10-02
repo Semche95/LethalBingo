@@ -169,7 +169,7 @@ class GameRoundTest extends TestCase
         $this->assertCount(1, $round->getBingoSquares());
     }
 
-    public function testRemoveBingoSquareClearsRoundReference(): void
+    public function testRemoveBingoSquareRemovesItFromTheRound(): void
     {
         $round = new GameRound();
         $square = new BingoSquare();
@@ -179,7 +179,7 @@ class GameRoundTest extends TestCase
         $round->removeBingoSquare($square);
 
         $this->assertCount(0, $round->getBingoSquares());
-        $this->assertNull($square->getRound());
+        $this->assertFalse($round->getBingoSquares()->contains($square));
     }
 
     public function testGetMissingSquaresFormatFollowsRowLetterColPattern(): void

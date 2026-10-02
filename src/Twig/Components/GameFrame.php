@@ -28,7 +28,7 @@ final class GameFrame extends AbstractController
     }
 
     #[LiveListener('gameFrameRefresh')]
-    public function __invoke()
+    public function __invoke(): void
     {
     }
 

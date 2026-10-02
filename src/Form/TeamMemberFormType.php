@@ -7,12 +7,15 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @extends AbstractType<TeamMember>
+ */
 class TeamMemberFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', options: ['label' => 'Membre'])
+            ->add('name', options: ['label' => 'Membre', 'empty_data' => ''])
             ->add('captain', options: ['label' => 'Capitaine']);
     }
 

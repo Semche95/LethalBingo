@@ -20,20 +20,20 @@ class BingoSquare implements Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $label = null;
+    private string $label = '';
 
     #[ORM\Column]
-    private ?int $row = null;
+    private int $row;
 
     #[ORM\Column]
-    private ?int $col = null;
+    private int $col;
 
     #[ORM\Column]
-    private ?bool $visible = null;
+    private bool $visible = false;
 
     #[ORM\ManyToOne(inversedBy: 'bingoSquares')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?GameRound $round = null;
+    private GameRound $round;
 
     #[ORM\ManyToOne(inversedBy: 'bingoSquares')]
     private ?BingoSquareCategory $category = null;
@@ -61,7 +61,7 @@ class BingoSquare implements Stringable
         return $this->id;
     }
 
-    public function getLabel(): ?string
+    public function getLabel(): string
     {
         return $this->label;
     }
@@ -73,7 +73,7 @@ class BingoSquare implements Stringable
         return $this;
     }
 
-    public function getRow(): ?int
+    public function getRow(): int
     {
         return $this->row;
     }
@@ -85,7 +85,7 @@ class BingoSquare implements Stringable
         return $this;
     }
 
-    public function getCol(): ?int
+    public function getCol(): int
     {
         return $this->col;
     }
@@ -97,7 +97,7 @@ class BingoSquare implements Stringable
         return $this;
     }
 
-    public function isVisible(): ?bool
+    public function isVisible(): bool
     {
         return $this->visible;
     }
@@ -109,12 +109,12 @@ class BingoSquare implements Stringable
         return $this;
     }
 
-    public function getRound(): ?GameRound
+    public function getRound(): GameRound
     {
         return $this->round;
     }
 
-    public function setRound(?GameRound $round): static
+    public function setRound(GameRound $round): static
     {
         $this->round = $round;
 
@@ -156,7 +156,7 @@ class BingoSquare implements Stringable
 
     public function getCoords(): string
     {
-        if ($this->row === null || $this->col === null) {
+        if (!isset($this->row, $this->col)) {
             return '';
         }
 
@@ -165,6 +165,6 @@ class BingoSquare implements Stringable
 
     public function __toString(): string
     {
-        return $this->label ?? '';
+        return $this->label;
     }
 }

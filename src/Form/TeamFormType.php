@@ -8,12 +8,15 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
 
+/**
+ * @extends AbstractType<Team>
+ */
 class TeamFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', options: ['label' => 'Nom'])
+            ->add('name', options: ['label' => 'Nom', 'empty_data' => ''])
             ->add('members', LiveCollectionType::class, [
                 'entry_type' => TeamMemberFormType::class,
                 'entry_options' => ['label' => false],

@@ -8,6 +8,7 @@ use App\Repository\TeamMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -25,7 +26,7 @@ final class TeamForm extends AbstractController
     use LiveCollectionTrait;
 
     #[LiveProp(fieldName: 'formData')]
-    public ?Team $team;
+    public ?Team $team = null;
 
     #[LiveProp]
     public string $mode;
@@ -39,6 +40,9 @@ final class TeamForm extends AbstractController
     ) {
     }
 
+    /**
+     * @return FormInterface<Team|null>
+     */
     protected function instantiateForm(): FormInterface
     {
         return $this->createForm(
@@ -49,7 +53,7 @@ final class TeamForm extends AbstractController
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
-    public function save(EntityManagerInterface $em)
+    public function save(EntityManagerInterface $em): ?RedirectResponse
     {
         $this->submitForm();
 
@@ -69,7 +73,7 @@ final class TeamForm extends AbstractController
                 ],
             );
 
-            return;
+            return null;
         }
 
         $this->addFlash('success', 'Équipe enregistrée');

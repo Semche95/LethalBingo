@@ -16,6 +16,9 @@ class BingoSquareTest extends TestCase
         $this->assertSame($expected, BingoSquare::getRowLetter($row));
     }
 
+    /**
+     * @return array<string, array{int, string}>
+     */
     public static function rowLetterProvider(): array
     {
         return [

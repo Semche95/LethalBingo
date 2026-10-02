@@ -12,6 +12,7 @@ final class NavbarItem
     public string $label;
     public string $tooltip = '';
     public string $route;
+    /** @var array<string, mixed> */
     public array $routeParams = [];
     public string $icon = '';
 }

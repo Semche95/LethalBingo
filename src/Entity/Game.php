@@ -22,15 +22,15 @@ class Game
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $slug;
+    private string $slug;
 
     #[ORM\ManyToOne(inversedBy: 'games')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Team $team = null;
+    private Team $team;
 
     #[ORM\ManyToOne(inversedBy: 'games')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?GameRound $round = null;
+    private GameRound $round;
 
     /**
      * @var Collection<int, BingoSquareValidated>
@@ -79,7 +79,7 @@ class Game
         return $this->id;
     }
 
-    public function getSlug(): ?string
+    public function getSlug(): string
     {
         return $this->slug;
     }
@@ -98,24 +98,24 @@ class Game
         return $this;
     }
 
-    public function getTeam(): ?Team
+    public function getTeam(): Team
     {
         return $this->team;
     }
 
-    public function setTeam(?Team $team): static
+    public function setTeam(Team $team): static
     {
         $this->team = $team;
 
         return $this;
     }
 
-    public function getRound(): ?GameRound
+    public function getRound(): GameRound
     {
         return $this->round;
     }
 
-    public function setRound(?GameRound $round): static
+    public function setRound(GameRound $round): static
     {
         $this->round = $round;
 

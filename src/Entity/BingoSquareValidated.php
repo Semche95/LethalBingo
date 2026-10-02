@@ -17,14 +17,14 @@ class BingoSquareValidated
 
     #[ORM\ManyToOne(inversedBy: 'bingoSquareValidated')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Game $game = null;
+    private Game $game;
 
     #[ORM\ManyToOne(inversedBy: 'bingoSquareValidated')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?BingoSquare $bingoSquare = null;
+    private BingoSquare $bingoSquare;
 
     #[ORM\Column]
-    private ?DateTimeImmutable $validatedAt;
+    private DateTimeImmutable $validatedAt;
 
     public function __construct()
     {
@@ -36,31 +36,31 @@ class BingoSquareValidated
         return $this->id;
     }
 
-    public function getGame(): ?Game
+    public function getGame(): Game
     {
         return $this->game;
     }
 
-    public function setGame(?Game $game): static
+    public function setGame(Game $game): static
     {
         $this->game = $game;
 
         return $this;
     }
 
-    public function getBingoSquare(): ?BingoSquare
+    public function getBingoSquare(): BingoSquare
     {
         return $this->bingoSquare;
     }
 
-    public function setBingoSquare(?BingoSquare $bingoSquare): static
+    public function setBingoSquare(BingoSquare $bingoSquare): static
     {
         $this->bingoSquare = $bingoSquare;
 
         return $this;
     }
 
-    public function getValidatedAt(): ?DateTimeImmutable
+    public function getValidatedAt(): DateTimeImmutable
     {
         return $this->validatedAt;
     }

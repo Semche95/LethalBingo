@@ -15,6 +15,9 @@ use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
+/**
+ * @extends AbstractType<Game>
+ */
 class GameFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -24,7 +27,13 @@ class GameFormType extends AbstractType
                 'class' => Team::class,
                 'label' => 'Équipe',
                 'placeholder' => '- Choisir -',
-                'constraints' => [new NotBlank()],
+                'constraints' => [new NotBlank(message: 'Veuillez sélectionner une équipe.')],
+                // A game always has a team: an empty choice is left to the NotBlank constraint
+                'setter' => static function (Game $game, ?Team $team): void {
+                    if ($team !== null) {
+                        $game->setTeam($team);
+                    }
+                },
                 'attr' => [
                     'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
                 ],
@@ -57,6 +66,12 @@ class GameFormType extends AbstractType
                         }
                     }),
                 ],
+                // A game always has a round: an empty choice is left to the NotBlank constraint
+                'setter' => static function (Game $game, ?GameRound $gameRound): void {
+                    if ($gameRound !== null) {
+                        $game->setRound($gameRound);
+                    }
+                },
                 'attr' => [
                     'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
                 ],

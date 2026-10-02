@@ -33,6 +33,9 @@ class TeamColorExtensionTest extends TestCase
         $this->assertMatchesRegularExpression('/^#[0-9A-Fa-f]{6}$/', $color);
     }
 
+    /**
+     * @return array<string, array{int}>
+     */
     public static function teamIdProvider(): array
     {
         return [

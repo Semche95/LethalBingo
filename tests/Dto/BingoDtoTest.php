@@ -47,13 +47,13 @@ class BingoDtoTest extends TestCase
         $this->assertGreaterThan(0, $violations->count());
     }
 
-    public function testNullSeasonAndRoundAreAllowed(): void
+    public function testNullSeasonAndRoundAreRejected(): void
     {
         $dto = new BingoDto(season: null, round: null);
 
         $violations = $this->validator->validate($dto);
 
-        $this->assertCount(0, $violations);
+        $this->assertCount(2, $violations);
     }
 
     public function testDuplicateLabelsAreDetected(): void
