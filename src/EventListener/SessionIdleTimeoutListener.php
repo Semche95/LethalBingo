@@ -193,12 +193,6 @@ final readonly class SessionIdleTimeoutListener
 
     private function isPrefetch(Request $request): bool
     {
-        foreach (['Sec-Purpose', 'X-Sec-Purpose', 'Purpose'] as $header) {
-            if (str_contains(strtolower((string) $request->headers->get($header)), 'prefetch')) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(['Sec-Purpose', 'X-Sec-Purpose', 'Purpose'], fn (string $header): bool => str_contains(strtolower((string) $request->headers->get($header)), 'prefetch'));
     }
 }

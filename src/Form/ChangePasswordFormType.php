@@ -25,9 +25,7 @@ class ChangePasswordFormType extends AbstractType
                     'autocomplete' => 'current-password',
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Veuillez entrer votre mot de passe actuel',
-                    ]),
+                    new NotBlank(message: 'Veuillez entrer votre mot de passe actuel'),
                 ],
             ])
             ->add('plainPassword', RepeatedType::class, [
@@ -49,14 +47,8 @@ class ChangePasswordFormType extends AbstractType
                 ],
                 'invalid_message' => 'Les mots de passe doivent correspondre.',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Veuillez entrer un mot de passe',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Votre mot de passe doit comporter au moins {{ limit }} caractères',
-                        'max' => 4096, // max length allowed by Symfony for security reasons
-                    ]),
+                    new NotBlank(message: 'Veuillez entrer un mot de passe'),
+                    new Length(min: 6, minMessage: 'Votre mot de passe doit comporter au moins {{ limit }} caractères', max: 4096),
                 ],
             ])
         ;

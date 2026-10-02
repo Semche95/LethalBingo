@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::RESPONSE, priority: -2048)]
 final class ServerTimeHeaderListener
 {
-    public const METRIC = 'app-time';
+    public const string METRIC = 'app-time';
 
     public function __invoke(ResponseEvent $event): void
     {

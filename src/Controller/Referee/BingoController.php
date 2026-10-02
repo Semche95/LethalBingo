@@ -81,7 +81,7 @@ class BingoController extends AbstractController
 
         $maxSeason = $bingo->findMaxSeason();
         $newSeason = $maxSeason + 1;
-        $gameRound = $bingo->createEmptyRound($newSeason, 1);
+        $bingo->createEmptyRound($newSeason, 1);
 
         $this->addFlash('success', sprintf('Saison %d créée (round 1)', $newSeason));
 

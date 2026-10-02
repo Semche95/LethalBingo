@@ -127,6 +127,10 @@ jobs:
               if: ${{ !cancelled() && steps.composer.outcome == 'success' }}
               run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
+            - name: Run Rector
+              if: ${{ !cancelled() && steps.composer.outcome == 'success' }}
+              run: vendor/bin/rector process --dry-run
+
     frontend:
         name: Vitest
         runs-on: ubuntu-latest

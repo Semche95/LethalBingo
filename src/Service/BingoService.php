@@ -252,7 +252,7 @@ readonly class BingoService
             $this->em->persist($square);
             $this->em->flush();
             $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException) {
         }
     }
 
@@ -265,7 +265,7 @@ readonly class BingoService
                 $this->em->flush();
             }
             $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException) {
         }
     }
 
@@ -279,7 +279,7 @@ readonly class BingoService
             $this->em->persist($square);
             $this->em->flush();
             $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException) {
         }
     }
 
@@ -292,7 +292,7 @@ readonly class BingoService
                 $this->em->flush();
             }
             $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException) {
         }
     }
 }

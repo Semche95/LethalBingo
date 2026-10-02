@@ -17,7 +17,7 @@ final class GameList
 {
     use DefaultActionTrait;
 
-    private const COOKIE_NAME = 'referee_game_seasons_open';
+    private const string COOKIE_NAME = 'referee_game_seasons_open';
 
     /** @var list<array{season: int, round_number: int, team_id: int, team_name: string, game_id: int, startedAt: ?string, finishedAt: ?string}> */
     #[LiveProp]
@@ -56,6 +56,6 @@ final class GameList
 
         $stored = array_values(array_filter(explode(',', $cookie)));
 
-        return array_values(array_intersect($stored, array_map('strval', $allSeasons)));
+        return array_values(array_intersect($stored, array_map(strval(...), $allSeasons)));
     }
 }

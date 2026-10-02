@@ -13,6 +13,9 @@
 ```bash
 just test                    # Tests PHPUnit dans le conteneur Docker
 just sf lint:container       # Vérification du conteneur de services
+just phpstan                 # Analyse statique PHPStan
+just cs                      # Vérification du style PHP-CS-Fixer (dry-run)
+just rector                  # Vérification Rector (dry-run)
 ```
 
 ## Prérequis
@@ -42,7 +45,7 @@ just up         # Uniquement les conteneurs Docker
 ## Conventions de code PHP
 
 - **PHP 8.4+ obligatoire** : constructor promotion, named arguments, union/intersection types, match expressions, nullsafe operator, readonly properties, enums, first-class callable syntax
-- **Pas de code déprécié** : toujours utiliser les méthodes/fonctions actuelles
+- **Pas de code déprécié** : toujours utiliser les méthodes/fonctions actuelles (appliqué automatiquement par Rector : `just rector-fix`)
 - **Attributs PHP** pour tout : routing, validation, ORM, security, services (jamais les annotations)
 - **Pas d'appels entre controllers** : extraire la logique partagée dans des Services
 - **Factoriser** le code dupliqué agressivement (DRY)

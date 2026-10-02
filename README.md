@@ -116,6 +116,7 @@
 | PHPUnit | ^13 | Unit and functional tests (`just test`) |
 | PHPStan | ^2.2 | Static analysis, level 6 (`just phpstan`) |
 | PHP-CS-Fixer | ^3.95 | Code style, `@Symfony` + PHP 8.4 migration rules (`just cs` / `just cs-fix`) |
+| Rector | ^2.6 | Automated upgrades: PHP 8.4 syntax, Symfony / Doctrine / PHPUnit deprecations (`just rector` / `just rector-fix`) |
 | Vitest | ^4.1.11 | Frontend tests (TypeScript) |
 | FakerPHP | ^1.23 | Test data generation |
 | Doctrine Fixtures | ^3.6 | Database fixtures |
@@ -190,6 +191,8 @@ just dev
 | `just phpstan` | Runs PHPStan static analysis |
 | `just cs` | Checks code style with PHP-CS-Fixer (dry run, shows the diff) |
 | `just cs-fix` | Fixes code style with PHP-CS-Fixer |
+| `just rector` | Checks the code with Rector (dry run, shows diff) |
+| `just rector-fix` | Applies Rector upgrades (modern syntax, deprecations) |
 | `just sf <cmd>` | Runs a Symfony command |
 | `just migrate` | Applies Doctrine migrations |
 | `just diff` | Generates a migration from entities |

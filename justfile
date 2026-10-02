@@ -75,6 +75,14 @@ cs *args:
 cs-fix *args:
     @docker compose exec php ./vendor/bin/php-cs-fixer fix {{args}}
 
+# Vérifie le code avec Rector (sans modifier, affiche le diff)
+rector *args:
+    @docker compose exec php ./vendor/bin/rector process --dry-run {{args}}
+
+# Applique les corrections Rector (syntaxe moderne, dépréciations)
+rector-fix *args:
+    @docker compose exec php ./vendor/bin/rector process {{args}}
+
 # Exécute les migrations en base
 migrate:
     @just sf doctrine:migrations:migrate --no-interaction

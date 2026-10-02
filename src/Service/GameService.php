@@ -58,7 +58,7 @@ readonly class GameService
 
     public function reset(Game $game): void
     {
-        $this->em->wrapInTransaction(function ($em) use ($game) {
+        $this->em->wrapInTransaction(function ($em) use ($game): void {
             $game
                 ->setStartedAt(null)
                 ->setFinishedAt(null)

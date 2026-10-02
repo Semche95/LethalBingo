@@ -24,9 +24,7 @@ class BingoFormType extends AbstractType
             ->add('squares', options: [
                 'compound' => true,
                 'allow_extra_fields' => true,
-                'getter' => function (BingoDto $bingoDto): array {
-                    return $bingoDto->squares;
-                },
+                'getter' => fn (BingoDto $bingoDto): array => $bingoDto->squares,
                 'setter' => function (BingoDto $bingoDto, mixed $value, FormInterface $form): void {
                     $bingoDto->squares = $form->getExtraData();
                 },

@@ -6,6 +6,7 @@ use App\Repository\BingoSquareCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
@@ -97,7 +98,7 @@ class BingoSquareCategory implements Stringable
     {
         $criteria = Criteria::create()
             ->andWhere(Criteria::expr()->eq('round', $gameRound))
-            ->orderBy(['row' => 'ASC', 'col' => 'ASC']);
+            ->orderBy(['row' => Order::Ascending, 'col' => Order::Ascending]);
 
         return $this->bingoSquares->matching($criteria);
     }
