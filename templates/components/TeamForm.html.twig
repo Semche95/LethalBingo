@@ -92,19 +92,16 @@
     {{ form_end(form) }}
 
     {% if mode == 'edit' %}
-        {% component BootstrapModal with {id: 'delete-team-modal', status: 'danger'} %}
-            {% block modal_title %}Confirmation de la suppression{% endblock %}
-            {% block modal_body %}
+        {% component ConfirmModal with {
+            id: 'delete-team-modal',
+            title: 'Confirmation de la suppression',
+            confirmLabel: 'Supprimer',
+            confirmIcon: 'trash',
+            action: path('app_referee_team_delete', {id: team.id}),
+            tokenId: 'delete-team',
+        } %}
+            {% block content %}
                 Supprimer l'équipe <strong>{{ team }}</strong>&nbsp;?
-            {% endblock %}
-            {% block modal_footer %}
-                <form action="{{ path('app_referee_team_delete', {id: team.id}) }}" method="post" class="d-flex w-100">
-                    {{ component('CsrfInput', {tokenId: 'delete-team'}) }}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger ms-auto">
-                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                    </button>
-                </form>
             {% endblock %}
         {% endcomponent %}
     {% endif %}

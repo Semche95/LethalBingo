@@ -60,9 +60,9 @@
                                         Arrêter la partie
                                     </button>
                                 {% endif %}
-                                <button type="button" class="btn btn-danger ms-5" data-bs-toggle="modal"
+                                <button type="button" class="btn btn-outline-danger ms-5" data-bs-toggle="modal"
                                         data-bs-target="#reset-game-modal">
-                                    Réinitialiser
+                                    {{ ux_icon('tabler:restore', {height: '18', width: '18'}) }}&nbsp;Réinitialiser
                                 </button>
                             {% endif %}
                         </div>
@@ -85,42 +85,29 @@
     </div>
 
     {% if is_granted('ROLE_REFEREE') %}
-        {% component BootstrapModal with {id: 'reset-game-modal', status: 'danger'} %}
-            {% block modal_title %}Confirmation de la réinitialisation{% endblock %}
-            {% block modal_body %}
+        {% component ConfirmModal with {
+            id: 'reset-game-modal',
+            title: 'Confirmation de la réinitialisation',
+            confirmLabel: 'Réinitialiser',
+            confirmIcon: 'restore',
+            liveAction: 'resetGame',
+        } %}
+            {% block content %}
                 Réinitialiser la partie&nbsp;? Cette action est irréversible, toutes les cases retrouveront leur état initial
                 et la partie sera considérée comme n'ayant jamais été jouée.
             {% endblock %}
-            {% block modal_footer %}
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button
-                        type="button"
-                        class="btn btn-danger ms-auto"
-                        data-bs-dismiss="modal"
-                        data-action="live#action"
-                        data-live-action-param="resetGame"
-                >
-                    Confirmer
-                </button>
-            {% endblock %}
         {% endcomponent %}
 
-        {% component BootstrapModal with {id: 'stop-game-modal', status: 'warning'} %}
-            {% block modal_title %}Confirmation de l'arrêt de la partie{% endblock %}
-            {% block modal_body %}
+        {% component ConfirmModal with {
+            id: 'stop-game-modal',
+            title: "Confirmation de l'arrêt de la partie",
+            confirmLabel: 'Arrêter la partie',
+            confirmIcon: 'player-stop',
+            status: 'warning',
+            liveAction: 'stopGame',
+        } %}
+            {% block content %}
                 Arrêter la partie&nbsp;? Cette action terminera la partie en cours.
-            {% endblock %}
-            {% block modal_footer %}
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button
-                        type="button"
-                        class="btn btn-warning ms-auto"
-                        data-bs-dismiss="modal"
-                        data-action="live#action"
-                        data-live-action-param="stopGame"
-                >
-                    Confirmer
-                </button>
             {% endblock %}
         {% endcomponent %}
     {% endif %}

@@ -1,0 +1,24 @@
+{# Confirmation modal: posts to `action` with a CSRF token, or triggers the `liveAction` of the enclosing Live Component. #}
+{% props id, title, confirmLabel, confirmIcon = null, status = 'danger', action = null, tokenId = null, liveAction = null %}
+
+{% component BootstrapModal with {id: id, status: status} %}
+    {% block modal_title %}{{ title }}{% endblock %}
+    {% block modal_body %}{{ block(outerBlocks.content) }}{% endblock %}
+    {% block modal_footer %}
+        {% set buttons %}
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="{{ action ? 'submit' : 'button' }}" class="btn btn-{{ status }} ms-auto"
+                    {% if liveAction %}data-bs-dismiss="modal" data-action="live#action" data-live-action-param="{{ liveAction }}"{% endif %}>
+                {% if confirmIcon %}{{ ux_icon('tabler:' ~ confirmIcon, {height: '18', width: '18'}) }}&nbsp;{% endif %}{{ confirmLabel }}
+            </button>
+        {% endset %}
+        {% if action %}
+            <form action="{{ action }}" method="post" class="d-flex w-100">
+                {{ component('CsrfInput', {tokenId: tokenId}) }}
+                {{ buttons }}
+            </form>
+        {% else %}
+            {{ buttons }}
+        {% endif %}
+    {% endblock %}
+{% endcomponent %}
