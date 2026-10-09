@@ -5,11 +5,12 @@ import { Modal } from 'bootstrap'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
-    static override targets = ['team']
+    static override targets = ['team', 'form']
     declare readonly teamTarget: HTMLElement
+    declare readonly formTarget: HTMLFormElement
 
     override connect() {
-        focusFirstInput(this.element)
+        focusFirstInput(this.formTarget)
         document.addEventListener('team:added', this.onTeamAdded)
         document.addEventListener('team:updated', this.onTeamAdded)
     }
@@ -21,14 +22,7 @@ export default class extends Controller<HTMLDivElement> {
 
     async copyGameLink({ params: { url } }: ActionEvent) {
         await navigator.clipboard.writeText(url)
-    }
-
-    openRegenerateSlugModal() {
-        const modal = document.getElementById('regenerate-slug-modal')
-        if (modal) {
-            const bootstrapModal = new Modal(modal)
-            bootstrapModal.show()
-        }
+        showToast('Lien copié')
     }
 
     onTeamAdded = (event: Event) => {

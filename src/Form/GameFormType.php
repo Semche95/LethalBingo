@@ -30,6 +30,7 @@ class GameFormType extends AbstractType
             ])
             ->add('round', EntityType::class, [
                 'class' => GameRound::class,
+                'label' => 'Bingo',
                 'placeholder' => '- Choisir -',
                 'choice_label' => function (GameRound $gameRound): string {
                     $label = (string) $gameRound;

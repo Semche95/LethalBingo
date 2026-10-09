@@ -1,134 +1,194 @@
 {% extends 'layouts/referee.html.twig' %}
 
+{% form_theme form _self %}
+
+{% block form_label_class -%}
+{%- endblock form_label_class %}
+
 {% block content %}
     {{ parent() }}
-    <div class="card" {{ stimulus_controller('referee--game-form') }}>
-        <div class="card-header">
-            <h3 class="card-title">
-                {% if mode == 'add' %}
-                    Nouvelle partie
+    <div class="dashboard-welcome mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="dashboard-title mb-0">{{ mode == 'edit' ? 'Fiche de la partie' : 'Nouvelle partie' }}</h1>
+            {% if mode == 'edit' %}
+                {% if game.finishedAt is not null %}
+                    <span class="badge bg-green-lt">{{ ux_icon('tabler:check', {height: '14', width: '14'}) }}&nbsp;Terminée</span>
+                {% elseif game.startedAt is not null %}
+                    <span class="badge bg-blue-lt">{{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}&nbsp;En cours</span>
                 {% else %}
-                    Fiche de la partie
+                    <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}&nbsp;À venir</span>
                 {% endif %}
-            </h3>
+            {% endif %}
+        </div>
+        {% if mode == 'edit' %}
+            <p class="dashboard-subtitle">
+                {{ game.team.name }} · {{ game.round }}
+                {% if game.finishedAt is not null %}
+                    · terminée le {{ game.finishedAt|format_date(pattern: "d MMM 'à' H:mm", locale: 'fr') }}
+                {% elseif game.startedAt is not null %}
+                    · commencée le {{ game.startedAt|format_date(pattern: "d MMM 'à' H:mm", locale: 'fr') }}
+                {% endif %}
+            </p>
+        {% else %}
+            <p class="dashboard-subtitle">Choisissez le bingo et l'équipe qui va le jouer</p>
+        {% endif %}
+    </div>
+
+    <div class="row g-4" {{ stimulus_controller('referee--game-form') }}>
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title d-flex align-items-center gap-2">
+                            {{ ux_icon('tabler:adjustments', {height: '18', width: '18'}) }}
+                            Paramètres
+                        </h3>
+                        <p class="card-subtitle mb-0">Le bingo joué et l'équipe qui y participe.</p>
+                    </div>
+                </div>
+
+                {{ form_start(form, {attr: stimulus_target('referee--game-form', 'form').toArray()}) }}
+                <div class="card-body">
+                    {% for error in form.vars.errors %}
+                        <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
+                            {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                            <div>{{ error.message }}</div>
+                        </div>
+                    {% endfor %}
+                    {% if mode == 'edit' and game.finishedAt is not null %}
+                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
+                            {{ ux_icon('tabler:flag-check', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                            <div>La partie est terminée&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</div>
+                        </div>
+                    {% elseif mode == 'edit' and game.readOnly %}
+                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
+                            {{ ux_icon('tabler:lock', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+                            <div>La partie est en cours&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {{ form_label(form.round) }}
+                        {{ form_widget(form.round) }}
+                        {{ form_errors(form.round) }}
+                    </div>
+
+                    <div {{ stimulus_target('referee--game-form', 'team') }}>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            {{ form_label(form.team, null, {label_attr: {class: 'mb-0'}}) }}
+                            {% if mode == 'add' or not game.readOnly %}
+                                <a href="{{ path('app_referee_team_add') }}" class="btn btn-sm btn-outline-primary"
+                                   data-controller="modal-loader"
+                                   data-action="click->modal-loader#open"
+                                   data-modal-loader-title-value="Nouvelle équipe">
+                                    {{ ux_icon('tabler:plus', {height: '16', width: '16'}) }}&nbsp;Nouvelle équipe
+                                </a>
+                            {% endif %}
+                        </div>
+                        {{ form_widget(form.team) }}
+                        {{ form_errors(form.team) }}
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex align-items-center">
+                        <a href="{{ path('app_referee_game') }}" class="btn btn-outline-secondary">Retour</a>
+                        {% if mode == 'edit' and not game.readOnly %}
+                            <div class="vr mx-3"></div>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#delete-game-modal">
+                                {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+                            </button>
+                        {% endif %}
+                        {% if mode == 'add' or not game.readOnly %}
+                            <button type="submit" class="btn btn-primary ms-auto">Enregistrer</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {{ form_end(form) }}
+            </div>
         </div>
 
-        {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <div class="card-body">
-            <div class="row mb-3">
-                {{ form_label(form.round) }}
-                <div class="col-sm-3">
-                    {{ form_widget(form.round) }}
-                </div>
-                <div class="offset-sm-2 col-sm-10">
-                    {{ form_errors(form.round) }}
-                </div>
-            </div>
-            <div class="row mb-3" {{ stimulus_target('referee--game-form', 'team') }}>
-                {{ form_label(form.team) }}
-                <div class="col-sm-3">
-                    {{ form_widget(form.team) }}
-                </div>
-                {% if mode == 'add' or game.finishedAt is null %}
-                    <div class="col-sm-6 d-flex align-items-center">
-                        <a href="{{ path('app_referee_team_add') }}"
-                           data-controller="modal-loader"
-                           data-action="click->modal-loader#open"
-                           data-modal-loader-title-value="Nouvelle équipe">Ajouter une équipe</a>
+        <div class="col-lg-5">
+            {% if mode == 'add' %}
+                <div class="card card-dashed bg-transparent">
+                    <div class="card-body text-center text-secondary py-5">
+                        {{ ux_icon('tabler:link', {height: '28', width: '28', class: 'mb-2'}) }}
+                        <p class="mb-0">Le lien à envoyer aux joueurs sera créé à l'enregistrement de la partie.</p>
                     </div>
-                {% endif %}
-                <div class="offset-sm-2 col-sm-10">
-                    {{ form_errors(form.team) }}
                 </div>
-            </div>
-            {% if mode == 'edit' %}
-                <div class="row mb-3">
-                    <label class="col-form-label col-sm-2">Lien de la partie</label>
-                    <div class="col-sm-4">
+            {% else %}
+                {% set gameUrl = url('app_game', {slug: game.slug}) %}
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title d-flex align-items-center gap-2">
+                                {{ ux_icon('tabler:link', {height: '18', width: '18'}) }}
+                                Accès des joueurs
+                            </h3>
+                            <p class="card-subtitle mb-0">
+                                {{ game.finishedAt is null ? 'Les joueurs suivent la partie avec ce lien, sans compte.' : 'Les joueurs retrouvent le récapitulatif avec ce lien.' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <label class="form-label" for="game-link">Lien de la partie</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" value="{{ url('app_game', {slug: game.slug}) }}"
-                                   readonly>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="tooltip"
-                                    title="Copier dans le presse-papier"
-                                    {{ stimulus_action('referee--game-form', 'copyGameLink', 'click', {url: url('app_game', {slug: game.slug})}) }}>
-                                {{ ux_icon('tabler:clipboard-text', {height: '20', width: '20'}) }}
-                            </button>
-                            <button type="button" class="btn btn-warning" data-bs-toggle="tooltip"
-                                    title="Regénérer le lien"
-                                    {{ stimulus_action('referee--game-form', 'openRegenerateSlugModal', 'click') }}>
-                                {{ ux_icon('tabler:refresh', {height: '20', width: '20'}) }}
+                            <input type="text" id="game-link" class="form-control" value="{{ gameUrl }}" readonly>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="tooltip"
+                                    title="Copier le lien" aria-label="Copier le lien"
+                                    {{ stimulus_action('referee--game-form', 'copyGameLink', 'click', {url: gameUrl}) }}>
+                                {{ ux_icon('tabler:copy', {height: '18', width: '18'}) }}
                             </button>
                         </div>
-                        <p class="form-hint">À envoyer aux participants.</p>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-4 offset-2">
-                        <a href="{{ path('app_game', {slug: game.slug}) }}" class="btn btn-success">
-                            {% if game.finishedAt is null %}
-                                Rejoindre la partie
-                            {% else %}
-                                Récapitulatif de la partie
-                            {% endif %}
-                        </a>
+                    <div class="card-footer">
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-ghost-secondary" data-bs-toggle="modal"
+                                    data-bs-target="#regenerate-slug-modal">
+                                {{ ux_icon('tabler:refresh', {height: '18', width: '18'}) }}&nbsp;Nouveau lien
+                            </button>
+                            <a href="{{ path('app_game', {slug: game.slug}) }}"
+                               class="btn {{ game.readOnly ? 'btn-primary' : 'btn-outline-primary' }} ms-auto">
+                                {% if game.finishedAt is null %}
+                                    {{ ux_icon('tabler:player-play', {height: '18', width: '18'}) }}&nbsp;Rejoindre la partie
+                                {% else %}
+                                    {{ ux_icon('tabler:list-check', {height: '18', width: '18'}) }}&nbsp;Récapitulatif
+                                {% endif %}
+                            </a>
+                        </div>
                     </div>
                 </div>
             {% endif %}
         </div>
-        <div class="card-footer">
-            <div class="d-flex">
-                <a href="{{ path('app_referee_game') }}" class="btn btn-secondary">Retour</a>
-                {% if mode == 'edit' and not game.readOnly %}
-                    <div class="vr mx-3"></div>
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#delete-game-modal">
-                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                    </button>
-                {% endif %}
-                {% if mode == 'add' or not game.readOnly %}
-                    <button type="submit" class="btn btn-success ms-auto">Enregistrer</button>
-                {% endif %}
-            </div>
-        </div>
-        {{ form_end(form) }}
     </div>
 
     {% if mode == 'edit' %}
-        {% component BootstrapModal with {id: 'delete-game-modal', status: 'danger'} %}
-            {% block modal_title %}Confirmation de la suppression{% endblock %}
-            {% block modal_body %}
-                Supprimer la partie&nbsp;?
-            {% endblock %}
-            {% block modal_footer %}
-                <form action="{{ path('app_referee_game_delete', {id: game.id}) }}" method="post" class="d-flex w-100">
-                    {{ component('CsrfInput', {tokenId: 'delete-game'}) }}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger ms-auto">
-                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                    </button>
-                </form>
+        {% component ConfirmModal with {
+            id: 'delete-game-modal',
+            title: 'Confirmation de la suppression',
+            confirmLabel: 'Supprimer',
+            confirmIcon: 'trash',
+            action: path('app_referee_game_delete', {id: game.id}),
+            tokenId: 'delete-game',
+        } %}
+            {% block content %}
+                Supprimer la partie de <strong>{{ game.team.name }}</strong> sur le <strong>{{ game.round }}</strong>&nbsp;?
             {% endblock %}
         {% endcomponent %}
 
-        {% component BootstrapModal with {id: 'regenerate-slug-modal', status: 'warning'} %}
-            {% block modal_title %}Confirmation de la régénération du lien{% endblock %}
-            {% block modal_body %}
-                <p>Êtes-vous sûr de vouloir regénérer le lien de la partie&nbsp;?</p>
-                <p class="text-danger">
-                    Attention&nbsp;: l'ancien lien ne fonctionnera plus et les participants devront utiliser le nouveau
-                    lien.
-                </p>
-            {% endblock %}
-            {% block modal_footer %}
-                <form action="{{ path('app_referee_game_regenerate_slug', {id: game.id}) }}" method="post"
-                      class="d-flex w-100">
-                    {{ component('CsrfInput', {tokenId: 'regenerate-slug'}) }}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-warning ms-auto">
-                        {{ ux_icon('tabler:refresh', {height: '18', width: '18'}) }}&nbsp;Regénérer
-                    </button>
-                </form>
+        {% component ConfirmModal with {
+            id: 'regenerate-slug-modal',
+            title: 'Générer un nouveau lien',
+            confirmLabel: 'Générer',
+            confirmIcon: 'refresh',
+            status: 'warning',
+            action: path('app_referee_game_regenerate_slug', {id: game.id}),
+            tokenId: 'regenerate-slug',
+        } %}
+            {% block content %}
+                <p>Générer un nouveau lien pour la partie&nbsp;?</p>
+                <p class="mb-0">L'ancien lien cessera de fonctionner&nbsp;: il faudra envoyer le nouveau aux joueurs.</p>
             {% endblock %}
         {% endcomponent %}
     {% endif %}
