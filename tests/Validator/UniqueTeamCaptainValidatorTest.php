@@ -31,8 +31,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $this->validator->initialize($context);
-        $this->validator->validate($members, new UniqueTeamCaptain());
+        $this->validator->validateInContext($members, new UniqueTeamCaptain(), $context);
     }
 
     public function testNoViolationWithExactlyOneCaptain(): void
@@ -46,8 +45,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $this->validator->initialize($context);
-        $this->validator->validate($members, new UniqueTeamCaptain());
+        $this->validator->validateInContext($members, new UniqueTeamCaptain(), $context);
     }
 
     public function testViolationWithTwoCaptains(): void
@@ -68,8 +66,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
             ->with($constraint->message)
             ->willReturn($builder);
 
-        $this->validator->initialize($context);
-        $this->validator->validate($members, $constraint);
+        $this->validator->validateInContext($members, $constraint, $context);
     }
 
     public function testViolationWithThreeCaptains(): void
@@ -90,8 +87,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
             ->with($constraint->message)
             ->willReturn($builder);
 
-        $this->validator->initialize($context);
-        $this->validator->validate($members, $constraint);
+        $this->validator->validateInContext($members, $constraint, $context);
     }
 
     public function testNonCollectionValueIsSkipped(): void
@@ -99,8 +95,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $this->validator->initialize($context);
-        $this->validator->validate('not a collection', new UniqueTeamCaptain());
+        $this->validator->validateInContext('not a collection', new UniqueTeamCaptain(), $context);
     }
 
     public function testNullValueIsSkipped(): void
@@ -108,8 +103,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $this->validator->initialize($context);
-        $this->validator->validate(null, new UniqueTeamCaptain());
+        $this->validator->validateInContext(null, new UniqueTeamCaptain(), $context);
     }
 
     public function testEmptyCollectionIsSkipped(): void
@@ -119,8 +113,7 @@ class UniqueTeamCaptainValidatorTest extends TestCase
         $context = $this->createMock(ExecutionContextInterface::class);
         $context->expects($this->never())->method('buildViolation');
 
-        $this->validator->initialize($context);
-        $this->validator->validate($members, new UniqueTeamCaptain());
+        $this->validator->validateInContext($members, new UniqueTeamCaptain(), $context);
     }
 
     private function createMember(bool $isCaptain): TeamMember

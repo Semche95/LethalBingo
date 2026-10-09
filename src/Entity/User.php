@@ -101,13 +101,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-    }
-
     public function __toString(): string
     {
         return $this->username ?? '';

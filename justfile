@@ -61,7 +61,7 @@ cc:
 
 # Exécute la suite de tests PHPUnit dans le conteneur PHP
 test *args:
-    @docker compose exec php ./vendor/bin/phpunit {{args}}
+    @docker compose exec php ./bin/phpunit {{args}}
 
 # Analyse statique du code avec PHPStan dans le conteneur PHP
 phpstan *args:

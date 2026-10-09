@@ -14,8 +14,8 @@ return RectorConfig::configure()
     ])
     ->withCache(__DIR__ . '/var/cache/rector')
     ->withSymfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml')
-    // Cible PHP lue depuis composer.json (require.php >= 8.4) : syntaxe moderne et dépréciations
-    ->withPhpSets()
+    // Cible PHP 8.5 : syntaxe moderne et dépréciations
+    ->withPhpSets(php85: true)
     // Sets Symfony, Doctrine, PHPUnit et Twig adaptés aux versions installées (composer.lock)
     ->withComposerBased(twig: true, doctrine: true, phpunit: true, symfony: true)
     // Annotations et docblocks remplacés par des attributs PHP

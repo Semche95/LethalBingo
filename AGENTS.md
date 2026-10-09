@@ -28,7 +28,7 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 - L'agent peut lancer `just up`, `just dev` et `just fixtures`. Avant `just dev`, vérifier qu'il ne tourne pas déjà : `docker compose ps` et `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` (un process `vite` ne suffit pas).
 - **Jamais de build d'assets** (`pnpm run build`, `just build-assets`, `vite build`) sauf demande explicite ou vérification de build de prod : le HMR de Vite gère les changements frontend.
 
-## PHP (8.4+)
+## PHP (8.5+)
 
 - Syntaxe moderne : constructor promotion, readonly, enums, match, nullsafe, first-class callables, named arguments. Pas de code déprécié.
 - Attributs PHP partout (routing, validation, ORM, security), jamais d'annotations.
@@ -37,6 +37,17 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 - **Repository** : DQL uniquement (pas de SQL natif), résultats bruts sans boucle PHP (`foreach`, `array_map`) ; le réarrangement se fait dans le service ou le contrôleur.
 - Pas de fusion PHP de données qu'un template Twig re-parcourt : exposer les jeux de données bruts comme propriétés distinctes du composant et joindre dans le template.
 - Paramètres mot de passe / secret : `#[SensitiveParameter]`.
+
+## Symfony
+
+- Nouvelle fonctionnalité via `composer require` (la recipe Flex enregistre le bundle et sa config) : jamais de `bundles.php` ni de config de bundle écrits à la main.
+- Autowiring et autoconfiguration ; cas particuliers dans la classe (`#[Autowire]`, `#[Target]`), `services.yaml` en dernier recours.
+- Données de requête via `#[MapRequestPayload]` / `#[MapQueryString]`, pas de `json_decode()` manuel.
+- Pas de service `readonly` susceptible de devenir `lazy: true` (un proxy lazy ne peut pas étendre une classe `readonly`).
+- Exclusion mutuelle (actions concurrentes sur la même donnée) via `symfony/lock` (`LockFactory`), jamais de drapeau ou fichier verrou maison.
+- En cas d'erreur, lire `var/log/dev.log` et le profiler (`/_profiler`) avant de modifier le code.
+- `make:*` avec tous les arguments et `--no-interaction` (sinon la commande s'interrompt).
+- Vérifier plutôt que supposer : `debug:router`, `debug:container`, `debug:autowiring`, `debug:config`, `config:dump-reference`, la source dans `vendor/`, et la doc de la version installée.
 
 ## Frontend
 
@@ -63,7 +74,7 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 
 ## Base de données
 
-- Doctrine ORM, PostgreSQL 16, migrations dans `migrations/`.
+- Doctrine ORM, PostgreSQL 18, migrations dans `migrations/`.
 - Après chaque changement d'Entity : `just sf doctrine:migrations:diff`, puis mettre à jour `src/DataFixtures/`.
 
 ## Structure

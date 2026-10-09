@@ -17,8 +17,8 @@ env:
     # Dummy, non-sensitive values: locally these come from .env.local (never committed).
     APP_SECRET: ci-dummy-app-secret
     MERCURE_JWT_SECRET: ci-dummy-mercure-jwt-secret-not-a-real-key
-    DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=16&charset=utf8
-    PHP_VERSION: '8.4'
+    DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+    PHP_VERSION: '8.5'
     PHP_EXTENSIONS: ctype, iconv, intl, pdo_pgsql, zip, apcu
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
 
         services:
             database:
-                image: postgres:16-alpine
+                image: postgres:18-alpine
                 env:
                     POSTGRES_DB: app
                     POSTGRES_USER: app
@@ -83,7 +83,7 @@ jobs:
                   bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration
 
             - name: Run PHPUnit
-              run: vendor/bin/phpunit
+              run: bin/phpunit
 
     static-analysis:
         name: PHPStan / PHP-CS-Fixer

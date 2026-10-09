@@ -8,7 +8,7 @@
   Create, manage and play bingo games in the world of <strong>Lethal Company</strong>.
   <br /><br />
   <a href="https://github.com/Semche95/LethalBingo/actions/workflows/ci.yml"><img src="https://github.com/Semche95/LethalBingo/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&amp;logoColor=white" alt="PHP 8.4" />
+  <img src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&amp;logoColor=white" alt="PHP 8.5" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" /></a>
 </p>
 
@@ -66,7 +66,7 @@
 
 ## Tech Stack
 
-- **Backend**: PHP 8.4, Symfony 7, Doctrine ORM 3, PostgreSQL 16
+- **Backend**: PHP 8.5, Symfony 8, Doctrine ORM 3, PostgreSQL 18
 - **Frontend**: TypeScript 5, Vite 6, Bootstrap 5 with the Tabler UI kit, Hotwired Turbo and Stimulus, Symfony UX (Live Components, Twig Components, Icons, Autocomplete)
 - **Real-time**: Mercure, served by the Caddy module built into FrankenPHP
 - **Server**: FrankenPHP, in Docker for development and production
@@ -196,7 +196,7 @@ Run `just` to list every available recipe.
 | `pnpm test` | Vitest tests for the TypeScript code |
 | `just phpstan` | PHPStan static analysis (level 6) |
 | `just cs` / `just cs-fix` | Checks / fixes the code style with PHP-CS-Fixer |
-| `just rector` / `just rector-fix` | Checks / applies Rector upgrades (PHP 8.4 syntax, deprecations) |
+| `just rector` / `just rector-fix` | Checks / applies Rector upgrades (PHP 8.5 syntax, deprecations) |
 
 Before each commit, `just test`, `just sf lint:container`, `just phpstan`, `just cs` and `just rector` must pass. The GitHub CI runs PHPUnit, PHPStan, PHP-CS-Fixer, Rector and Vitest on every push to `main` and on pull requests.
 

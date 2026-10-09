@@ -16,7 +16,7 @@ services:
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
     environment:
-      MERCURE_EXTRA_DIRECTIVES: demo
+      MERCURE_EXTRA_DIRECTIVES: debugger
       CADDY_SERVER_EXTRA_DIRECTIVES: import /etc/frankenphp/vite.caddy
       CADDY_SERVER_TLS: tls /etc/caddy/certs/cert.pem /etc/caddy/certs/cert-key.pem
       SERVER_NAME: lethalbingo.localhost

@@ -25,10 +25,27 @@
 	encode zstd br gzip
 
 	mercure {
-		# The same key signs and checks every Mercure JWT (MERCURE_JWT_SECRET,
-		# also used by Symfony to publish)
-		publisher_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_PUBLISHER_JWT_ALG}
-		subscriber_jwt {env.MERCURE_JWT_SECRET} {env.MERCURE_SUBSCRIBER_JWT_ALG}
+		# Both sites import this snippet: the shared name makes them one hub
+		# (same transport), Symfony publishing on php:80 and browsers subscribing
+		# on SERVER_NAME
+		name lethalbingo
+		# Messages are kept on disk: a browser reconnecting after a network drop
+		# sends its last received event ID and gets the messages it missed
+		transport bolt {
+			path /data/mercure.db
+		}
+		# Symfony is the only token issuer: the same key signs and checks every
+		# Mercure JWT (MERCURE_JWT_SECRET, also used by Symfony to publish)
+		issuer https://lethalbingo.app {
+			publisher {
+				jwt {env.MERCURE_JWT_SECRET} HS256
+			}
+			subscriber {
+				jwt {env.MERCURE_JWT_SECRET} HS256
+			}
+		}
+		# Expected token audience, the "aud" claim Symfony derives from public_url
+		resource_identifier {$MERCURE_PUBLIC_URL}
 		# Anonymous subscribers are wanted: players follow a game without an
 		# account. Messages only say which part of the page to refresh; game
 		# content comes from the filtered Live Component reload, never Mercure.
