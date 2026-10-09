@@ -16,7 +16,6 @@ services:
       #  from the bind-mount for better performance by enabling the next line:
       #- /app/vendor
     environment:
-      FRANKENPHP_WORKER_CONFIG: watch
       MERCURE_EXTRA_DIRECTIVES: demo
       CADDY_SERVER_EXTRA_DIRECTIVES: import /etc/frankenphp/vite.caddy
       CADDY_SERVER_TLS: tls /etc/caddy/certs/cert.pem /etc/caddy/certs/cert-key.pem
