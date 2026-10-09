@@ -201,6 +201,11 @@ class Game
         return $this->startedAt !== null || $this->finishedAt !== null;
     }
 
+    public function isInProgress(): bool
+    {
+        return $this->startedAt !== null && $this->finishedAt === null;
+    }
+
     public function getNotes(): ?string
     {
         return $this->notes;

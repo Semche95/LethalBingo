@@ -61,6 +61,10 @@ readonly class GameService
 
     public function start(Game $game): void
     {
+        if ($game->isReadOnly()) {
+            return;
+        }
+
         $game
             ->setStartedAt(new DateTimeImmutable())
             ->setFinishedAt(null)
@@ -75,6 +79,10 @@ readonly class GameService
 
     public function stop(Game $game): void
     {
+        if (!$game->isInProgress()) {
+            return;
+        }
+
         // stop() only ever modifies finishedAt; startedAt is never touched here.
         $game->setFinishedAt(new DateTimeImmutable());
         $this->em->persist($game);
@@ -84,6 +92,10 @@ readonly class GameService
 
     public function reset(Game $game): void
     {
+        if (!$game->isReadOnly()) {
+            return;
+        }
+
         $this->em->wrapInTransaction(function ($em) use ($game): void {
             $game
                 ->setStartedAt(null)

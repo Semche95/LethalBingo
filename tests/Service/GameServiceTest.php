@@ -90,15 +90,21 @@ class GameServiceTest extends TestCase
         $this->assertNull($game->getLastPausedAt());
     }
 
-    public function testStartClearsExistingFinishedAt(): void
+    public function testStartDoesNothingOnAStartedGame(): void
     {
+        $startedAt = new DateTimeImmutable('-10 minutes');
         $game = new Game();
         $game->setSlug('test');
+        $game->setStartedAt($startedAt);
         $game->setFinishedAt(new DateTimeImmutable());
 
-        $this->createGameService()->start($game);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('flush');
 
-        $this->assertNull($game->getFinishedAt());
+        $this->createGameService($em)->start($game);
+
+        $this->assertSame($startedAt, $game->getStartedAt());
+        $this->assertNotNull($game->getFinishedAt());
     }
 
     public function testEntityToDtoCopiesTeamAndRound(): void
@@ -148,6 +154,7 @@ class GameServiceTest extends TestCase
     {
         $game = new Game();
         $game->setSlug('test');
+        $game->setStartedAt(new DateTimeImmutable());
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects($this->once())->method('persist')->with($game);
@@ -158,6 +165,30 @@ class GameServiceTest extends TestCase
         $this->createGameService($em, $hub)->stop($game);
 
         $this->assertInstanceOf(DateTimeImmutable::class, $game->getFinishedAt());
+    }
+
+    public function testStopDoesNothingOnAGameNotInProgress(): void
+    {
+        $finishedAt = new DateTimeImmutable('-10 minutes');
+        $notStarted = new Game();
+        $finished = new Game()->setStartedAt(new DateTimeImmutable('-1 hour'))->setFinishedAt($finishedAt);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('flush');
+
+        $this->createGameService($em)->stop($notStarted);
+        $this->createGameService($em)->stop($finished);
+
+        $this->assertNull($notStarted->getFinishedAt());
+        $this->assertSame($finishedAt, $finished->getFinishedAt());
+    }
+
+    public function testResetDoesNothingOnANotStartedGame(): void
+    {
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('wrapInTransaction');
+
+        $this->createGameService($em)->reset(new Game());
     }
 
     public function testResetClearsAllGameState(): void
@@ -201,6 +232,7 @@ class GameServiceTest extends TestCase
     {
         $game = new Game();
         $game->setSlug('test');
+        $game->setStartedAt(new DateTimeImmutable());
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
 

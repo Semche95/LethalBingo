@@ -11,6 +11,7 @@ use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Repository\BingoSquareRepository;
 use App\Repository\BingoSquareRevealedRepository;
 use App\Repository\BingoSquareValidatedRepository;
 use App\Repository\GameRoundRepository;
@@ -39,6 +40,7 @@ readonly class BingoService
     public function __construct(
         private EntityManagerInterface $em,
         private GameRoundRepository $gameRoundRepository,
+        private BingoSquareRepository $bingoSquareRepository,
         private BingoSquareRevealedRepository $bingoSquareRevealedRepository,
         private BingoSquareValidatedRepository $bingoSquareValidatedRepository,
         private GameService $gameService,
@@ -58,6 +60,14 @@ readonly class BingoService
     public function getValidatedSquare(Game $game, int $squareId): ?BingoSquareValidated
     {
         return $this->bingoSquareValidatedRepository->findOneBy(['game' => $game, 'bingoSquare' => $squareId]);
+    }
+
+    /**
+     * The square, only if it belongs to the bingo played in the game.
+     */
+    private function findGameSquare(Game $game, int $squareId): ?BingoSquare
+    {
+        return $this->bingoSquareRepository->findOneBy(['id' => $squareId, 'round' => $game->getRound()]);
     }
 
     /**
@@ -244,10 +254,19 @@ readonly class BingoService
 
     public function reveal(Game $game, int $squareId): void
     {
+        if ($game->getFinishedAt() !== null) {
+            return;
+        }
+
+        $bingoSquare = $this->findGameSquare($game, $squareId);
+        if ($bingoSquare === null) {
+            return;
+        }
+
         try {
             $square = new BingoSquareRevealed()
                 ->setGame($game)
-                ->setBingoSquare($this->em->getReference(BingoSquare::class, $squareId))
+                ->setBingoSquare($bingoSquare)
                 ->setRevealedAt(new DateTimeImmutable());
             $this->em->persist($square);
             $this->em->flush();
@@ -258,6 +277,10 @@ readonly class BingoService
 
     public function conceal(Game $game, int $squareId): void
     {
+        if ($game->getFinishedAt() !== null) {
+            return;
+        }
+
         try {
             $square = $this->getRevealedSquare($game, $squareId);
             if ($square !== null) {
@@ -271,10 +294,19 @@ readonly class BingoService
 
     public function validate(Game $game, int $squareId): void
     {
+        if (!$game->isInProgress()) {
+            return;
+        }
+
+        $bingoSquare = $this->findGameSquare($game, $squareId);
+        if ($bingoSquare === null) {
+            return;
+        }
+
         try {
             $square = new BingoSquareValidated()
                 ->setGame($game)
-                ->setBingoSquare($this->em->getReference(BingoSquare::class, $squareId))
+                ->setBingoSquare($bingoSquare)
                 ->setValidatedAt(new DateTimeImmutable());
             $this->em->persist($square);
             $this->em->flush();
@@ -285,6 +317,10 @@ readonly class BingoService
 
     public function invalidate(Game $game, int $squareId): void
     {
+        if (!$game->isInProgress()) {
+            return;
+        }
+
         try {
             $square = $this->getValidatedSquare($game, $squareId);
             if ($square !== null) {
