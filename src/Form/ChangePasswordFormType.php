@@ -30,7 +30,7 @@ class ChangePasswordFormType extends AbstractType
     {
         return [
             new Length(min: 12, max: 4096, minMessage: 'Au moins 12 caractères', maxMessage: 'Au plus 4096 caractères'),
-            new PasswordStrength(minScore: PasswordStrength::STRENGTH_MEDIUM, message: 'Assez robuste : mélangez lettres, chiffres et symboles, ou une phrase de plusieurs mots'),
+            new PasswordStrength(minScore: PasswordStrength::STRENGTH_MEDIUM, message: 'Mélangez lettres, chiffres et symboles, ou une phrase de plusieurs mots'),
             new NotContainingUsername(),
             new NotCurrentPassword(),
         ];
