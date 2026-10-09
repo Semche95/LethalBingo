@@ -103,9 +103,8 @@ class BingoControllerTest extends ControllerTestCase
 
         $this->client->request('POST', '/referee/bingo/add-round/12', ['token' => $token]);
 
-        $round = $this->findRound(12, 3);
-        self::assertNotNull($round);
-        self::assertResponseRedirects('/referee/bingo/edit/' . $round->getId());
+        self::assertResponseRedirects('/referee/bingo');
+        self::assertNotNull($this->findRound(12, 3));
         $this->client->followRedirect();
         self::assertFlash('success', 'Round 3 de la saison 12 créé');
     }
