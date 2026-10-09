@@ -94,9 +94,20 @@ assets/controllers/ (component/ = UX), icons/, sounds/
 
 ## Backlog.md
 
-- Toutes les notes (constats, plans, TODO, bugs, décisions) vivent dans `.backlog/`, manipulé uniquement via `pnpm exec backlog` (jamais `pnpm dlx` ni `npx`), jamais dans un Markdown libre.
-- Seule source de vérité : `main` (`check_active_branches: false`). Les changements `.backlog/` sont commités avec le code de la tâche.
-- Règles détaillées dans la skill `backlog-tasks` (chargée par un hook dans la session principale) : un sous-agent qui touche à Backlog.md l'invoque via `Skill` avant d'agir.
+- Règles générales dans la skill globale `backlog-tasks` ; ci-dessous, uniquement les particularités du projet.
+- CLI : `pnpm exec backlog …` (version épinglée dans `package.json`), jamais le `backlog` global, `pnpm dlx` ni `npx`.
+- `.backlog/` est versionné, sur `main` uniquement (`check_active_branches: false`) : ses changements sont commités avec le code de la tâche.
+- Statuts : à faire = `To Do`, en cours = `In Progress`, terminé = `Done`. Pas de statut « à vérifier » : une tâche qui attend une vérification manuelle reste `In Progress`, avec ce qu'il reste à vérifier.
+- Definition of Done (`config.yml`) : test de toute nouvelle classe `src/Service/`, `src/Controller/` ou `src/Repository/`, migration et fixtures pour tout changement d'entité, puis `just test`, `just sf lint:container`, `just phpstan`, `just cs`, `just rector`.
+- Vérification visuelle sur https://lethalbingo.localhost obligatoire avant de terminer une tâche dont le changement est visible dans l'interface.
+- Langue des tâches : français.
+- Labels courants : `timer`, `gestion-parties`, `dashboard-arbitre`, `ui`, `regles-scoring`, `historique`, `contenu`, `rounds`, `preparation`, `comptes`, `traduction`.
+- Document transverse existant : règles de scoring à définir (doc-1).
+
+## Domaine
+
+- Seuls les arbitres et les administrateurs ont un compte (`User`). Les joueurs n'en ont pas : ce sont des `TeamMember` qui suivent leur partie via son lien unique.
+- Aucun pseudo de compte n'est jamais affiché aux joueurs : rien de ce qui est visible côté joueur ne dépend du `username`.
 
 ## Sécurité et erreurs
 
