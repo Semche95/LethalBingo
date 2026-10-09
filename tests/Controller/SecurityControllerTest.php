@@ -22,6 +22,24 @@ class SecurityControllerTest extends ControllerTestCase
         self::assertSelectorExists('input[name="_username"]');
     }
 
+    public function testLoggedInRefereeIsRedirectedFromTheLoginPageToTheDashboard(): void
+    {
+        $this->loginAsReferee();
+
+        $this->client->request('GET', '/user/login');
+
+        self::assertResponseRedirects('/referee');
+    }
+
+    public function testLoggedInUserWithoutRefereeRoleIsRedirectedFromTheLoginPageToTheHomePage(): void
+    {
+        $this->client->loginUser($this->createUser());
+
+        $this->client->request('GET', '/user/login');
+
+        self::assertResponseRedirects('/');
+    }
+
     public function testValidCredentialsLogInAndRedirectToTheRefereeDashboard(): void
     {
         $user = $this->createUser(['ROLE_REFEREE']);
