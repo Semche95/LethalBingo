@@ -7,6 +7,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -21,16 +22,21 @@ class ChangePasswordFormType extends AbstractType
             ->add('currentPassword', PasswordType::class, [
                 'label' => 'Mot de passe actuel',
                 'translation_domain' => false,
+                'always_empty' => false,
                 'attr' => [
                     'autocomplete' => 'current-password',
                 ],
                 'constraints' => [
                     new NotBlank(message: 'Veuillez entrer votre mot de passe actuel'),
+                    new UserPassword(message: 'Le mot de passe actuel est incorrect.'),
                 ],
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'translation_domain' => false,
+                'options' => [
+                    'always_empty' => false,
+                ],
                 'first_options' => [
                     'label' => 'Nouveau mot de passe',
                     'translation_domain' => false,

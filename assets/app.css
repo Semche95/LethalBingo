@@ -959,41 +959,18 @@ li.sidebar-category > span {
 }
 
 /* ===================== */
-/* Profile Card          */
+/* Profile               */
 /* ===================== */
 
-.profile-card {
-    border-radius: 0.75rem;
-    overflow: hidden;
-}
-
-.profile-cover {
-    height: 80px;
-    background: linear-gradient(135deg, #1c7ed6, #339af0 50%, #51cf66);
-}
-
 .profile-avatar {
-    width: 80px;
-    height: 80px;
-    margin: -40px auto 0;
-    background: var(--tblr-bg-surface);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid var(--tblr-bg-surface);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.profile-avatar .avatar {
-    background: linear-gradient(135deg, var(--tblr-primary), #1c7ed6) !important;
-    border: none !important;
+    background: linear-gradient(135deg, var(--tblr-primary), var(--tblr-azure));
     color: white;
+    box-shadow: var(--tblr-shadow-card);
 }
 
 .profile-name {
     font-weight: 700;
-    font-size: 1.15rem;
+    font-size: 1.5rem;
     color: var(--tblr-heading-color);
 }
 
