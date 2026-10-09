@@ -76,7 +76,7 @@ This project uses environment variables to store sensitive information like pass
 - `SessionIdleTimeoutListener` keeps the time of the last activity in the session (`_last_activity`), set at login and on every request the user makes: page loads, Turbo visits, form submits
 - Requests the page sends by itself never count: the `/csrf-tokens` ping, Live Component re-renders (including the ones triggered by Mercure), Turbo prefetches (`Sec-Purpose` / `X-Sec-Purpose: prefetch`) and the timer resync (`/server-time`)
 - Clicks, key presses, wheel and touch events in the page (for example the ones that only trigger a Live Component action) are reported by the ping as `idle`, the seconds since the last one; the server keeps `max(last activity, now - idle)`. A client lying about it only keeps its own session open, and the reporting lag (one ping interval at most) is negligible against the timeout
-- Once the timeout is exceeded, the next request logs the user out (session invalidated) with a flash message: a page request is redirected to the login page (and back to the requested page after logging in again), a Live Component request gets an `X-Live-Redirect` to it, and the ping gets a `401` on which `csrf-refresh` shows the login page, so an unattended screen does not keep showing stale content
+- Once the timeout is exceeded, the next request logs the user out (session invalidated) with a flash message: a page request is redirected to the login page (logging in again always leads to the dashboard), a Live Component request gets an `X-Live-Redirect` to it, and the ping gets a `401` on which `csrf-refresh` shows the login page, so an unattended screen does not keep showing stale content
 
 ### Login Throttling
 

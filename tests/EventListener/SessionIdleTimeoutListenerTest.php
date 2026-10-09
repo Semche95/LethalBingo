@@ -62,7 +62,7 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
         $this->assertLoggedOut();
     }
 
-    public function testLoggingInAgainAfterTheTimeoutGoesBackToTheRequestedPage(): void
+    public function testLoggingInAgainAfterTheTimeoutGoesToTheDashboard(): void
     {
         $user = $this->startActiveSession();
 
@@ -71,7 +71,7 @@ class SessionIdleTimeoutListenerTest extends ControllerTestCase
         $this->client->followRedirect();
         $this->client->submitForm('Se connecter', ['_username' => $user->getUsername(), '_password' => self::PASSWORD]);
 
-        self::assertResponseRedirects('http://localhost/referee/team');
+        self::assertResponseRedirects('/referee');
     }
 
     public function testRememberedSessionOutlivesTheDefaultTimeout(): void

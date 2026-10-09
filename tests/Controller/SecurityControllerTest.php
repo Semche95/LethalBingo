@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\User;
+
 class SecurityControllerTest extends ControllerTestCase
 {
     protected function setUp(): void
@@ -53,6 +55,19 @@ class SecurityControllerTest extends ControllerTestCase
         self::assertResponseRedirects('/referee');
         $this->client->followRedirect();
         self::assertResponseIsSuccessful();
+    }
+
+    public function testLoginRecordsTheLoginDate(): void
+    {
+        $user = $this->createUser(['ROLE_REFEREE']);
+
+        $this->client->request('GET', '/user/login');
+        $this->client->submitForm('Se connecter', [
+            '_username' => $user->getUsername(),
+            '_password' => self::PASSWORD,
+        ]);
+
+        self::assertNotNull($this->reload(User::class, $user->getId())?->getLastLoginAt());
     }
 
     public function testInvalidCredentialsShowAnErrorAndKeepTheUsername(): void

@@ -1,12 +1,16 @@
 ---
 id: TASK-37
-title: 'Rattacher chaque équipe, bingo et partie à un ou plusieurs arbitres'
+title: >-
+  Restreindre la visibilité des équipes, bingos et parties à des groupes
+  d'arbitres
 status: To Do
 assignee: []
 created_date: '2026-10-09 21:10'
+updated_date: '2026-10-09 21:51'
 labels:
   - gestion-parties
   - dashboard-arbitre
+  - comptes
 dependencies: []
 priority: medium
 type: feature
@@ -16,21 +20,28 @@ ordinal: 41000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Aujourd'hui, tout arbitre voit et modifie toutes les équipes, tous les bingos et toutes les parties. Chaque équipe, bingo et partie doit être rattaché à un arbitre, ou à plusieurs (choix à trancher avant l'implémentation), afin que chacun travaille sur ses propres éléments. Les administrateurs gardent l'accès à tout.
+Aujourd'hui, tout arbitre voit et modifie toutes les équipes, tous les bingos et toutes les parties. Les arbitres doivent être répartis en groupes d'organisateurs : les arbitres d'un groupe préparent et arbitrent ensemble leurs propres bingos, et ne connaissent ni le contenu ni les arbitres des autres groupes. Un groupe peut ne compter qu'un seul arbitre.
 
-Points à trancher avant l'implémentation :
-- un seul arbitre ou plusieurs par élément ;
-- un bingo (round) est partagé par toutes les équipes qui le jouent : s'il appartient à un arbitre, il faut décider si les arbitres des autres équipes peuvent le consulter ou le modifier ;
-- une partie relie une équipe et un bingo : il faut décider si son arbitre est hérité de l'équipe, du bingo, ou choisi indépendamment, pour éviter trois rattachements contradictoires ;
-- l'interdiction de démarrer le round suivant tant que toutes les équipes n'ont pas terminé le round en cours concerne des parties d'arbitres différents : il faut décider qui voit cet état et qui peut débloquer.
+Règles retenues :
+- un arbitre appartient à un seul groupe ;
+- une partie, son équipe et son bingo appartiennent toujours au même groupe ;
+- le blocage du round suivant ne compte que les équipes du groupe ;
+- seul l'administrateur, qui gère techniquement l'application, crée les groupes et y affecte les arbitres ;
+- l'administrateur voit le contenu de tous les groupes.
+
+**Renvois**
+- TASK-28 : Empêcher le démarrage d'un round suivant tant que le round en cours n'est pas terminé par toutes les équipes
+- TASK-38 : Ajouter une page d'administration des comptes
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Le choix entre un ou plusieurs arbitres par élément est tranché et documenté dans une décision Backlog.md
-- [ ] #2 Chaque équipe, bingo et partie est rattaché à son ou ses arbitres
-- [ ] #3 Un arbitre ne voit et ne modifie dans le tableau de bord que les éléments qui lui sont rattachés, selon les règles de partage décidées pour les bingos
-- [ ] #4 Un administrateur voit et modifie tous les éléments
+- [ ] #1 Chaque arbitre appartient à un seul groupe
+- [ ] #2 Chaque équipe, bingo et partie appartient à un groupe, et une partie ne peut relier qu'une équipe et un bingo de son groupe
+- [ ] #3 Un arbitre ne voit et ne modifie que les équipes, bingos et parties de son groupe, et ne voit pas les arbitres des autres groupes
+- [ ] #4 Le blocage du round suivant ne compte que les équipes du groupe
+- [ ] #5 Seul l'administrateur crée les groupes et y affecte les arbitres
+- [ ] #6 L'administrateur voit et modifie le contenu de tous les groupes
 <!-- AC:END -->
 
 ## Definition of Done

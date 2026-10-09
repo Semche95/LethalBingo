@@ -19,7 +19,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
-use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 /**
  * Logs the user out after a long period without real activity (docs/SECURITY.md,
@@ -41,8 +40,6 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
 #[AsEventListener(event: LoginSuccessEvent::class, method: 'onLoginSuccess', priority: -48)]
 final readonly class SessionIdleTimeoutListener
 {
-    use TargetPathTrait;
-
     /** Unix time of the last activity of the logged-in user */
     public const string LAST_ACTIVITY = '_last_activity';
     /** Set when "Se souvenir de moi" was ticked at login: longer timeout */
@@ -54,7 +51,6 @@ final readonly class SessionIdleTimeoutListener
     private const string PING_ROUTE = 'app_csrf_tokens';
     /** Requests sent by the page itself, without any user action */
     private const array PASSIVE_ROUTES = [self::PING_ROUTE, 'app_server_time'];
-    private const string FIREWALL = 'main';
 
     public function __construct(
         private Security $security,
@@ -142,10 +138,6 @@ final readonly class SessionIdleTimeoutListener
 
         if ($this->isPing($request)) {
             return $this->sessionExpiredResponse();
-        }
-
-        if ($request->isMethod('GET') && !$this->isLiveComponent($request) && !$request->isXmlHttpRequest()) {
-            $this->saveTargetPath($session, self::FIREWALL, $request->getUri());
         }
 
         // A Live Component request gets this redirect as an empty response with an

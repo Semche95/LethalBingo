@@ -4,6 +4,7 @@ title: Ajouter une page d'administration des comptes
 status: To Do
 assignee: []
 created_date: '2026-10-09 21:10'
+updated_date: '2026-10-09 21:51'
 labels:
   - comptes
 dependencies: []
@@ -16,6 +17,9 @@ ordinal: 42000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Les comptes arbitres ne se gèrent pas depuis l'application. Une page réservée aux administrateurs, distincte du profil, doit permettre de créer un compte arbitre, de changer le rôle d'un compte et de réinitialiser son mot de passe.
+
+**Renvois**
+- TASK-37 : Restreindre la visibilité des équipes, bingos et parties à des groupes d'arbitres
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

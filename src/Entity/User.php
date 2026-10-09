@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Stringable;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(fields: ['username'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface, Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -34,6 +36,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
      */
     #[ORM\Column]
     private string $password;
+
+    /**
+     * Bumped to log out every other session and remember-me cookie of the user
+     * (compared by isEqualTo() and signed into the remember-me cookie).
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $sessionVersion = 0;
+
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $lastLoginAt = null;
+
+    /** Login before the current one, shown on the profile to spot an unknown login */
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $previousLoginAt = null;
 
     public function getId(): ?int
     {
@@ -99,6 +115,58 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Stringa
         $this->password = $password;
 
         return $this;
+    }
+
+    public function getSessionVersion(): int
+    {
+        return $this->sessionVersion;
+    }
+
+    public function invalidateOtherSessions(): static
+    {
+        ++$this->sessionVersion;
+
+        return $this;
+    }
+
+    public function getLastLoginAt(): ?DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function getPreviousLoginAt(): ?DateTimeImmutable
+    {
+        return $this->previousLoginAt;
+    }
+
+    public function recordLogin(DateTimeImmutable $at): static
+    {
+        $this->previousLoginAt = $this->lastLoginAt;
+        $this->lastLoginAt = $at;
+
+        return $this;
+    }
+
+    /**
+     * Same checks as Symfony's default comparison (password, roles, identifier),
+     * plus the session version: a session opened before invalidateOtherSessions()
+     * no longer matches the user reloaded from the database and is logged out.
+     */
+    public function isEqualTo(UserInterface $user): bool
+    {
+        if (!$user instanceof self) {
+            return false;
+        }
+
+        $roles = $this->getRoles();
+        $otherRoles = $user->getRoles();
+        sort($roles);
+        sort($otherRoles);
+
+        return $this->password === $user->getPassword()
+            && $this->username === $user->getUserIdentifier()
+            && $roles === $otherRoles
+            && $this->sessionVersion === $user->getSessionVersion();
     }
 
     public function __toString(): string

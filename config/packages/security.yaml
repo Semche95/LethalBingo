@@ -25,13 +25,17 @@ security:
             form_login:
                 login_path: app_login
                 check_path: app_login
+                # Always the dashboard after logging in, never the page asked before
                 default_target_path: app_referee_dashboard
+                always_use_default_target_path: true
                 enable_csrf: true
             # "Se souvenir de moi" on the login page; signed with the user's password hash,
-            # so changing the password invalidates the cookie
+            # so changing the password invalidates the cookie; same for the session version
+            # ("Déconnecter les autres sessions" on the profile)
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: '%app.remembered_session_idle_timeout%'
+                signature_properties: [password, sessionVersion]
             logout:
                 path: app_logout
                 # POST form carrying the "logout" token in a field named "token" (CsrfInput component)

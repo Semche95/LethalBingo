@@ -6,12 +6,19 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-30 16:16'
-updated_date: '2026-10-02 21:11'
+updated_date: '2026-10-09 21:51'
 labels:
   - rounds
 dependencies: []
 ordinal: 32000
 ---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+**Renvois**
+- TASK-37 : Restreindre la visibilité des équipes, bingos et parties à des groupes d'arbitres (le blocage ne comptera que les équipes du groupe)
+<!-- SECTION:DESCRIPTION:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
