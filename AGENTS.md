@@ -28,12 +28,16 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 - L'agent peut lancer `just up`, `just dev` et `just fixtures`. Avant `just dev`, vérifier qu'il ne tourne pas déjà : `docker compose ps` et `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` (un process `vite` ne suffit pas).
 - **Jamais de build d'assets** (`pnpm run build`, `just build-assets`, `vite build`) sauf demande explicite ou vérification de build de prod : le HMR de Vite gère les changements frontend.
 
+## Principes généraux
+
+- **DRY dans toute l'app** (PHP, Twig, TS, CSS) : avant d'écrire un bloc qui existe déjà ailleurs, le factoriser (Service, composant Twig, macro, helper TS, classe CSS) et réutiliser l'existant. Ex. : modales de confirmation via le composant `ConfirmModal`.
+
 ## PHP (8.5+)
 
 - Syntaxe moderne : constructor promotion, readonly, enums, match, nullsafe, first-class callables, named arguments. Pas de code déprécié.
 - Attributs PHP partout (routing, validation, ORM, security), jamais d'annotations.
 - `new ClassName()->method()` sans parenthèses autour du `new`.
-- Pas d'appel entre controllers : logique partagée dans un Service. DRY, early returns, pas de globales.
+- Pas d'appel entre controllers : logique partagée dans un Service. Early returns, pas de globales.
 - **Repository** : DQL uniquement (pas de SQL natif), résultats bruts sans boucle PHP (`foreach`, `array_map`) ; le réarrangement se fait dans le service ou le contrôleur.
 - Pas de fusion PHP de données qu'un template Twig re-parcourt : exposer les jeux de données bruts comme propriétés distinctes du composant et joindre dans le template.
 - Paramètres mot de passe / secret : `#[SensitiveParameter]`.
