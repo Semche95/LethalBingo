@@ -19,12 +19,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
+use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Runs every test inside a transaction rolled back on tearDown, so the test
  * database stays empty whatever the test writes. The kernel is never rebooted
  * between requests to keep that single connection (and its transaction).
+ * The Mercure hub is mocked so no test publishes to a real hub.
  */
 abstract class ControllerTestCase extends WebTestCase
 {
@@ -37,6 +40,11 @@ abstract class ControllerTestCase extends WebTestCase
     {
         $this->client = self::createClient();
         $this->client->disableReboot();
+        self::getContainer()->set('mercure.hub.default.traceable', new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('test-token'),
+            static fn (): string => 'test-update',
+        ));
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->em->getConnection()->beginTransaction();
     }

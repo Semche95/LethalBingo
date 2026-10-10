@@ -18,3 +18,12 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        # Tests never reach an external service: an empty response list makes
+        # every HTTP request fail instead of leaving the machine
+        http_client:
+            mock_response_factory: app.test.no_http_response
+
+    services:
+        app.test.no_http_response:
+            class: ArrayIterator
+            arguments: [[]]
