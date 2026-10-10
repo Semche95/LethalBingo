@@ -65,13 +65,7 @@ readonly class GameService
             return;
         }
 
-        $game
-            ->setStartedAt(new DateTimeImmutable())
-            ->setFinishedAt(null)
-            ->setIsPaused(false)
-            ->setTotalPausedSeconds(0)
-            ->setManualAdjustmentSeconds(0)
-            ->setLastPausedAt(null);
+        $game->resetTimer(new DateTimeImmutable());
         $this->em->persist($game);
         $this->em->flush();
         $this->refreshGameFrame($game);
@@ -97,17 +91,12 @@ readonly class GameService
         }
 
         $this->em->wrapInTransaction(function ($em) use ($game): void {
-            $game
-                ->setStartedAt(null)
-                ->setFinishedAt(null)
-                ->setIsPaused(false)
-                ->setTotalPausedSeconds(0)
-                ->setManualAdjustmentSeconds(0)
-                ->setLastPausedAt(null);
-            $game->getBingoSquareRevealed()->clear();
-            foreach ($game->getBingoSquareValidated() as $square) {
-                $em->remove($square);
+            $game->resetTimer(null);
+            foreach ([...$game->getBingoSquareRevealed(), ...$game->getBingoSquareValidated()] as $mark) {
+                $em->remove($mark);
             }
+            $game->getBingoSquareRevealed()->clear();
+            $game->getBingoSquareValidated()->clear();
             $em->persist($game);
         });
         $this->refreshGameFrame($game);

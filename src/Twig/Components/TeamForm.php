@@ -5,10 +5,10 @@ namespace App\Twig\Components;
 use App\Entity\Team;
 use App\Form\TeamFormType;
 use App\Repository\TeamMemberRepository;
+use App\Service\RefreshEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -31,9 +31,6 @@ final class TeamForm extends AbstractController
     #[LiveProp]
     public string $mode;
 
-    #[LiveProp]
-    public bool $modalMode = false;
-
     public function __construct(
         private readonly LiveResponder $liveResponder,
         private readonly TeamMemberRepository $teamMemberRepository,
@@ -53,7 +50,7 @@ final class TeamForm extends AbstractController
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
-    public function save(EntityManagerInterface $em): ?RedirectResponse
+    public function save(EntityManagerInterface $em): void
     {
         $this->submitForm();
 
@@ -62,25 +59,16 @@ final class TeamForm extends AbstractController
         $em->persist($team);
         $em->flush();
 
-        if ($this->modalMode) {
-            $this->liveResponder->dispatchBrowserEvent(
-                $this->mode === 'edit' ? 'team:updated' : 'team:added',
-                [
-                    'id' => $team->getId(),
-                    'name' => $team->getName(),
-                    'members' => $this->teamMemberRepository->findNamesByTeamOrdered($team->getId()),
-                    'flash' => ['type' => 'success', 'message' => 'Équipe enregistrée'],
-                ],
-            );
-
-            return null;
-        }
-
-        $this->addFlash('success', 'Équipe enregistrée');
-
-        return $this->redirectToRoute('app_referee_team_edit', [
-            'id' => $team->getId(),
-        ]);
+        $this->liveResponder->emit(RefreshEvent::TeamList->value);
+        $this->liveResponder->dispatchBrowserEvent(
+            $this->mode === 'edit' ? 'team:updated' : 'team:added',
+            [
+                'id' => $team->getId(),
+                'name' => $team->getName(),
+                'members' => $this->teamMemberRepository->findNamesByTeamOrdered($team->getId()),
+                'flash' => ['type' => 'success', 'message' => 'Équipe enregistrée'],
+            ],
+        );
     }
 
     #[LiveAction]

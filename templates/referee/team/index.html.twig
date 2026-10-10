@@ -4,4 +4,14 @@
     {{ parent() }}
 
     {{ component('TeamList') }}
+
+    {% if team %}
+        <twig:ModalLoaderLink
+            :href="path('app_referee_team_edit', {id: team.id})"
+            title="Modifier l'équipe"
+            class="d-none"
+            data-modal-loader-auto-open-value="true"
+            data-modal-loader-close-url-value="{{ path('app_referee_team') }}"
+        />
+    {% endif %}
 {% endblock %}

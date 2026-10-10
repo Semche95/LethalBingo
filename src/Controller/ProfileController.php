@@ -4,12 +4,12 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\EventListener\SessionIdleTimeoutListener;
+use App\Service\CsrfGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -36,10 +36,9 @@ class ProfileController extends AbstractController
         #[CurrentUser] User $user,
         EntityManagerInterface $em,
         RememberMeHandlerInterface $rememberMe,
+        CsrfGuard $csrfGuard,
     ): RedirectResponse {
-        if (!$this->isCsrfTokenValid('logout-other-sessions', $request->getPayload()->getString('token'))) {
-            throw new BadRequestHttpException('Token invalid');
-        }
+        $csrfGuard->assertValid('logout-other-sessions', $request->getPayload()->getString('token'));
 
         $user->invalidateOtherSessions();
         $em->flush();

@@ -1,3 +1,4 @@
+{% import 'macros.html.twig' as macros %}
 {% set gameIndex = this.games|reduce((acc, g) => acc|merge({
     (g.season ~ '_' ~ g.round_number ~ '_' ~ g.team_id): g
 }), {}) %}
@@ -7,15 +8,16 @@
 [])|sort|reverse %}
 
 <div {{ attributes }}>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="dashboard-title">Parties</h1>
-        <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
-            {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
-        </a>
-    </div>
+    {% component PageHeader with {title: 'Parties', spacing: 3} %}
+        {% block actions %}
+            <a href="{{ path('app_referee_game_add') }}" class="btn btn-primary">
+                {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle partie
+            </a>
+        {% endblock %}
+    {% endcomponent %}
 
     {% if seasons is empty %}
-        <p class="text-secondary">Aucune partie créée</p>
+        {{ macros.empty_state('Aucune partie créée', false) }}
     {% else %}
         <div {{ stimulus_controller('referee--game-season-accordion') }}>
             {% for season in seasons %}
@@ -81,19 +83,7 @@
                                                     <td class="game-grid-cell">
                                                 {% endif %}
                                                         {% if cell is not null and cell.game_id is not null %}
-                                                            {% if cell.finishedAt is not null %}
-                                                                <span class="badge bg-green-lt">
-                                                                    {{ ux_icon('tabler:check', {height: '14', width: '14'}) }}{{ cell.finishedAt|format_date(pattern='d MMM H:mm', locale='fr') }}
-                                                                </span>
-                                                            {% elseif cell.startedAt is not null %}
-                                                                <span class="badge bg-blue-lt">
-                                                                    {{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}{{ cell.startedAt|format_date(pattern='d MMM H:mm', locale='fr') }}
-                                                                </span>
-                                                            {% else %}
-                                                                <span class="badge bg-secondary-lt">
-                                                                    {{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}à venir
-                                                                </span>
-                                                            {% endif %}
+                                                            <twig:GameStatusBadge :finishedAt="cell.finishedAt" :startedAt="cell.startedAt" :showDate="true" />
                                                             {{ ux_icon('tabler:pencil', {class: 'game-grid-pencil-icon'}) }}
                                                         {% endif %}
                                                     </td>

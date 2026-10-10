@@ -1,4 +1,5 @@
 {% extends 'layouts/referee.html.twig' %}
+{% import 'macros.html.twig' as macros %}
 
 {% form_theme form _self %}
 
@@ -7,64 +8,40 @@
 
 {% block content %}
     {{ parent() }}
-    <div class="dashboard-welcome mb-4">
-        <div class="d-flex align-items-center gap-2">
-            <h1 class="dashboard-title mb-0">{{ mode == 'edit' ? 'Fiche de la partie' : 'Nouvelle partie' }}</h1>
+    {% component PageHeader with {title: mode == 'edit' ? 'Fiche de la partie' : 'Nouvelle partie'} %}
+        {% block after_title %}
             {% if mode == 'edit' %}
-                {% if game.finishedAt is not null %}
-                    <span class="badge bg-green-lt">{{ ux_icon('tabler:check', {height: '14', width: '14'}) }}&nbsp;Terminée</span>
-                {% elseif game.startedAt is not null %}
-                    <span class="badge bg-blue-lt">{{ ux_icon('tabler:player-play', {height: '14', width: '14'}) }}&nbsp;En cours</span>
-                {% else %}
-                    <span class="badge bg-secondary-lt">{{ ux_icon('tabler:clock', {height: '14', width: '14'}) }}&nbsp;À venir</span>
-                {% endif %}
+                <twig:GameStatusBadge :finishedAt="game.finishedAt" :startedAt="game.startedAt" />
             {% endif %}
-        </div>
-        {% if mode == 'edit' %}
-            <p class="dashboard-subtitle">
+        {% endblock %}
+        {% block subtitle %}
+            {% if mode == 'edit' %}
                 {{ game.team.name }} · {{ game.round }}
-                {% if game.finishedAt is not null %}
+                {% if game.finished %}
                     · terminée le {{ game.finishedAt|format_date(pattern: "d MMM 'à' H:mm", locale: 'fr') }}
-                {% elseif game.startedAt is not null %}
+                {% elseif game.started %}
                     · commencée le {{ game.startedAt|format_date(pattern: "d MMM 'à' H:mm", locale: 'fr') }}
                 {% endif %}
-            </p>
-        {% else %}
-            <p class="dashboard-subtitle">Choisissez le bingo et l'équipe qui va le jouer</p>
-        {% endif %}
-    </div>
+            {% else %}
+                Choisissez le bingo et l'équipe qui va le jouer
+            {% endif %}
+        {% endblock %}
+    {% endcomponent %}
 
-    <div class="row g-4" {{ stimulus_controller('referee--game-form') }}>
+    <div class="row g-4" {{ stimulus_controller('referee--game-form') }} data-action="team:added@document->referee--game-form#onTeamAdded team:updated@document->referee--game-form#onTeamAdded">
         <div class="col-lg-7">
             <div class="card">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-title d-flex align-items-center gap-2">
-                            {{ ux_icon('tabler:adjustments', {height: '18', width: '18'}) }}
-                            Paramètres
-                        </h3>
-                        <p class="card-subtitle mb-0">Le bingo joué et l'équipe qui y participe.</p>
-                    </div>
-                </div>
+                {{ macros.card_header('Paramètres', 'adjustments', 'Le bingo joué et l\'équipe qui y participe.') }}
 
                 {{ form_start(form, {attr: stimulus_target('referee--game-form', 'form').toArray()}) }}
                 <div class="card-body">
                     {% for error in form.vars.errors %}
-                        <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
-                            {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                            <div>{{ error.message }}</div>
-                        </div>
+                        <twig:Alert>{{ error.message }}</twig:Alert>
                     {% endfor %}
-                    {% if mode == 'edit' and game.finishedAt is not null %}
-                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
-                            {{ ux_icon('tabler:flag-check', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                            <div>La partie est terminée&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</div>
-                        </div>
+                    {% if mode == 'edit' and game.finished %}
+                        <twig:Alert type="info" icon="flag-check">La partie est terminée&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</twig:Alert>
                     {% elseif mode == 'edit' and game.readOnly %}
-                        <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
-                            {{ ux_icon('tabler:lock', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                            <div>La partie est en cours&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</div>
-                        </div>
+                        <twig:Alert type="info" icon="lock">La partie est en cours&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</twig:Alert>
                     {% endif %}
 
                     <div class="mb-3">
@@ -77,12 +54,9 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             {{ form_label(form.team, null, {label_attr: {class: 'mb-0'}}) }}
                             {% if mode == 'add' or not game.readOnly %}
-                                <a href="{{ path('app_referee_team_add') }}" class="btn btn-sm btn-outline-primary"
-                                   data-controller="modal-loader"
-                                   data-action="click->modal-loader#open"
-                                   data-modal-loader-title-value="Nouvelle équipe">
+                                <twig:ModalLoaderLink :href="path('app_referee_team_add')" title="Nouvelle équipe" class="btn btn-sm btn-outline-primary">
                                     {{ ux_icon('tabler:plus', {height: '16', width: '16'}) }}&nbsp;Nouvelle équipe
-                                </a>
+                                </twig:ModalLoaderLink>
                             {% endif %}
                         </div>
                         {{ form_widget(form.team) }}
@@ -91,19 +65,12 @@
                 </div>
 
                 <div class="card-footer">
-                    <div class="d-flex align-items-center">
-                        <a href="{{ path('app_referee_game') }}" class="btn btn-outline-secondary">Retour</a>
-                        {% if mode == 'edit' and not game.readOnly %}
-                            <div class="vr mx-3"></div>
-                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                                    data-bs-target="#delete-game-modal">
-                                {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                            </button>
-                        {% endif %}
-                        {% if mode == 'add' or not game.readOnly %}
-                            <button type="submit" class="btn btn-primary ms-auto">Enregistrer</button>
-                        {% endif %}
-                    </div>
+                    <twig:FormFooterActions
+                        :backUrl="path('app_referee_game')"
+                        :deleteModalId="mode == 'edit' ? 'delete-game-modal' : null"
+                        :deleteDisabledReason="mode == 'edit' and game.readOnly ? 'Impossible de supprimer une partie démarrée ou terminée' : null"
+                        :canSave="mode == 'add' or not game.readOnly"
+                    />
                 </div>
                 {{ form_end(form) }}
             </div>
@@ -120,17 +87,7 @@
             {% else %}
                 {% set gameUrl = url('app_game', {slug: game.slug}) %}
                 <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <h3 class="card-title d-flex align-items-center gap-2">
-                                {{ ux_icon('tabler:link', {height: '18', width: '18'}) }}
-                                Accès des joueurs
-                            </h3>
-                            <p class="card-subtitle mb-0">
-                                {{ game.finishedAt is null ? 'Les joueurs suivent la partie avec ce lien, sans compte.' : 'Les joueurs retrouvent le récapitulatif avec ce lien.' }}
-                            </p>
-                        </div>
-                    </div>
+                    {{ macros.card_header('Accès des joueurs', 'link', not game.finished ? 'Les joueurs suivent la partie avec ce lien, sans compte.' : 'Les joueurs retrouvent le récapitulatif avec ce lien.') }}
                     <div class="card-body">
                         <label class="form-label" for="game-link">Lien de la partie</label>
                         <div class="input-group">
@@ -150,7 +107,7 @@
                             </button>
                             <a href="{{ path('app_game', {slug: game.slug}) }}"
                                class="btn {{ game.readOnly ? 'btn-primary' : 'btn-outline-primary' }} ms-auto">
-                                {% if game.finishedAt is null %}
+                                {% if not game.finished %}
                                     {{ ux_icon('tabler:player-play', {height: '18', width: '18'}) }}&nbsp;Rejoindre la partie
                                 {% else %}
                                     {{ ux_icon('tabler:list-check', {height: '18', width: '18'}) }}&nbsp;Récapitulatif

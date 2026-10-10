@@ -51,6 +51,5 @@ class RefereeAccessTest extends ControllerTestCase
         yield 'bingos' => ['/referee/bingo'];
         yield 'new bingo' => ['/referee/bingo/add'];
         yield 'teams' => ['/referee/team'];
-        yield 'new team' => ['/referee/team/add'];
     }
 }

@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
-import { focusFirstInput, showToast } from '../../utils'
-import { Modal } from 'bootstrap'
+import type TomSelect from 'tom-select'
+import { focusFirstInput, getTomSelect, showToast } from '../../utils'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -11,13 +11,6 @@ export default class extends Controller<HTMLDivElement> {
 
     override connect() {
         focusFirstInput(this.formTarget)
-        document.addEventListener('team:added', this.onTeamAdded)
-        document.addEventListener('team:updated', this.onTeamAdded)
-    }
-
-    override disconnect() {
-        document.removeEventListener('team:added', this.onTeamAdded)
-        document.removeEventListener('team:updated', this.onTeamAdded)
     }
 
     async copyGameLink({ params: { url } }: ActionEvent) {
@@ -25,14 +18,8 @@ export default class extends Controller<HTMLDivElement> {
         showToast('Lien copié')
     }
 
-    onTeamAdded = (event: Event) => {
+    onTeamAdded(event: Event) {
         const { id, name, members, flash } = (event as CustomEvent).detail
-
-        const modalEl = document.getElementById('add-team-modal')
-        if (modalEl) {
-            const bsModal = Modal.getInstance(modalEl)
-            bsModal?.hide()
-        }
 
         if (flash) {
             showToast(flash.message, flash.type)
@@ -45,22 +32,25 @@ export default class extends Controller<HTMLDivElement> {
 
         const text = members?.length > 0 ? `${name} (${members.join(', ')})` : name
 
-        const toms = (select as any).tomselect
-        if (toms) {
+        const selectTeam = (toms: TomSelect): void => {
             toms.addOption({ value: String(id), text })
             toms.setValue(String(id))
+        }
+
+        const toms = getTomSelect(select)
+        if (toms) {
+            selectTeam(toms)
             return
         }
 
         const observer = new MutationObserver(() => {
-            const toms = (select as any).tomselect
+            const toms = getTomSelect(select)
             if (!toms) {
                 return
             }
 
             observer.disconnect()
-            toms.addOption({ value: String(id), text })
-            toms.setValue(String(id))
+            selectTeam(toms)
         })
 
         observer.observe(this.teamTarget, { childList: true, subtree: true })

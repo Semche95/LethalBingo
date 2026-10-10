@@ -196,14 +196,36 @@ class Game
         return $this;
     }
 
+    // Puts the timer back to a fresh state, started at $startedAt (or not started).
+    public function resetTimer(?DateTimeImmutable $startedAt): static
+    {
+        return $this
+            ->setStartedAt($startedAt)
+            ->setFinishedAt(null)
+            ->setIsPaused(false)
+            ->setTotalPausedSeconds(0)
+            ->setManualAdjustmentSeconds(0)
+            ->setLastPausedAt(null);
+    }
+
+    public function isStarted(): bool
+    {
+        return $this->startedAt !== null;
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->finishedAt !== null;
+    }
+
     public function isReadOnly(): bool
     {
-        return $this->startedAt !== null || $this->finishedAt !== null;
+        return $this->isStarted() || $this->isFinished();
     }
 
     public function isInProgress(): bool
     {
-        return $this->startedAt !== null && $this->finishedAt === null;
+        return $this->isStarted() && !$this->isFinished();
     }
 
     public function getNotes(): ?string

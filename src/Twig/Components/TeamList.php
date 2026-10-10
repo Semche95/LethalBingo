@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Repository\TeamRepository;
+use App\Service\RefreshEvent;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
-use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
@@ -34,7 +35,7 @@ final class TeamList
         $this->loadTeams();
     }
 
-    #[LiveAction]
+    #[LiveListener(RefreshEvent::TeamList->value)]
     public function loadTeams(): void
     {
         $this->teams = $this->teamRepository->findWithMembers($this->search !== '' ? $this->search : null);

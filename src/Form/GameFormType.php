@@ -17,40 +17,28 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class GameFormType extends AbstractType
 {
+    // Searchable select that loses focus once a choice is made.
+    private const array SELECT_OPTIONS = [
+        'placeholder' => '- Choisir -',
+        'attr' => [
+            'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
+        ],
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('team', EntityType::class, [
                 'class' => Team::class,
                 'label' => 'Équipe',
-                'placeholder' => '- Choisir -',
-                'attr' => [
-                    'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
-                ],
+                ...self::SELECT_OPTIONS,
             ])
             ->add('round', EntityType::class, [
                 'class' => GameRound::class,
                 'label' => 'Bingo',
-                'placeholder' => '- Choisir -',
-                'choice_label' => function (GameRound $gameRound): string {
-                    $label = (string) $gameRound;
-
-                    if (!$gameRound->isComplete()) {
-                        $label .= ' (incomplet)';
-                    }
-
-                    return $label;
-                },
-                'choice_attr' => function (GameRound $gameRound): array {
-                    if (!$gameRound->isComplete()) {
-                        return ['disabled' => 'disabled'];
-                    }
-
-                    return [];
-                },
-                'attr' => [
-                    'data-controller' => 'symfony--ux-autocomplete--autocomplete single-select-blur',
-                ],
+                ...self::SELECT_OPTIONS,
+                'choice_label' => fn (GameRound $gameRound): string => $gameRound->isComplete() ? (string) $gameRound : $gameRound . ' (incomplet)',
+                'choice_attr' => fn (GameRound $gameRound): array => $gameRound->isComplete() ? [] : ['disabled' => 'disabled'],
             ]);
     }
 

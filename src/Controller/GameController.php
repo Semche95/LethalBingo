@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Game;
+use App\Service\CsrfGuard;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -30,12 +30,9 @@ class GameController extends AbstractController
         methods: [Request::METHOD_POST],
     )]
     #[IsGranted('ROLE_REFEREE')]
-    public function saveNotes(Request $request, EntityManagerInterface $em, Game $game): Response
+    public function saveNotes(Request $request, EntityManagerInterface $em, Game $game, CsrfGuard $csrfGuard): Response
     {
-        $submittedToken = $request->headers->get('X-CSRF-Token');
-        if (!$this->isCsrfTokenValid('save-notes-' . $game->getId(), $submittedToken)) {
-            throw new BadRequestHttpException('Token invalid');
-        }
+        $csrfGuard->assertValid('save-notes-' . $game->getId(), $request->headers->get('X-CSRF-Token'));
 
         $data = json_decode($request->getContent(), true);
         $notes = $data['notes'] ?? '';

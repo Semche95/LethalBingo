@@ -1,8 +1,7 @@
 import { Component, getComponent } from '@symfony/ux-live-component'
 import { Controller } from '@hotwired/stimulus'
 import { Context } from '@hotwired/stimulus/dist/types/core/context'
-import { focusFirstInput } from '../../utils'
-import { Modal } from 'bootstrap'
+import { focusFirstInput, initTooltips, showModal } from '../../utils'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -22,6 +21,7 @@ export default class extends Controller<HTMLDivElement> {
         this.component = await getComponent(this.element)
 
         focusFirstInput(this.element)
+        initTooltips(this.element)
 
         const tableBody = this.element.querySelector('tbody')
         if (tableBody) {
@@ -73,9 +73,6 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     openDeleteModal(): void {
-        const modalEl = document.getElementById('delete-team-modal')
-        if (!modalEl) return
-
-        Modal.getOrCreateInstance(modalEl).show()
+        showModal('delete-team-modal')
     }
 }

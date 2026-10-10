@@ -21,14 +21,6 @@ class TeamControllerTest extends ControllerTestCase
         $this->loginAsReferee();
     }
 
-    public function testAddPageRendersTheFullLayout(): void
-    {
-        $this->client->request('GET', '/referee/team/add');
-
-        self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1.dashboard-title', 'Nouvelle équipe');
-    }
-
     public function testAddFragmentRendersOnlyTheForm(): void
     {
         $this->client->request('GET', '/referee/team/add', server: ['HTTP_X_FRAGMENT_REQUEST' => '1']);
@@ -36,6 +28,22 @@ class TeamControllerTest extends ControllerTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('form');
         self::assertSelectorNotExists('h1.dashboard-title');
+    }
+
+    public function testAddPageIsNotFoundOutsideTheModal(): void
+    {
+        $this->client->request('GET', '/referee/team/add');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testEditPageIsNotFoundOutsideTheModal(): void
+    {
+        $team = $this->createTeam();
+
+        $this->client->request('GET', '/referee/team/edit/' . $team->getId());
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     public function testCreatesATeamWithItsCaptain(): void
@@ -49,7 +57,6 @@ class TeamControllerTest extends ControllerTestCase
 
         $team = $this->em->getRepository(Team::class)->findOneBy(['name' => 'Brand new team']);
         self::assertNotNull($team);
-        self::assertResponseRedirects('/referee/team/edit/' . $team->getId());
         self::assertSame(['Alice'], $team->getMembers()->map(static fn (TeamMember $member): string => $member->getName())->toArray());
         self::assertTrue($team->getMembers()->first()->isCaptain());
     }
@@ -74,15 +81,14 @@ class TeamControllerTest extends ControllerTestCase
         self::assertSame($teamCount, $this->em->getRepository(Team::class)->count());
     }
 
-    public function testEditPageShowsTheTeam(): void
+    public function testListOpensTheRequestedTeamModal(): void
     {
         $team = $this->createTeam();
 
-        $this->client->request('GET', '/referee/team/edit/' . $team->getId());
+        $this->client->request('GET', '/referee/team/' . $team->getId());
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1.dashboard-title', 'Modifier l\'équipe');
-        self::assertSelectorExists(sprintf('input[value="%s"]', $team->getName()));
+        self::assertSelectorExists(sprintf('a[href="/referee/team/edit/%d"][data-modal-loader-auto-open-value="true"][data-modal-loader-close-url-value="/referee/team"]', $team->getId()));
     }
 
     public function testEditFragmentRendersOnlyTheForm(): void
@@ -100,7 +106,7 @@ class TeamControllerTest extends ControllerTestCase
     {
         $team = $this->createTeam();
         $teamId = $team->getId();
-        $token = $this->fetchToken('/referee/team/edit/' . $teamId, '#delete-team-modal');
+        $token = $this->fetchDeleteToken('/referee/team/edit/' . $teamId);
 
         $this->client->request('POST', '/referee/team/delete/' . $teamId, ['token' => $token]);
 
@@ -110,8 +116,28 @@ class TeamControllerTest extends ControllerTestCase
         self::assertFlash('success', 'Équipe supprimée');
     }
 
+    public function testRefusesToDeleteATeamWithGames(): void
+    {
+        $teamId = $this->createGame()->getTeam()->getId();
+        $token = $this->fetchDeleteToken('/referee/team/edit/' . $teamId);
+
+        $this->client->request('POST', '/referee/team/delete/' . $teamId, ['token' => $token]);
+
+        self::assertResponseRedirects('/referee/team');
+        self::assertNotNull($this->reload(Team::class, $teamId));
+        $this->client->followRedirect();
+        self::assertFlash('error', 'Impossible de supprimer une équipe qui a des parties');
+    }
+
+    private function fetchDeleteToken(string $url): string
+    {
+        $crawler = $this->client->request('GET', $url, server: ['HTTP_X_FRAGMENT_REQUEST' => '1']);
+
+        return (string) $crawler->filter('#delete-team-modal input[name="token"]')->attr('value');
+    }
+
     /**
-     * The team form as rendered by the add page: a new team with an empty captain.
+     * The team form as rendered by the add modal: a new team with an empty captain.
      */
     private function createTeamFormComponent(): TestLiveComponent
     {

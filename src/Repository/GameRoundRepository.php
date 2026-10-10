@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\GameRound;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -58,6 +59,40 @@ class GameRoundRepository extends ServiceEntityRepository
             ->getScalarResult();
     }
 
+    public function findMaxNumberForSeason(int $season): int
+    {
+        return (int) $this->bySeason($season)
+            ->select('COALESCE(MAX(gr.number), 0)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findMaxSeason(): int
+    {
+        return (int) $this->createQueryBuilder('gr')
+            ->select('COALESCE(MAX(gr.season), 0)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function findNumbersForSeason(int $season): array
+    {
+        return $this->bySeason($season)
+            ->select('gr.number')
+            ->getQuery()
+            ->getSingleColumnResult();
+    }
+
+    private function bySeason(int $season): QueryBuilder
+    {
+        return $this->createQueryBuilder('gr')
+            ->where('gr.season = :season')
+            ->setParameter('season', $season);
+    }
+
     /**
      * Find the most recently created game rounds.
      *
@@ -80,7 +115,7 @@ class GameRoundRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->select('r.id AS round_id')
             ->addSelect('COUNT(bs.id) AS square_count')
-            ->addSelect('SUM(CASE WHEN bs.label IS NULL OR bs.label = \'\' OR bs.category IS NULL THEN 1 ELSE 0 END) AS incomplete_count')
+            ->addSelect('SUM(CASE WHEN bs.label IS NULL OR TRIM(bs.label) = \'\' OR bs.category IS NULL THEN 1 ELSE 0 END) AS incomplete_count')
             ->leftJoin('r.bingoSquares', 'bs')
             ->groupBy('r.id')
             ->getQuery()

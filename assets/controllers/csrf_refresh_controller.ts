@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { visit } from '@hotwired/turbo'
-import { watchClientClockJumps } from './game/game_timer_anchor'
+import { watchWakeUps } from '../wake_up'
 
 // PHP drops a session left without request for 24 minutes (session.gc_maxlifetime),
 // taking the CSRF tokens stored in it along: ping well before that.
@@ -36,7 +36,7 @@ export default class extends Controller<HTMLElement> {
     private lastInteraction = Date.now()
 
     private intervalId: number | null = null
-    private stopClockJumpWatch: (() => void) | null = null
+    private stopWakeUpWatch: (() => void) | null = null
 
     override connect(): void {
         // Connected by a page load or a Turbo visit, both activity.
@@ -44,9 +44,7 @@ export default class extends Controller<HTMLElement> {
         INTERACTION_EVENTS.forEach((type) => document.addEventListener(type, this.onInteraction, INTERACTION_OPTIONS))
         this.intervalId = window.setInterval(this.refresh, this.intervalValue)
         // Timers are suspended while the computer sleeps: refresh on wake up.
-        this.stopClockJumpWatch = watchClientClockJumps(this.refresh)
-        document.addEventListener('visibilitychange', this.onVisibilityChange)
-        window.addEventListener('online', this.refresh)
+        this.stopWakeUpWatch = watchWakeUps(this.refresh, { visibility: true })
     }
 
     override disconnect(): void {
@@ -54,10 +52,8 @@ export default class extends Controller<HTMLElement> {
             window.clearInterval(this.intervalId)
             this.intervalId = null
         }
-        this.stopClockJumpWatch?.()
-        this.stopClockJumpWatch = null
-        document.removeEventListener('visibilitychange', this.onVisibilityChange)
-        window.removeEventListener('online', this.refresh)
+        this.stopWakeUpWatch?.()
+        this.stopWakeUpWatch = null
         INTERACTION_EVENTS.forEach((type) => document.removeEventListener(type, this.onInteraction, INTERACTION_OPTIONS))
     }
 
@@ -68,12 +64,6 @@ export default class extends Controller<HTMLElement> {
         // Back after a long pause: tell the server now rather than at the next
         // ping, in case this click's Live request comes close to the timeout.
         if (wasIdle) {
-            this.refresh()
-        }
-    }
-
-    private readonly onVisibilityChange = (): void => {
-        if (document.visibilityState === 'visible') {
             this.refresh()
         }
     }

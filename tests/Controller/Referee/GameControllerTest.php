@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller\Referee;
 
 use App\Entity\Game;
+use App\Service\GameService;
 use App\Tests\Controller\ControllerTestCase;
 use DateTimeImmutable;
 
@@ -118,6 +119,18 @@ class GameControllerTest extends ControllerTestCase
     {
         $game = $this->createGame();
         $gameId = $game->getId();
+        $token = $this->fetchToken('/referee/game/edit/' . $gameId, '#delete-game-modal');
+
+        $this->client->request('POST', '/referee/game/delete/' . $gameId, ['token' => $token]);
+
+        self::assertResponseRedirects('/referee/game');
+        self::assertNull($this->reload(Game::class, $gameId));
+    }
+
+    public function testDeletesAResetGame(): void
+    {
+        $gameId = $this->createPlayedGame()->getId();
+        static::getContainer()->get(GameService::class)->reset($this->reload(Game::class, $gameId));
         $token = $this->fetchToken('/referee/game/edit/' . $gameId, '#delete-game-modal');
 
         $this->client->request('POST', '/referee/game/delete/' . $gameId, ['token' => $token]);

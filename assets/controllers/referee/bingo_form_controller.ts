@@ -13,6 +13,6 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     bingoTargetConnected() {
-        initTooltips(this.bingoTarget.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        initTooltips(this.bingoTarget)
     }
 }

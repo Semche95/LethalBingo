@@ -16,7 +16,7 @@ class DashboardControllerTest extends ControllerTestCase
         $this->client->request('GET', '/referee');
 
         self::assertResponseIsSuccessful();
-        self::assertAnySelectorTextContains('.activity-item-name', $game->getTeam() . ' — Round 3 Saison 7');
+        self::assertAnySelectorTextContains('.activity-item-name', $game->getTeam() . ' · Round 3 Saison 7');
         self::assertAnySelectorTextContains('.activity-item-name', 'Round 3 Saison 7');
     }
 }

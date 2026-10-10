@@ -24,25 +24,13 @@
             }
         }) }}
         <div class="card-body" id="bingo-form">
-            {% for error in form.vars.errors %}
-                <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
-                    {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                    <div>{{ error.message }}</div>
-                </div>
-            {% endfor %}
-            {% for error in form.squares.vars.errors %}
-                <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
-                    {{ ux_icon('tabler:alert-circle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                    <div>{{ error.message }}</div>
-                </div>
+            {% for error in form.vars.errors|merge(form.squares.vars.errors) %}
+                <twig:Alert>{{ error.message }}</twig:Alert>
             {% endfor %}
             {% if mode == 'edit' and (not gameRound.isComplete() or gameRound.hasIncompleteContent()) %}
-                <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
-                    {{ ux_icon('tabler:alert-triangle', {height: '20', width: '20', class: 'flex-shrink-0'}) }}
-                    <div>
-                        Ce bingo est incomplet. Complétez les cases manquantes avant de pouvoir l'utiliser dans une partie.
-                    </div>
-                </div>
+                <twig:Alert type="warning" icon="alert-triangle">
+                    Ce bingo est incomplet. Complétez les cases manquantes avant de pouvoir l'utiliser dans une partie.
+                </twig:Alert>
             {% endif %}
             <div class="d-flex gap-3 mb-3">
                 <div>
@@ -65,17 +53,11 @@
         </div>
 
         <div class="card-footer">
-            <div class="d-flex">
-                <a href="{{ path('app_referee_bingo') }}" class="btn btn-outline-secondary">Retour</a>
-                {% if mode == 'edit' %}
-                    <div class="vr mx-3"></div>
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                            data-bs-target="#delete-bingo-modal">
-                        {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
-                    </button>
-                {% endif %}
-                <button type="submit" class="btn btn-primary ms-auto">Enregistrer</button>
-            </div>
+            <twig:FormFooterActions
+                :backUrl="path('app_referee_bingo')"
+                :deleteModalId="mode == 'edit' ? 'delete-bingo-modal' : null"
+                :deleteDisabledReason="mode == 'edit' and gameRound.games is not empty ? 'Impossible de supprimer un bingo qui a des parties' : null"
+            />
         </div>
         {{ form_widget(form._token) }}
         {{ form_end(form, {render_rest: false}) }}

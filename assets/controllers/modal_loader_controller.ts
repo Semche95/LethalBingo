@@ -1,27 +1,26 @@
 import { Controller } from '@hotwired/stimulus'
 import { Modal } from 'bootstrap'
+import { hideModal } from '../utils'
 
 export default class extends Controller<HTMLAnchorElement> {
     static override values = {
         target: { type: String, default: 'add-team-modal' },
         title: { type: String, default: '' },
+        autoOpen: { type: Boolean, default: false },
+        closeUrl: { type: String, default: '' },
     }
 
     declare readonly targetValue: string
     declare readonly titleValue: string
+    declare readonly autoOpenValue: boolean
+    declare readonly closeUrlValue: string
 
     override connect(): void {
-        document.addEventListener('team:added', this.close)
-        document.addEventListener('team:updated', this.close)
+        if (this.autoOpenValue) void this.open()
     }
 
-    override disconnect(): void {
-        document.removeEventListener('team:added', this.close)
-        document.removeEventListener('team:updated', this.close)
-    }
-
-    async open(event: Event): Promise<void> {
-        event.preventDefault()
+    async open(event?: Event): Promise<void> {
+        event?.preventDefault()
 
         const modalEl = document.getElementById(this.targetValue)
         if (!modalEl) return
@@ -31,6 +30,7 @@ export default class extends Controller<HTMLAnchorElement> {
                 'X-Fragment-Request': '1',
             },
         })
+        if (!response.ok) return
 
         const html = await response.text()
         const modalBody = modalEl.querySelector('.modal-body')
@@ -49,15 +49,13 @@ export default class extends Controller<HTMLAnchorElement> {
             if (event.target !== modalEl) return
             modalEl.removeEventListener('hidden.bs.modal', onHidden)
             if (modalBody) modalBody.innerHTML = ''
+            // Keeps Turbo's history state so back/forward still work.
+            if (this.closeUrlValue) history.replaceState(history.state, '', this.closeUrlValue)
         }
         modalEl.addEventListener('hidden.bs.modal', onHidden)
     }
 
-    close = (): void => {
-        const modalEl = document.getElementById(this.targetValue)
-        if (!modalEl) return
-
-        const modal = Modal.getInstance(modalEl)
-        modal?.hide()
+    close(): void {
+        hideModal(this.targetValue)
     }
 }

@@ -228,7 +228,7 @@ class GameServiceTest extends TestCase
         $this->assertInstanceOf(BingoSquareValidated::class, $removedEntities[0]);
     }
 
-    public function testResetClearsBingoSquareRevealedCollection(): void
+    public function testResetRemovesRevealedSquares(): void
     {
         $game = new Game();
         $game->setSlug('test');
@@ -236,13 +236,19 @@ class GameServiceTest extends TestCase
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
         $game->getBingoSquareRevealed()->add(new BingoSquareRevealed());
 
+        $removedEntities = [];
         $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('remove')->willReturnCallback(function ($entity) use (&$removedEntities): void {
+            $removedEntities[] = $entity;
+        });
         $em->method('wrapInTransaction')->willReturnCallback(static function (callable $callable) use ($em): void {
             $callable($em);
         });
 
         $this->createGameService($em)->reset($game);
 
+        $this->assertCount(2, $removedEntities);
+        $this->assertContainsOnlyInstancesOf(BingoSquareRevealed::class, $removedEntities);
         $this->assertCount(0, $game->getBingoSquareRevealed());
     }
 }

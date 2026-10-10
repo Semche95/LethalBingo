@@ -75,8 +75,8 @@ class BingoControllerTest extends ControllerTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorCount(GameRound::EXPECTED_SQUARES, '#bingo-form select');
-        // user, round with its squares, categories shared by the 25 selectors
-        $this->assertQueryCountAtMost(3);
+        // user, round with its squares, categories shared by the 25 selectors, games blocking the deletion
+        $this->assertQueryCountAtMost(4);
     }
 
     public function testEditsABingo(): void
@@ -189,6 +189,19 @@ class BingoControllerTest extends ControllerTestCase
 
         self::assertResponseRedirects('/referee/bingo');
         self::assertNull($this->reload(GameRound::class, $roundId));
+    }
+
+    public function testRefusesToDeleteABingoWithGames(): void
+    {
+        $roundId = $this->createGame()->getRound()->getId();
+        $token = $this->fetchToken('/referee/bingo/edit/' . $roundId, '#delete-bingo-modal');
+
+        $this->client->request('POST', '/referee/bingo/delete/' . $roundId, ['token' => $token]);
+
+        self::assertResponseRedirects('/referee/bingo/edit/' . $roundId);
+        self::assertNotNull($this->reload(GameRound::class, $roundId));
+        $this->client->followRedirect();
+        self::assertFlash('error', 'Impossible de supprimer un bingo qui a des parties');
     }
 
     public function testDeleteWithAnInvalidTokenIsRejected(): void

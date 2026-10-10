@@ -1,9 +1,7 @@
-<div {{ attributes }}
-     data-action="team:added@document->live#action team:updated@document->live#action"
-     data-live-action-param="loadTeams">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="dashboard-title">Équipes</h1>
-        <div class="d-flex align-items-center gap-3">
+{% import 'macros.html.twig' as macros %}
+<div {{ attributes }}>
+    {% component PageHeader with {title: 'Équipes', spacing: 3} %}
+        {% block actions %}
             <div class="team-search input-icon">
                 {{ ux_icon('tabler:search', {class: 'input-icon-svg'}) }}
                 <input
@@ -15,21 +13,14 @@
                     data-live-debounce="300"
                 >
             </div>
-            <a href="{{ path('app_referee_team_add') }}" class="btn btn-primary flex-shrink-0"
-               data-controller="modal-loader"
-               data-action="click->modal-loader#open"
-               data-modal-loader-title-value="Nouvelle équipe">
+            <twig:ModalLoaderLink :href="path('app_referee_team_add')" title="Nouvelle équipe" class="btn btn-primary flex-shrink-0">
                 {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle équipe
-            </a>
-        </div>
-    </div>
+            </twig:ModalLoaderLink>
+        {% endblock %}
+    {% endcomponent %}
 
     {% if this.teams is empty %}
-        {% if this.search is not empty %}
-            <p class="text-center text-body-secondary py-5">Aucune équipe ne correspond à votre recherche.</p>
-        {% else %}
-            <p class="text-center text-body-secondary py-5">Aucune équipe pour le moment.</p>
-        {% endif %}
+        {{ macros.empty_state(this.search is not empty ? 'Aucune équipe ne correspond à votre recherche.' : 'Aucune équipe pour le moment.') }}
     {% else %}
         <div class="team-grid">
             {% for team in this.teams %}
@@ -37,12 +28,9 @@
                 <div class="team-card" style="border-top: 3px solid {{ team_color(team.id) }};">
                     <div class="team-card-header">
                         <span class="team-card-name">{{ team.name }}</span>
-                        <a href="{{ path('app_referee_team_edit', {id: team.id}) }}" class="btn btn-sm btn-primary-icon" title="Modifier l'équipe"
-                           data-controller="modal-loader"
-                           data-action="click->modal-loader#open"
-                           data-modal-loader-title-value="Modifier l'équipe">
+                        <twig:ModalLoaderLink :href="path('app_referee_team_edit', {id: team.id})" title="Modifier l'équipe" class="btn btn-sm btn-primary-icon">
                             {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
-                        </a>
+                        </twig:ModalLoaderLink>
                     </div>
                     {% if members|length > 0 %}
                         <div class="team-card-members">
