@@ -1,9 +1,9 @@
 <div{{ attributes.defaults({class: 'text-center mb-4'}) }}>
     <h1>
         Bingo {{ this.game.round }}
-        {% if this.game.finishedAt %}
+        {% if this.game.finished %}
             (terminé)
-        {% elseif this.game.startedAt %}
+        {% elseif this.game.started %}
             (en cours)
         {% else %}
             (pas démarré)

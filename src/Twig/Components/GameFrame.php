@@ -6,6 +6,7 @@ namespace App\Twig\Components;
 
 use App\Entity\Game;
 use App\Service\GameService;
+use App\Service\RefreshEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -27,24 +28,9 @@ final class GameFrame extends AbstractController
     ) {
     }
 
-    #[LiveListener('gameFrameRefresh')]
+    #[LiveListener(RefreshEvent::GameFrame->value)]
     public function __invoke(): void
     {
-    }
-
-    public function isGameStarted(): bool
-    {
-        return $this->game->getStartedAt() !== null;
-    }
-
-    public function isGameFinished(): bool
-    {
-        return $this->game->getFinishedAt() !== null;
-    }
-
-    public function isInProgress(): bool
-    {
-        return $this->isGameStarted() && !$this->isGameFinished();
     }
 
     #[LiveAction]

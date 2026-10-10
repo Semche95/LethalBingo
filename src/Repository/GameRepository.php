@@ -52,7 +52,7 @@ class GameRepository extends ServiceEntityRepository
 
     /**
      * All existing games with their round and team info for the grid.
-     * Only returns rows where a game exists — seasons, rounds and teams
+     * Only returns rows where a game exists: seasons, rounds and teams
      * are all derived from games, never from game_round or team directly.
      *
      * @return list<array{season: int, round_number: int, team_id: int, team_name: string, game_id: int, startedAt: ?string, finishedAt: ?string}>

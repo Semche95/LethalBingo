@@ -158,7 +158,7 @@ describe('evaluateThresholds (sound)', () => {
         evaluateThresholds(299, DURATION, state, false)
 
         // The reference was resynced to 299. Moving back above then down again
-        // is a fresh crossing — must fire when canTriggerSound is true.
+        // is a fresh crossing, so it must fire when canTriggerSound is true.
         evaluateThresholds(360, DURATION, state) // back above 5:00
         expect(evaluateThresholds(299, DURATION, state)).toBe('danger')
     })

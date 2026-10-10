@@ -10,8 +10,8 @@ import {
     estimateServerTimeFromResponses,
     estimateServerTimeFromRoundTrip,
     parseServerTimeHeader,
-    watchClientClockJumps,
 } from './game_timer_anchor'
+import { watchWakeUps } from '../../wake_up'
 import { TimerSound, type TimerSoundName } from './game_timer_sound'
 import { computeAlertColor, createThresholdState, evaluateThresholds, listUpcomingAlerts } from './game_timer_thresholds'
 
@@ -60,7 +60,7 @@ export default class extends Controller<HTMLDivElement> {
     // performance.now() taken when syncedServerTime was anchored.
     private clientTimeAtRender: number = 0
     private thresholdState = createThresholdState()
-    private stopClockJumpWatch: (() => void) | null = null
+    private stopWakeUpWatch: (() => void) | null = null
     private resyncAbortController: AbortController | null = null
 
     private readonly onVisibilityChange = (): void => {
@@ -87,7 +87,7 @@ export default class extends Controller<HTMLDivElement> {
         this.sound?.unlock()
     }
 
-    private readonly onOnline = (): void => {
+    private readonly onWakeUp = (): void => {
         this.resyncWithServer()
     }
 
@@ -106,10 +106,8 @@ export default class extends Controller<HTMLDivElement> {
 
         // rAF rather than setInterval: no phase that could drift between clients.
         this.startTimerLoop()
-        this.stopClockJumpWatch = watchClientClockJumps(() => this.resyncWithServer())
-
+        this.stopWakeUpWatch = watchWakeUps(this.onWakeUp)
         document.addEventListener('visibilitychange', this.onVisibilityChange)
-        window.addEventListener('online', this.onOnline)
 
         this.updateTimerDisplay()
         this.updateScheduledSounds()
@@ -124,11 +122,9 @@ export default class extends Controller<HTMLDivElement> {
         this.sound = null
 
         this.stopTimerLoop()
-        this.stopClockJumpWatch?.()
-        this.stopClockJumpWatch = null
-
+        this.stopWakeUpWatch?.()
+        this.stopWakeUpWatch = null
         document.removeEventListener('visibilitychange', this.onVisibilityChange)
-        window.removeEventListener('online', this.onOnline)
 
         this.resyncAbortController?.abort()
         this.resyncAbortController = null
@@ -260,11 +256,7 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private updatePauseBadge() {
-        if (this.gameIsPausedValue) {
-            this.pauseBadgeTarget.classList.remove('d-none')
-        } else {
-            this.pauseBadgeTarget.classList.add('d-none')
-        }
+        this.pauseBadgeTarget.classList.toggle('d-none', !this.gameIsPausedValue)
     }
 
     private updateHighlighting(canTriggerSound: boolean = true) {

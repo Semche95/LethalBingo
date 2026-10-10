@@ -3,6 +3,7 @@
 namespace App\Twig\Components;
 
 use App\Entity\Game;
+use App\Service\RefreshEvent;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -13,8 +14,8 @@ final class BingoCardTitle
     #[LiveProp]
     public ?Game $game = null;
 
-    #[LiveListener('gameFrameRefresh')]
-    #[LiveListener('bingoCardTitleRefresh')]
+    #[LiveListener(RefreshEvent::GameFrame->value)]
+    #[LiveListener(RefreshEvent::BingoCardTitle->value)]
     public function __invoke(): void
     {
     }

@@ -25,11 +25,11 @@ readonly class GameTimerService
      */
     public function getRemainingSeconds(Game $game, ?float $nowMs = null): int
     {
-        if (!$game->getStartedAt()) {
+        if (!$game->isStarted()) {
             return self::DEFAULT_DURATION_SECONDS;
         }
 
-        if ($game->getFinishedAt()) {
+        if ($game->isFinished()) {
             return 0;
         }
 
@@ -45,7 +45,7 @@ readonly class GameTimerService
      */
     public function absorbDeficit(Game $game, ?float $nowMs = null): void
     {
-        if (!$game->getStartedAt() || $game->getFinishedAt()) {
+        if (!$game->isInProgress()) {
             return;
         }
 

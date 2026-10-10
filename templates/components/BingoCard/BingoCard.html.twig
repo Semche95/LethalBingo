@@ -9,14 +9,18 @@
                 {% if not firstRow and not firstCol %}
                     {% set square = squares[row][col] ?? null %}
                     {% set cellClasses = cellClasses|merge(['p-1', 'bingo-square']) %}
-                    {% if this.editMode and (square is null or square.category is null or square.category == '' or square.label is null or square.label == '') %}
-                        {% set cellClasses = cellClasses|merge(['bingo-square-missing']) %}
-                    {% endif %}
-                    {% if this.editMode and (square is null or square.category is null or square.category == '') %}
-                        {% set cellClasses = cellClasses|merge(['missing-category']) %}
-                    {% endif %}
-                    {% if this.editMode and (square is null or square.label is null or square.label == '') %}
-                        {% set cellClasses = cellClasses|merge(['missing-label']) %}
+                    {% if this.editMode %}
+                        {% set missingCategory = (square.category ?? '') == '' %}
+                        {% set missingLabel = (square.label ?? '')|trim == '' %}
+                        {% if missingCategory or missingLabel %}
+                            {% set cellClasses = cellClasses|merge(['bingo-square-missing']) %}
+                        {% endif %}
+                        {% if missingCategory %}
+                            {% set cellClasses = cellClasses|merge(['missing-category']) %}
+                        {% endif %}
+                        {% if missingLabel %}
+                            {% set cellClasses = cellClasses|merge(['missing-label']) %}
+                        {% endif %}
                     {% endif %}
                     {% if this.editMode and this.duplicateCoords is not empty and square is not null and (row ~ '-' ~ col) in this.duplicateCoords %}
                         {% set cellClasses = cellClasses|merge(['bingo-square-duplicate']) %}
@@ -34,7 +38,7 @@
                         {% set cellClasses = cellClasses|merge(['bingo-square-validated']) %}
                     {% endif %}
                 {% else %}
-                    {% set cellClasses = cellClasses|merge(['vcenter']) %}
+                    {% set cellClasses = cellClasses|merge(['d-flex', 'justify-content-center', 'align-items-center']) %}
                     {% if firstRow %}
                         {% set cellClasses = cellClasses|merge(['bingo-row pb-3']) %}
                     {% endif %}

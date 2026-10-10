@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { debounce } from '../../utils'
 
 export default class extends Controller<HTMLDivElement> {
     static override targets = ['notes', 'status', 'panel', 'toggle', 'token']
@@ -15,24 +16,20 @@ export default class extends Controller<HTMLDivElement> {
     declare readonly gameIdValue: number
     declare readonly saveUrlValue: string
 
-    private saveTimeout: number | null = null
-    private heightSaveTimeout: number | null = null
     private resizeObserver: ResizeObserver | null = null
-    private readonly debounceTime = 100 // 100ms debounce for notes
-    private readonly heightDebounceTime = 50 // 50ms debounce for height
+    private readonly debouncedSaveNotes = debounce(() => this.doSaveNotes(), 100)
+    private readonly debouncedSaveTextareaHeight = debounce(() => this.doSaveTextareaHeight(), 50)
+
+    private get panelStorageKey(): string {
+        return `game-notes-panel-${this.gameIdValue}`
+    }
+
+    private get heightStorageKey(): string {
+        return `game-notes-height-${this.gameIdValue}`
+    }
 
     saveNotes(): void {
-        // Clear any existing timeout
-        if (this.saveTimeout !== null) {
-            window.clearTimeout(this.saveTimeout)
-        }
-
-        // Set a new timeout to save after debounce time
-        this.saveTimeout = window.setTimeout(() => {
-            this.doSaveNotes()
-        }, this.debounceTime)
-
-        // Update status
+        this.debouncedSaveNotes()
         this.statusTarget.textContent = 'Sauvegarde en cours...'
     }
 
@@ -66,50 +63,32 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     saveTextareaHeight(): void {
-        // Clear any existing timeout
-        if (this.heightSaveTimeout !== null) {
-            window.clearTimeout(this.heightSaveTimeout)
-        }
-
-        // Set a new timeout to save after height debounce time
-        this.heightSaveTimeout = window.setTimeout(() => {
-            this.doSaveTextareaHeight()
-        }, this.heightDebounceTime)
+        this.debouncedSaveTextareaHeight()
     }
 
     private doSaveTextareaHeight(): void {
         // Get the computed height to ensure we get the actual rendered height
-        const computedHeight = window.getComputedStyle(this.notesTarget).height
-        const storageKey = `game-notes-height-${this.gameIdValue}`
-        localStorage.setItem(storageKey, computedHeight)
+        localStorage.setItem(this.heightStorageKey, window.getComputedStyle(this.notesTarget).height)
     }
 
     override connect(): void {
-        // Check localStorage for saved panel state
-        const panelStorageKey = `game-notes-panel-${this.gameIdValue}`
-        const isPanelVisible = localStorage.getItem(panelStorageKey) === 'visible'
-
-        if (isPanelVisible) {
-            this.showPanel()
-        } else {
-            this.hidePanel()
-        }
+        this.setPanelVisible(localStorage.getItem(this.panelStorageKey) === 'visible')
 
         // Restore textarea height if saved
-        const heightStorageKey = `game-notes-height-${this.gameIdValue}`
-        const savedHeight = localStorage.getItem(heightStorageKey)
+        const savedHeight = localStorage.getItem(this.heightStorageKey)
         if (savedHeight) {
             this.notesTarget.style.height = savedHeight
         }
 
         // Initialize ResizeObserver to detect height changes
-        this.resizeObserver = new ResizeObserver(() => {
-            this.saveTextareaHeight()
-        })
+        this.resizeObserver = new ResizeObserver(this.debouncedSaveTextareaHeight)
         this.resizeObserver.observe(this.notesTarget)
     }
 
     override disconnect(): void {
+        this.debouncedSaveNotes.cancel()
+        this.debouncedSaveTextareaHeight.cancel()
+
         // Clean up ResizeObserver
         if (this.resizeObserver) {
             this.resizeObserver.disconnect()
@@ -119,31 +98,14 @@ export default class extends Controller<HTMLDivElement> {
 
     togglePanel(event: Event): void {
         if (event.currentTarget === this.toggleTarget) {
-            if (this.panelTarget.classList.contains('d-none')) {
-                this.showPanel()
-            } else {
-                this.hidePanel()
-            }
+            this.setPanelVisible(this.panelTarget.classList.contains('d-none'))
         }
     }
 
-    showPanel(): void {
-        this.panelTarget.classList.remove('d-none')
-        this.toggleTarget.setAttribute('aria-expanded', 'true')
-        this.toggleTarget.setAttribute('title', 'Masquer les notes')
-
-        // Save panel state to localStorage
-        const storageKey = `game-notes-panel-${this.gameIdValue}`
-        localStorage.setItem(storageKey, 'visible')
-    }
-
-    hidePanel(): void {
-        this.panelTarget.classList.add('d-none')
-        this.toggleTarget.setAttribute('aria-expanded', 'false')
-        this.toggleTarget.setAttribute('title', 'Afficher les notes')
-
-        // Save panel state to localStorage
-        const storageKey = `game-notes-panel-${this.gameIdValue}`
-        localStorage.setItem(storageKey, 'hidden')
+    private setPanelVisible(visible: boolean): void {
+        this.panelTarget.classList.toggle('d-none', !visible)
+        this.toggleTarget.setAttribute('aria-expanded', String(visible))
+        this.toggleTarget.setAttribute('title', visible ? 'Masquer les notes' : 'Afficher les notes')
+        localStorage.setItem(this.panelStorageKey, visible ? 'visible' : 'hidden')
     }
 }

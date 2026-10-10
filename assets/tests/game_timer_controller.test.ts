@@ -246,7 +246,7 @@ describe('game_timer_controller', () => {
         expect(controller.timerDisplayTarget.className).toContain('text-warning')
 
         // Direct set-to 00:30:03 (above the threshold): the colour must vanish
-        // immediately — 00:30:03 is not within 5s below a 10-minute multiple.
+        // immediately: 00:30:03 is not within 5s below a 10-minute multiple.
         controller.gameManualAdjustmentSecondsValue = 4
         controller.updateTimerDisplay()
         expect(controller.timerDisplayTarget.textContent).toBe('00:30:03')

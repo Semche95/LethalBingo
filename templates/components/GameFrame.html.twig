@@ -6,7 +6,7 @@
             <div class="py-4">
                 {{ component('BingoCardTitle', {game: this.game}) }}
 
-                {% if not this.game.finishedAt %}
+                {% if not this.game.finished %}
                     <div class="mb-4">
                         <div class="card">
                             <div class="card-body">
@@ -31,7 +31,7 @@
                                class="btn btn-secondary me-5">
                                 Retour au tableau de bord
                             </a>
-                            {% if not this.isGameStarted() and not this.isGameFinished() %}
+                            {% if not this.game.started %}
                                 <button
                                         type="button"
                                         class="btn btn-success"
@@ -41,12 +41,12 @@
                                     Démarrer la partie
                                 </button>
                             {% else %}
-                                {% if this.isGameFinished() %}
+                                {% if this.game.finished %}
                                     <span>
                                         {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
                                         Partie terminée le {{ this.game.finishedAt|date('d/m/Y à H:i:s') }}
                                     </span>
-                                {% elseif this.isGameStarted() %}
+                                {% elseif this.game.started %}
                                     <span class="me-5">
                                         {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
                                         Partie démarrée le {{ this.game.startedAt|date('d/m/Y à H:i:s') }}

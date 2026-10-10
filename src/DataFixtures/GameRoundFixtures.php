@@ -16,6 +16,11 @@ class GameRoundFixtures extends Fixture
     public const int SEASON_COUNT = 1;
     public const int ROUND_COUNT = 4;
 
+    public static function reference(int $season, int $round): string
+    {
+        return 'game_round_' . $season . '_' . $round;
+    }
+
     /**
      * Load game rounds data.
      */
@@ -27,7 +32,7 @@ class GameRoundFixtures extends Fixture
                     ->setSeason($season)
                     ->setNumber($round);
                 $manager->persist($gameRound);
-                $this->addReference('game_round_' . $season . '_' . $round, $gameRound);
+                $this->addReference(self::reference($season, $round), $gameRound);
             }
         }
         $manager->flush();

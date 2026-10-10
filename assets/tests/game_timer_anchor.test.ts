@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest'
 import {
     estimateServerTimeFromResponses,
     estimateServerTimeFromRoundTrip,
-    hasClientClockJumped,
     parseServerTimeHeader,
     SERVER_TIME_METRIC,
     type ResponseTimingEntry,
 } from '../controllers/game/game_timer_anchor'
+import { hasClientClockJumped } from '../wake_up'
 
 const SENT_AT = 1_700_000_000.25 // server send time (seconds)
 

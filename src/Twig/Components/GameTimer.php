@@ -6,6 +6,7 @@ namespace App\Twig\Components;
 
 use App\Entity\Game;
 use App\Service\GameTimerService;
+use App\Service\RefreshEvent;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,8 +44,8 @@ final class GameTimer extends AbstractController
         }
     }
 
-    #[LiveListener('gameFrameRefresh')]
-    #[LiveListener('gameTimerRefresh')]
+    #[LiveListener(RefreshEvent::GameFrame->value)]
+    #[LiveListener(RefreshEvent::GameTimer->value)]
     public function __invoke(#[LiveArg] ?float $serverTime = null): void
     {
         // Time display is owned exclusively by the client (rAF loop). The
@@ -68,7 +69,7 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function pauseGame(): void
     {
-        if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt() || $this->game->isPaused()) {
+        if (!$this->game?->isInProgress() || $this->game->isPaused()) {
             return;
         }
 
@@ -85,7 +86,7 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function resumeGame(): void
     {
-        if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt() || !$this->game->isPaused()) {
+        if (!$this->game?->isInProgress() || !$this->game->isPaused()) {
             return;
         }
 
@@ -99,7 +100,7 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function increaseTimer(): void
     {
-        if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt()) {
+        if (!$this->game?->isInProgress()) {
             return;
         }
 
@@ -116,7 +117,7 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function decreaseTimer(): void
     {
-        if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt()) {
+        if (!$this->game?->isInProgress()) {
             return;
         }
 
@@ -136,7 +137,7 @@ final class GameTimer extends AbstractController
      */
     private function setTimerToSpecificValue(int $targetRemainingSeconds): void
     {
-        if (!$this->game || !$this->game->getStartedAt() || $this->game->getFinishedAt()) {
+        if (!$this->game?->isInProgress()) {
             return;
         }
 

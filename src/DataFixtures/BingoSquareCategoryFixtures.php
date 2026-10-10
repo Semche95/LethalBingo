@@ -13,6 +13,11 @@ use Doctrine\Persistence\ObjectManager;
  */
 class BingoSquareCategoryFixtures extends Fixture
 {
+    public static function reference(int $index): string
+    {
+        return 'category_' . $index;
+    }
+
     /**
      * Load bingo square categories data.
      */
@@ -31,7 +36,7 @@ class BingoSquareCategoryFixtures extends Fixture
                 ->setLabel($label)
                 ->setPosition($position);
             $manager->persist($category);
-            $this->addReference('category_' . $i, $category);
+            $this->addReference(self::reference($i), $category);
         }
         $manager->flush();
     }

@@ -8,7 +8,7 @@
     serverTime: this.serverTime,
     serverTimeUrl: path('app_server_time')
 })) }}>
-    <div class="vcenter">
+    <div class="d-flex justify-content-center align-items-center">
         <div class="me-3">
             {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
         </div>
@@ -27,111 +27,22 @@
                 Activer le son des alertes
             </button>
         </div>
-        {% if is_granted('ROLE_REFEREE') and this.game.startedAt and not this.game.finishedAt %}
+        {% if is_granted('ROLE_REFEREE') and this.game.inProgress %}
             <div class="ms-3 d-flex">
-                <button
-                        type="button"
-                        class="btn btn-icon btn-danger me-2"
-                        data-bs-toggle="tooltip"
-                        title="Retirer 1 minute"
-                        data-action="live#action"
-                        data-live-action-param="decreaseTimer">
-                    {{ ux_icon('mdi:minus', {height: '24', width: '24'}) }}
-                </button>
+                <twig:IconButton icon="mdi:minus" title="Retirer 1 minute" class="btn btn-icon btn-danger me-2" liveAction="decreaseTimer" size="24" />
 
-                <button
-                        type="button"
-                        class="btn btn-icon btn-success me-2"
-                        data-bs-toggle="tooltip"
-                        title="Ajouter 1 minute"
-                        data-action="live#action"
-                        data-live-action-param="increaseTimer">
-                    {{ ux_icon('mdi:plus', {height: '24', width: '24'}) }}
-                </button>
+                <twig:IconButton icon="mdi:plus" title="Ajouter 1 minute" class="btn btn-icon btn-success me-2" liveAction="increaseTimer" size="24" />
 
                 {% if is_granted('ROLE_ADMIN') and app.request.server.get('DEBUG_TIMER') == 'true' %}
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:20:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo2003">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
-
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:10:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo1003">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
-
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:05:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo0503">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
-
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:03:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo0303">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
-
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:01:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo0103">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
-
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-info me-2"
-                            data-bs-toggle="tooltip"
-                            title="Définir à 00:00:03"
-                            data-action="live#action"
-                            data-live-action-param="setTimerTo0003">
-                        {{ ux_icon('mdi:timer-outline', {height: '24', width: '24'}) }}
-                    </button>
+                    {% for time in ['2003', '1003', '0503', '0303', '0103', '0003'] %}
+                        <twig:IconButton icon="mdi:timer-outline" :title="'Définir à 00:' ~ time|slice(0, 2) ~ ':' ~ time|slice(2)" class="btn btn-icon btn-info me-2" :liveAction="'setTimerTo' ~ time" size="24" />
+                    {% endfor %}
                 {% endif %}
 
                 {% if this.game.isPaused %}
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-success"
-                            data-bs-toggle="tooltip"
-                            title="Reprendre la partie"
-                            data-action="live#action"
-                            data-live-action-param="resumeGame">
-                        {{ ux_icon('mdi:play', {height: '24', width: '24'}) }}
-                    </button>
+                    <twig:IconButton icon="mdi:play" title="Reprendre la partie" class="btn btn-icon btn-success" liveAction="resumeGame" size="24" />
                 {% else %}
-                    <button
-                            type="button"
-                            class="btn btn-icon btn-primary"
-                            data-bs-toggle="tooltip"
-                            title="Mettre en pause"
-                            data-action="live#action"
-                            data-live-action-param="pauseGame"
-                            data-game--game-timer-target="pauseButton">
-                        {{ ux_icon('mdi:pause', {height: '24', width: '24'}) }}
-                    </button>
+                    <twig:IconButton icon="mdi:pause" title="Mettre en pause" class="btn btn-icon btn-primary" liveAction="pauseGame" size="24" data-game--game-timer-target="pauseButton" />
                 {% endif %}
             </div>
         {% endif %}

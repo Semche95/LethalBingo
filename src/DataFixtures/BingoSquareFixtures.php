@@ -26,18 +26,18 @@ class BingoSquareFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = self::getFaker();
         $bingosCount = GameRoundFixtures::SEASON_COUNT * GameRoundFixtures::ROUND_COUNT;
-        $squaresCount = BingoService::MAX_ROWS * BingoService::MAX_ROWS;
+        $squaresCount = GameRound::EXPECTED_SQUARES;
 
         for ($bingo = 1; $bingo <= $bingosCount; ++$bingo) {
             $season = (int) ceil($bingo / GameRoundFixtures::ROUND_COUNT);
             $round = ($bingo - 1) % GameRoundFixtures::ROUND_COUNT + 1;
 
             for ($square = 1; $square <= $squaresCount; ++$square) {
-                $row = (int) ceil($square / BingoService::MAX_COLS);
-                $col = ($square - 1) % BingoService::MAX_COLS + 1;
+                $row = (int) ceil($square / GameRound::MAX_COLS);
+                $col = ($square - 1) % GameRound::MAX_COLS + 1;
 
-                $gameRound = $this->getReference('game_round_' . $season . '_' . $round, GameRound::class);
-                $category = $this->getReference('category_' . $faker->numberBetween(0, 4), BingoSquareCategory::class);
+                $gameRound = $this->getReference(GameRoundFixtures::reference($season, $round), GameRound::class);
+                $category = $this->getReference(BingoSquareCategoryFixtures::reference($faker->numberBetween(0, 4)), BingoSquareCategory::class);
 
                 $bingoSquare = new BingoSquare()
                     ->setRound($gameRound)

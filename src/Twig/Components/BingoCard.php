@@ -6,8 +6,10 @@ use App\Dto\BingoDto;
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
+use App\Entity\GameRound;
 use App\Repository\BingoSquareCategoryRepository;
 use App\Service\BingoService;
+use App\Service\RefreshEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -53,8 +55,8 @@ final class BingoCard extends AbstractController
     ) {
     }
 
-    #[LiveListener('gameFrameRefresh')]
-    #[LiveListener('bingoCardRefresh')]
+    #[LiveListener(RefreshEvent::GameFrame->value)]
+    #[LiveListener(RefreshEvent::BingoCard->value)]
     public function __invoke(): void
     {
     }
@@ -90,32 +92,17 @@ final class BingoCard extends AbstractController
 
     public function getMaxRows(): int
     {
-        return BingoService::MAX_ROWS;
+        return GameRound::MAX_ROWS;
     }
 
     public function getMaxCols(): int
     {
-        return BingoService::MAX_COLS;
-    }
-
-    public function isGameStarted(): bool
-    {
-        return $this->game->getStartedAt() !== null;
-    }
-
-    public function isGameFinished(): bool
-    {
-        return $this->game->getFinishedAt() !== null;
-    }
-
-    public function isInProgress(): bool
-    {
-        return $this->isGameStarted() && !$this->isGameFinished();
+        return GameRound::MAX_COLS;
     }
 
     public function isSquareContentShowable(int $squareId, int $row, int $col): bool
     {
-        return $this->isGranted('ROLE_REFEREE') || $this->isSquareVisible($row, $col) || $this->isSquareRevealed($squareId) || $this->isGameFinished();
+        return $this->isGranted('ROLE_REFEREE') || $this->isSquareVisible($row, $col) || $this->isSquareRevealed($squareId) || $this->game->isFinished();
     }
 
     public function isSquareVisible(int $row, int $col): bool

@@ -11,11 +11,11 @@ use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\GameSquareMark;
 use App\Repository\BingoSquareRepository;
 use App\Repository\BingoSquareRevealedRepository;
 use App\Repository\BingoSquareValidatedRepository;
 use App\Repository\GameRoundRepository;
-use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -24,9 +24,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 readonly class BingoService
 {
-    public const int MAX_ROWS = 5;
-    public const int MAX_COLS = 5;
-
     private const array VISIBLE_SQUARES = [
         [1, 3],
         [2, 4],
@@ -119,11 +116,11 @@ readonly class BingoService
     public function gameSquares(Game $game, bool $isReferee, array $revealedSquareIds): array
     {
         $squares = $this->entityToDto($game->getRound())->squares;
-        if ($isReferee || $game->getFinishedAt() !== null) {
+        if ($isReferee || $game->isFinished()) {
             return $squares;
         }
 
-        $isStarted = $game->getStartedAt() !== null;
+        $isStarted = $game->isStarted();
 
         foreach ($squares as $row => $cols) {
             foreach ($cols as $col => $square) {
@@ -173,36 +170,9 @@ readonly class BingoService
         return $gameRound;
     }
 
-    public function findMaxRoundForSeason(int $season): int
-    {
-        $result = $this->gameRoundRepository->createQueryBuilder('gr')
-            ->select('COALESCE(MAX(gr.number), 0)')
-            ->where('gr.season = :season')
-            ->setParameter('season', $season)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return (int) $result;
-    }
-
-    public function findMaxSeason(): int
-    {
-        $result = $this->gameRoundRepository->createQueryBuilder('gr')
-            ->select('COALESCE(MAX(gr.season), 0)')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return (int) $result;
-    }
-
     public function fillSeasonGaps(int $season): void
     {
-        $numbers = $this->gameRoundRepository->createQueryBuilder('gr')
-            ->select('gr.number')
-            ->where('gr.season = :season')
-            ->setParameter('season', $season)
-            ->getQuery()
-            ->getSingleColumnResult();
+        $numbers = $this->gameRoundRepository->findNumbersForSeason($season);
 
         if ($numbers === []) {
             return;
@@ -254,42 +224,20 @@ readonly class BingoService
 
     public function reveal(Game $game, int $squareId): void
     {
-        if ($game->getFinishedAt() !== null) {
+        if ($game->isFinished()) {
             return;
         }
 
-        $bingoSquare = $this->findGameSquare($game, $squareId);
-        if ($bingoSquare === null) {
-            return;
-        }
-
-        try {
-            $square = new BingoSquareRevealed()
-                ->setGame($game)
-                ->setBingoSquare($bingoSquare)
-                ->setRevealedAt(new DateTimeImmutable());
-            $this->em->persist($square);
-            $this->em->flush();
-            $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException) {
-        }
+        $this->mark($game, $squareId, new BingoSquareRevealed());
     }
 
     public function conceal(Game $game, int $squareId): void
     {
-        if ($game->getFinishedAt() !== null) {
+        if ($game->isFinished()) {
             return;
         }
 
-        try {
-            $square = $this->getRevealedSquare($game, $squareId);
-            if ($square !== null) {
-                $this->em->remove($square);
-                $this->em->flush();
-            }
-            $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException) {
-        }
+        $this->unmark($game, $this->getRevealedSquare($game, $squareId));
     }
 
     public function validate(Game $game, int $squareId): void
@@ -298,21 +246,7 @@ readonly class BingoService
             return;
         }
 
-        $bingoSquare = $this->findGameSquare($game, $squareId);
-        if ($bingoSquare === null) {
-            return;
-        }
-
-        try {
-            $square = new BingoSquareValidated()
-                ->setGame($game)
-                ->setBingoSquare($bingoSquare)
-                ->setValidatedAt(new DateTimeImmutable());
-            $this->em->persist($square);
-            $this->em->flush();
-            $this->refreshBingoCard($game);
-        } catch (UniqueConstraintViolationException) {
-        }
+        $this->mark($game, $squareId, new BingoSquareValidated());
     }
 
     public function invalidate(Game $game, int $squareId): void
@@ -321,14 +255,31 @@ readonly class BingoService
             return;
         }
 
+        $this->unmark($game, $this->getValidatedSquare($game, $squareId));
+    }
+
+    private function mark(Game $game, int $squareId, GameSquareMark $mark): void
+    {
+        $bingoSquare = $this->findGameSquare($game, $squareId);
+        if ($bingoSquare === null) {
+            return;
+        }
+
         try {
-            $square = $this->getValidatedSquare($game, $squareId);
-            if ($square !== null) {
-                $this->em->remove($square);
-                $this->em->flush();
-            }
+            $this->em->persist($mark->setGame($game)->setBingoSquare($bingoSquare));
+            $this->em->flush();
             $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException) {
+            // Already marked by a concurrent request.
         }
+    }
+
+    private function unmark(Game $game, ?GameSquareMark $mark): void
+    {
+        if ($mark !== null) {
+            $this->em->remove($mark);
+            $this->em->flush();
+        }
+        $this->refreshBingoCard($game);
     }
 }

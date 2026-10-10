@@ -49,7 +49,7 @@ Aucun broadcast n'arrive forcément au réveil d'un poste : sans recalage, le ch
 
 Le contrôleur fait alors **une** requête `GET /server-time` (`App\Controller\ServerTimeController`, réponse 204 non mise en cache, horodatée par `ServerTimeHeaderListener`), uniquement dans ces cas :
 
-- saut d'horloge détecté entre deux frames : l'horloge système (`Date.now()`) a avancé de plus d'une seconde de plus (ou de moins) que `performance.now()` — signe d'une veille ou d'un changement d'heure système. `Date.now()` sert uniquement à cette détection, jamais au calcul ;
+- saut d'horloge détecté entre deux frames : l'horloge système (`Date.now()`) a avancé de plus d'une seconde de plus (ou de moins) que `performance.now()`, signe d'une veille ou d'un changement d'heure système. `Date.now()` sert uniquement à cette détection, jamais au calcul ;
 - retour sur l'onglet (`visibilitychange` → `visible`) ;
 - retour du réseau (`online`).
 

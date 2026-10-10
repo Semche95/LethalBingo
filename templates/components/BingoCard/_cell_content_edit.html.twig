@@ -1,16 +1,8 @@
 <p class="d-flex gap-1 mb-1">
     {% if this.squareVisible(row, col) %}
-        {{ component('BingoSquareVisibility', {
-            'title': 'Case visible',
-            'icon': 'tabler:eye',
-            'class': 'px-2 py-1 btn btn-primary'
-        }) }}
+        <twig:IconButton icon="tabler:eye" title="Case visible" class="px-2 py-1 btn btn-primary" />
     {% else %}
-        {{ component('BingoSquareVisibility', {
-            'title': 'Case cachée',
-            'icon': 'tabler:eye-closed',
-            'class': 'px-2 py-1 btn btn-secondary'
-        }) }}
+        <twig:IconButton icon="tabler:eye-closed" title="Case cachée" class="px-2 py-1 btn btn-secondary" />
     {% endif %}
     {{ component('BingoSquareCategorySelector', {
         'name': this.squaresFieldName ~ '[' ~ row ~ '][' ~ col ~ '][category]',

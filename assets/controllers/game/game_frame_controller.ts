@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import { initTooltips } from '../../utils'
 import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
 import { Component, getComponent } from '@symfony/ux-live-component'
-import { watchClientClockJumps } from './game_timer_anchor'
+import { watchWakeUps } from '../../wake_up'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
@@ -15,7 +15,7 @@ export default class extends Controller<HTMLDivElement> {
     private component!: Component
     private es!: EventSource
     // Watched here rather than in the timer, which is gone once the game is over.
-    private stopClockJumpWatch: (() => void) | null = null
+    private stopWakeUpWatch: (() => void) | null = null
 
     override async initialize() {
         this.component = await getComponent(this.element)
@@ -28,16 +28,14 @@ export default class extends Controller<HTMLDivElement> {
     override connect() {
         this.openEventSource()
 
-        this.stopClockJumpWatch = watchClientClockJumps(this.onWakeUp)
-        window.addEventListener('online', this.onWakeUp)
+        this.stopWakeUpWatch = watchWakeUps(this.onWakeUp)
     }
 
     override disconnect() {
         this.es.close()
 
-        this.stopClockJumpWatch?.()
-        this.stopClockJumpWatch = null
-        window.removeEventListener('online', this.onWakeUp)
+        this.stopWakeUpWatch?.()
+        this.stopWakeUpWatch = null
     }
 
     private openEventSource() {
@@ -73,7 +71,7 @@ export default class extends Controller<HTMLDivElement> {
     // TODO
     refreshTooltips() {
         document.querySelectorAll('.tooltip[role="tooltip"]').forEach((elem) => elem.remove())
-        initTooltips(this.element.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        initTooltips(this.element)
     }
 
     scrollToSquare(event: ActionEvent) {

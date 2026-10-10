@@ -7,6 +7,7 @@ use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
 use App\Repository\BingoSquareCategoryRepository;
 use App\Repository\BingoSquareRepository;
+use App\Service\RefreshEvent;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -28,8 +29,8 @@ final class GameSteps
     ) {
     }
 
-    #[LiveListener('gameFrameRefresh')]
-    #[LiveListener('gameStepsRefresh')]
+    #[LiveListener(RefreshEvent::GameFrame->value)]
+    #[LiveListener(RefreshEvent::GameSteps->value)]
     public function __invoke(): void
     {
     }
