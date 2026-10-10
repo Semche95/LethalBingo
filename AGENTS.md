@@ -25,6 +25,7 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 ```
 
 - Les 5 vérifications (`test`, `lint:container`, `phpstan`, `cs`, `rector`) passent avant chaque commit.
+- Échec de la CI : avant de le déclarer corrigé, vider le cache de test (`docker compose exec -T php rm -rf var/cache/test`) puis relancer `just test`, comme sur GitHub. Les tests n'appellent aucun service externe.
 - L'agent peut lancer `just up`, `just dev` et `just fixtures`. Avant `just dev`, vérifier qu'il ne tourne pas déjà : `docker compose ps` et `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` (un process `vite` ne suffit pas).
 - **Jamais de build d'assets** (`pnpm run build`, `just build-assets`, `vite build`) sauf demande explicite ou vérification de build de prod : le HMR de Vite gère les changements frontend.
 
