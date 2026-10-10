@@ -1,25 +1,5 @@
-{% extends 'layouts/base.html.twig' %}
+{% extends '@Twig/Exception/error.html.twig' %}
 
-{% block title %}Page non trouvée | {{ parent() }}{% endblock %}
-
-{% block body_classes %}d-flex flex-column min-vh-100 justify-content-center align-items-center{% endblock %}
-
-{% block body %}
-    <div class="container text-center">
-        <div class="empty">
-            <div class="empty-header">404</div>
-            <p class="empty-title">Page non trouvée</p>
-            <p class="empty-subtitle text-body-secondary">
-                La page que vous recherchez n'existe pas ou a été déplacée.
-            </p>
-            <p class="empty-action">
-                <img src="{{ asset('assets/img/gifs/dance.gif') }}" alt="" class="img-fluid rounded">
-            </p>
-            <div class="empty-action">
-                <a href="{{ path('app_home') }}" class="btn btn-primary">
-                    Retour à l'accueil
-                </a>
-            </div>
-        </div>
-    </div>
-{% endblock %}
+{% block error_title %}Page non trouvée{% endblock %}
+{% block error_description %}La page que vous recherchez n'existe pas ou a été déplacée.{% endblock %}
+{% block error_gif %}dance.gif{% endblock %}

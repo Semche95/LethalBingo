@@ -1,0 +1,7 @@
+{# POST form protected by a CSRF token, around the submit button(s) given as content. #}
+{% props action, tokenId %}
+
+<form method="post" action="{{ action }}"{{ attributes }}>
+    {{ component('CsrfInput', {tokenId: tokenId}) }}
+    {% block content %}{% endblock %}
+</form>

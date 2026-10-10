@@ -1,6 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { initToasts, initTooltips } from '../utils'
-import { Tooltip } from 'bootstrap'
+import { disposeTooltips, initToasts, initTooltips } from '../utils'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLBodyElement> {
@@ -8,8 +7,7 @@ export default class extends Controller<HTMLBodyElement> {
     private boundOnRender: (() => void) | null = null
 
     override connect() {
-        initTooltips(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        initToasts(document.querySelectorAll('.toast'))
+        this.onRender()
 
         this.boundOnBeforeCache = this.onBeforeCache.bind(this)
         this.boundOnRender = this.onRender.bind(this)
@@ -40,22 +38,13 @@ export default class extends Controller<HTMLBodyElement> {
         performance.clearResourceTimings()
     }
 
-    private disposeTooltips(): void {
-        document.querySelectorAll<HTMLElement>('[data-bs-toggle="tooltip"]').forEach((element) => {
-            const instance = Tooltip.getInstance(element)
-            if (instance) {
-                instance.dispose()
-            }
-        })
-    }
-
     private onBeforeCache(): void {
-        this.disposeTooltips()
+        disposeTooltips()
         document.querySelectorAll<HTMLElement>('.toast').forEach(el => el.remove())
     }
 
     private onRender(): void {
-        initTooltips(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        initTooltips()
         initToasts(document.querySelectorAll('.toast'))
     }
 }

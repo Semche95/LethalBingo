@@ -1,4 +1,5 @@
 {% extends 'layouts/main.html.twig' %}
+{% import 'macros.html.twig' as macros %}
 
 {% block content %}
     <div class="row g-4 justify-content-center">
@@ -29,12 +30,7 @@
                         <h3 class="card-title">Accès rapides</h3>
                     </div>
                     <div class="list-group list-group-flush">
-                        {% for link in [
-                            {route: 'app_referee_dashboard', icon: 'layout-dashboard', label: 'Tableau de bord'},
-                            {route: 'app_referee_game', icon: 'device-gamepad-2', label: 'Parties'},
-                            {route: 'app_referee_bingo', icon: 'grid-3x3', label: 'Bingos'},
-                            {route: 'app_referee_team', icon: 'users-group', label: 'Équipes'},
-                        ] %}
+                        {% for link in referee_sections %}
                             <a href="{{ path(link.route) }}" class="list-group-item list-group-item-action d-flex align-items-center gap-2">
                                 {{ ux_icon('tabler:' ~ link.icon, {height: '18', width: '18'}) }}
                                 {{ link.label }}
@@ -48,35 +44,18 @@
 
         <div class="col-md-8 col-xl-6">
             <div class="card">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-title d-flex align-items-center gap-2">
-                            {{ ux_icon('tabler:lock', {height: '18', width: '18'}) }}
-                            Mot de passe
-                        </h3>
-                        <p class="card-subtitle mb-0">Saisissez votre mot de passe actuel puis choisissez-en un nouveau.</p>
-                    </div>
-                </div>
+                {{ macros.card_header('Mot de passe', 'lock', 'Saisissez votre mot de passe actuel puis choisissez-en un nouveau.') }}
                 {{ component('ChangePasswordForm') }}
             </div>
 
             <div class="card mt-4">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-title d-flex align-items-center gap-2">
-                            {{ ux_icon('tabler:devices', {height: '18', width: '18'}) }}
-                            Sessions
-                        </h3>
-                        <p class="card-subtitle mb-0">Déconnecte tous les autres navigateurs connectés à ce compte. Changer le mot de passe a le même effet.</p>
-                    </div>
-                </div>
+                {{ macros.card_header('Sessions', 'devices', 'Déconnecte tous les autres navigateurs connectés à ce compte. Changer le mot de passe a le même effet.') }}
                 <div class="card-footer d-flex justify-content-end">
-                    <form method="post" action="{{ path('app_user_logout_other_sessions') }}">
-                        {{ component('CsrfInput', {tokenId: 'logout-other-sessions'}) }}
+                    <twig:PostForm :action="path('app_user_logout_other_sessions')" :tokenId="'logout-other-sessions'">
                         <button type="submit" class="btn btn-outline-secondary">
                             {{ ux_icon('tabler:logout', {height: '18', width: '18'}) }}&nbsp;Déconnecter les autres sessions
                         </button>
-                    </form>
+                    </twig:PostForm>
                 </div>
             </div>
         </div>

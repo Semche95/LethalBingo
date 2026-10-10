@@ -1,0 +1,7 @@
+{% props href, title %}
+
+<a href="{{ href }}"{{ attributes.defaults({
+    'data-controller': 'modal-loader',
+    'data-action': 'click->modal-loader#open team:added@document->modal-loader#close team:updated@document->modal-loader#close',
+    'data-modal-loader-title-value': title,
+}) }}>{% block content %}{% endblock %}</a>

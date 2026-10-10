@@ -1,10 +1,31 @@
-import { Tooltip } from 'bootstrap'
+import { Modal, Tooltip } from 'bootstrap'
+import type TomSelect from 'tom-select'
 
 const TOAST_DELAY = 4000
 const TOAST_ANIMATION_DURATION = 250
 
-export function initTooltips(elements: NodeListOf<HTMLElement>) {
-    [...elements].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl))
+const TOOLTIP_SELECTOR = '[data-bs-toggle="tooltip"]'
+
+export function initTooltips(root: ParentNode = document): void {
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => new Tooltip(element))
+}
+
+export function disposeTooltips(root: ParentNode = document): void {
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getInstance(element)?.dispose())
+}
+
+export function showModal(id: string): void {
+    const element = document.getElementById(id)
+    if (element) Modal.getOrCreateInstance(element).show()
+}
+
+export function hideModal(id: string): void {
+    const element = document.getElementById(id)
+    if (element) Modal.getInstance(element)?.hide()
+}
+
+export function getTomSelect(element: Element): TomSelect | undefined {
+    return (element as Element & { tomselect?: TomSelect }).tomselect
 }
 
 export function initToasts(elements: NodeListOf<HTMLElement>) {
@@ -30,7 +51,6 @@ function dismissToast(toast: HTMLElement): void {
     toast.dataset.dismissing = 'true'
 
     toast.classList.remove('toast-visible')
-    toast.classList.add('toast-slide-out')
     setTimeout(() => toast.remove(), TOAST_ANIMATION_DURATION)
 }
 
@@ -66,4 +86,21 @@ export function focusFirstInput(container: HTMLElement) {
     if (focusableElements.length > 0) {
         focusableElements[0].focus()
     }
+}
+
+// Delays fn until `delayMs` have passed without a new call; cancel() drops the pending call.
+export function debounce(fn: () => void, delayMs: number): (() => void) & { cancel: () => void } {
+    let timeoutId: number | null = null
+
+    const cancel = (): void => {
+        if (timeoutId !== null) {
+            window.clearTimeout(timeoutId)
+            timeoutId = null
+        }
+    }
+
+    return Object.assign(() => {
+        cancel()
+        timeoutId = window.setTimeout(fn, delayMs)
+    }, { cancel })
 }

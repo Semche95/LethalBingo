@@ -1,34 +1,21 @@
 {% extends 'layouts/main.html.twig' %}
+{% import 'macros.html.twig' as macros %}
 
 {% block title %}Tableau de bord | {{ parent() }}{% endblock %}
 
 {% block content %}
-    <div class="modal modal-blur fade" id="add-team-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Nouvelle équipe</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body"></div>
-            </div>
-        </div>
-    </div>
+    {% component BootstrapModal with {id: 'add-team-modal'} %}
+        {% block modal_classes %}modal-lg{% endblock %}
+        {% block modal_title %}Nouvelle équipe{% endblock %}
+    {% endcomponent %}
 
     <nav class="referee-tabs mb-4">
         <ul class="nav nav-pills">
-            <li class="nav-item">
-                <a class="nav-link{% if app.request.attributes.get('_route') starts with 'app_referee_dashboard' %} active{% endif %}" href="{{ path('app_referee_dashboard') }}">Tableau de bord</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if app.request.attributes.get('_route') starts with 'app_referee_game' %} active{% endif %}" href="{{ path('app_referee_game') }}">Parties</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if app.request.attributes.get('_route') starts with 'app_referee_bingo' %} active{% endif %}" href="{{ path('app_referee_bingo') }}">Bingos</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if app.request.attributes.get('_route') starts with 'app_referee_team' %} active{% endif %}" href="{{ path('app_referee_team') }}">Équipes</a>
-            </li>
+            {% for tab in referee_sections %}
+                <li class="nav-item">
+                    <a class="nav-link {{ macros.active_class(tab.route, true) }}" href="{{ path(tab.route) }}">{{ tab.label }}</a>
+                </li>
+            {% endfor %}
         </ul>
     </nav>
 {% endblock %}

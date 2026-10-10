@@ -1,0 +1,13 @@
+{% props finishedAt = null, startedAt = null, showDate = false %}
+
+{% if finishedAt is not null %}
+    {% set color, icon, label, date = 'green', 'check', 'Terminée', finishedAt %}
+{% elseif startedAt is not null %}
+    {% set color, icon, label, date = 'blue', 'player-play', 'En cours', startedAt %}
+{% else %}
+    {% set color, icon, label, date = 'secondary', 'clock', 'À venir', null %}
+{% endif %}
+
+<span{{ attributes.defaults({class: 'badge bg-' ~ color ~ '-lt'}) }}>
+    {{ ux_icon('tabler:' ~ icon, {height: '14', width: '14'}) }}&nbsp;{{ showDate and date is not null ? date|format_date(pattern='d MMM H:mm', locale='fr') : label }}
+</span>

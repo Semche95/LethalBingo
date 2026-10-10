@@ -1,3 +1,4 @@
+import { getTomSelect } from '../utils'
 import { Controller } from '@hotwired/stimulus'
 
 export default class extends Controller {
@@ -10,7 +11,6 @@ export default class extends Controller {
     }
 
     blur = () => {
-        const toms = (this.element as any).tomselect
-        toms?.blur()
+        getTomSelect(this.element)?.blur()
     }
 }

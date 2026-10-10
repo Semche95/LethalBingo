@@ -1,0 +1,29 @@
+{# `deleteDisabledReason` keeps the delete button visible but disabled, its tooltip explaining why. #}
+
+{% props backUrl = null, deleteModalId = null, deleteAction = null, deleteDisabledReason = null, canSave = true %}
+
+<div{{ attributes.defaults({class: 'd-flex align-items-center'}) }}>
+    {% if backUrl %}
+        <a href="{{ backUrl }}" class="btn btn-outline-secondary">Retour</a>
+    {% else %}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+    {% endif %}
+    {% if deleteDisabledReason %}
+        <div class="vr mx-3"></div>
+        {# A disabled button emits no mouse event: the wrapper carries the tooltip. #}
+        <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{{ deleteDisabledReason }}">
+            <button type="button" class="btn btn-outline-danger" disabled>
+                {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+            </button>
+        </span>
+    {% elseif deleteModalId or deleteAction %}
+        <div class="vr mx-3"></div>
+        <button type="button" class="btn btn-outline-danger"
+                {% if deleteAction %}data-action="{{ deleteAction }}"{% else %}data-bs-toggle="modal" data-bs-target="#{{ deleteModalId }}"{% endif %}>
+            {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}&nbsp;Supprimer
+        </button>
+    {% endif %}
+    {% if canSave %}
+        <button type="submit" class="btn btn-primary ms-auto">Enregistrer</button>
+    {% endif %}
+</div>

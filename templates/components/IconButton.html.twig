@@ -1,0 +1,10 @@
+{# Icon-only button with a tooltip; `liveAction` (and its `params`) triggers an action of the enclosing Live Component. #}
+{% props icon, title, size = 18, liveAction = null, params = {} %}
+
+<button type="button"{{ attributes.defaults({
+    class: 'btn',
+    title: title,
+    'data-bs-toggle': 'tooltip',
+}|merge(liveAction ? stimulus_action('live', 'action', 'click', {action: liveAction}|merge(params)).toArray() : {})) }}>
+    {{ ux_icon(icon, {height: size, width: size}) }}
+</button>

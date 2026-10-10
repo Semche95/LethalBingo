@@ -13,10 +13,9 @@
             </button>
         {% endset %}
         {% if action %}
-            <form action="{{ action }}" method="post" class="d-flex w-100">
-                {{ component('CsrfInput', {tokenId: tokenId}) }}
+            <twig:PostForm :action="action" :tokenId="tokenId" class="d-flex w-100">
                 {{ buttons }}
-            </form>
+            </twig:PostForm>
         {% else %}
             {{ buttons }}
         {% endif %}

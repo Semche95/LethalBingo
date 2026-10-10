@@ -12,10 +12,7 @@
             </div>
 
             {% if error %}
-                <div class="alert alert-danger d-flex align-items-center">
-                    {{ ux_icon('tabler:alert-circle', {height: '18', width: '18'}) }}
-                    <span class="ms-2">{{ error.messageKey|trans(error.messageData, 'security') }}</span>
-                </div>
+                <twig:Alert>{{ error.messageKey|trans(error.messageData, 'security') }}</twig:Alert>
             {% endif %}
 
             <form action="{{ path('app_login') }}" method="post">

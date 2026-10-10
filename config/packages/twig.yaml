@@ -1,6 +1,13 @@
 twig:
     file_name_pattern: '*.twig'
     form_themes: ['bootstrap_5_horizontal_layout.html.twig']
+    globals:
+        # Sections of the referee area, shared by its tabs and the profile shortcuts
+        referee_sections:
+            - { route: app_referee_dashboard, icon: layout-dashboard, label: 'Tableau de bord' }
+            - { route: app_referee_game, icon: device-gamepad-2, label: Parties }
+            - { route: app_referee_bingo, icon: grid-3x3, label: Bingos }
+            - { route: app_referee_team, icon: users-group, label: Équipes }
 
 when@test:
     twig:

@@ -1,3 +1,23 @@
-{% macro tooltip(route) %}
-    {% if app.request.get('_route') == route %}active{% endif %}
+{# Renvoie « active » si la route courante est `route` (ou commence par `route` quand `prefix` est vrai). #}
+{% macro active_class(route, prefix = false) -%}
+    {%- set current = app.request.attributes.get('_route') -%}
+    {%- if prefix ? current starts with route : current == route %}active{% endif -%}
+{%- endmacro %}
+
+{# Card header with an icon before the title and a subtitle below. #}
+{% macro card_header(title, icon, subtitle) %}
+    <div class="card-header">
+        <div>
+            <h3 class="card-title d-flex align-items-center gap-2">
+                {{ ux_icon('tabler:' ~ icon, {height: '18', width: '18'}) }}
+                {{ title }}
+            </h3>
+            <p class="card-subtitle mb-0">{{ subtitle }}</p>
+        </div>
+    </div>
+{% endmacro %}
+
+{# Message shown in place of an empty list. #}
+{% macro empty_state(message, centered = true) %}
+    <p class="{{ centered ? 'text-center text-body-secondary py-5' : 'text-secondary' }}">{{ message }}</p>
 {% endmacro %}

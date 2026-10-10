@@ -1,0 +1,6 @@
+{% props type = 'danger', icon = 'alert-circle' %}
+
+<div{{ attributes.defaults({class: 'alert alert-' ~ type ~ ' d-flex align-items-start gap-2 mb-3'}) }}>
+    {{ ux_icon('tabler:' ~ icon, {height: '20', width: '20', class: 'flex-shrink-0'}) }}
+    <div>{% block content %}{% endblock %}</div>
+</div>
