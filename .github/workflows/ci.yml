@@ -193,7 +193,7 @@ jobs:
         steps:
             - name: Fetch Dependabot metadata
               id: metadata
-              uses: dependabot/fetch-metadata@v2
+              uses: dependabot/fetch-metadata@v3
 
             # Squash with an empty body: a single-line commit on main.
             - name: Merge the PR
