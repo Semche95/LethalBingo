@@ -1,0 +1,44 @@
+version: 2
+
+# Updates are grouped per ecosystem (one PR each) and merged by the
+# "Dependabot merge" CI job once the checks pass.
+updates:
+    - package-ecosystem: composer
+      directory: /
+      schedule:
+          interval: weekly
+      commit-message:
+          prefix: chore(config)
+      groups:
+          composer:
+              patterns: ['*']
+
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      commit-message:
+          prefix: chore(config)
+      # Symfony UX packages are linked from vendor/ and follow Composer.
+      ignore:
+          - dependency-name: '@symfony/ux-*'
+      groups:
+          npm:
+              patterns: ['*']
+
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
+      commit-message:
+          prefix: chore(config)
+      groups:
+          github-actions:
+              patterns: ['*']
+
+    - package-ecosystem: docker
+      directory: /
+      schedule:
+          interval: weekly
+      commit-message:
+          prefix: chore(config)

@@ -179,3 +179,27 @@ jobs:
             # before running, and never a Vite build.
             - name: Run Vitest
               run: pnpm exec vitest run
+
+    # Dependabot PRs are squashed into main once every job above passed.
+    # Majors stay open for a manual review.
+    dependabot-merge:
+        name: Dependabot merge
+        needs: [tests, static-analysis, frontend]
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Fetch Dependabot metadata
+              id: metadata
+              uses: dependabot/fetch-metadata@v2
+
+            # Squash with an empty body: a single-line commit on main.
+            - name: Merge the PR
+              if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+              run: gh pr merge --squash --subject "$PR_TITLE" --body "" "$PR_URL"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+                  PR_URL: ${{ github.event.pull_request.html_url }}
