@@ -1,5 +1,9 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
+# UID/GID de l'hôte, transmis au build de l'image de dev (compose.override.yaml)
+export HOST_UID := `id -u`
+export HOST_GID := `id -g`
+
 # ==============================
 # Justfile LethalBingo (développement)
 # ------------------------------

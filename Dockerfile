@@ -70,6 +70,18 @@ COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 # git (used by composer recipes:update) refuses to work in /app
 RUN git config --system --add safe.directory /app
 
+# Run as the host user (UID/GID passed by compose.override.yaml) so that files
+# written to the bind-mounted repository (vendor/, migrations…) belong to them
+ARG UID=1000
+ARG GID=1000
+RUN set -eux; \
+	groupadd --gid "${GID}" app; \
+	useradd --uid "${UID}" --gid "${GID}" --create-home app; \
+	setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp; \
+	mkdir -p /app/var; \
+	chown -R app:app /config /data /app/var
+USER app
+
 CMD [ "frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch" ]
 
 # Prod FrankenPHP image
