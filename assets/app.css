@@ -1343,3 +1343,26 @@ li.sidebar-category > span {
 .game-grid-cell--clickable:hover .game-grid-pencil-icon {
     opacity: 1;
 }
+
+/* Highlights of the game, listed in the timer bar */
+.game-highlights-menu {
+    width: 24rem;
+    max-height: 20rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.25rem 0;
+}
+
+.game-highlight-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* Same height for the note line and the deletion confirmation */
+    height: 2.625rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.game-highlight-delete:hover,
+.game-highlight-delete:focus-visible {
+    color: var(--tblr-danger);
+}

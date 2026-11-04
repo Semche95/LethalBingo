@@ -1,0 +1,40 @@
+{# One highlight of the list, rendered on the page and returned when a highlight is marked #}
+{% set seconds = highlight.elapsedSeconds %}
+{% set elapsed = '%02d:%02d:%02d'|format(seconds // 3600, seconds // 60 % 60, seconds % 60) %}
+<li class="game-highlight"
+    {{ stimulus_target('game--game-highlights', 'row') }}
+    {% if editable %}
+        data-note-url="{{ path('app_referee_game_highlight_note', {id: highlight.id}) }}"
+        data-delete-url="{{ path('app_referee_game_highlight_delete', {id: highlight.id}) }}"
+    {% endif %}>
+    <div class="game-highlight-line" data-game-highlight-view>
+        <span class="font-monospace">{{ elapsed }}</span>
+        {% if editable %}
+            <input type="text"
+                   class="form-control form-control-sm"
+                   value="{{ highlight.note }}"
+                   placeholder="Note"
+                   aria-label="Note du temps fort {{ elapsed }}"
+                   data-action="input->game--game-highlights#saveNote">
+            <button type="button"
+                    class="btn btn-sm btn-icon btn-ghost-secondary game-highlight-delete"
+                    aria-label="Supprimer le temps fort {{ elapsed }}"
+                    data-action="game--game-highlights#askDelete">
+                {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}
+            </button>
+        {% else %}
+            <span class="text-secondary text-break">{{ highlight.note }}</span>
+        {% endif %}
+    </div>
+    {% if editable %}
+        <div class="game-highlight-line d-none" data-game-highlight-confirm>
+            <span class="flex-fill">Supprimer {{ elapsed }}&nbsp;?</span>
+            <button type="button" class="btn btn-sm btn-ghost-secondary" data-action="game--game-highlights#cancelDelete">
+                Annuler
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" data-action="game--game-highlights#delete">
+                Supprimer
+            </button>
+        </div>
+    {% endif %}
+</li>

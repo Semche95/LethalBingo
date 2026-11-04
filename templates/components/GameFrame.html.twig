@@ -46,6 +46,7 @@
                                         {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
                                         Partie terminée le {{ this.game.finishedAt|date('d/m/Y à H:i:s') }}
                                     </span>
+                                    <twig:GameHighlights :game="this.game" class="ms-3" />
                                 {% elseif this.game.started %}
                                     <span class="me-5">
                                         {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}

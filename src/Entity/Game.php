@@ -51,6 +51,13 @@ class Game
     #[ORM\OrderBy(['occurredAt' => 'ASC', 'id' => 'ASC'])]
     private Collection $squareActions;
 
+    /**
+     * @var Collection<int, GameHighlight>
+     */
+    #[ORM\OneToMany(targetEntity: GameHighlight::class, mappedBy: 'game')]
+    #[ORM\OrderBy(['markedAt' => 'DESC', 'id' => 'DESC'])]
+    private Collection $highlights;
+
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $startedAt = null;
 
@@ -80,6 +87,7 @@ class Game
         $this->bingoSquareValidated = new ArrayCollection();
         $this->bingoSquareRevealed = new ArrayCollection();
         $this->squareActions = new ArrayCollection();
+        $this->highlights = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -186,6 +194,14 @@ class Game
     public function getSquareActions(): Collection
     {
         return $this->squareActions;
+    }
+
+    /**
+     * @return Collection<int, GameHighlight>
+     */
+    public function getHighlights(): Collection
+    {
+        return $this->highlights;
     }
 
     public function getStartedAt(): ?DateTimeImmutable

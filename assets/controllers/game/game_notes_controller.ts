@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { postJson } from '../../csrf_post'
 import { debounce } from '../../utils'
 
 export default class extends Controller<HTMLDivElement> {
@@ -35,21 +36,9 @@ export default class extends Controller<HTMLDivElement> {
 
     private async doSaveNotes(): Promise<void> {
         try {
-            const response = await fetch(this.saveUrlValue, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-Token': this.tokenTarget.value,
-                },
-                body: JSON.stringify({
-                    notes: this.notesTarget.value,
-                }),
+            await postJson(this.saveUrlValue, this.tokenTarget.value, {
+                notes: this.notesTarget.value,
             })
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok')
-            }
 
             this.statusTarget.textContent = 'Notes sauvegardées'
 

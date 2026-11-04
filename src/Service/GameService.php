@@ -92,12 +92,13 @@ readonly class GameService
 
         $this->em->wrapInTransaction(function ($em) use ($game): void {
             $game->resetTimer(null);
-            foreach ([...$game->getBingoSquareRevealed(), ...$game->getBingoSquareValidated(), ...$game->getSquareActions()] as $entity) {
+            foreach ([...$game->getBingoSquareRevealed(), ...$game->getBingoSquareValidated(), ...$game->getSquareActions(), ...$game->getHighlights()] as $entity) {
                 $em->remove($entity);
             }
             $game->getBingoSquareRevealed()->clear();
             $game->getBingoSquareValidated()->clear();
             $game->getSquareActions()->clear();
+            $game->getHighlights()->clear();
             $em->persist($game);
         });
         $this->refreshGameFrame($game);

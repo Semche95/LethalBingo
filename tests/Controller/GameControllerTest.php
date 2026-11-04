@@ -98,8 +98,8 @@ class GameControllerTest extends ControllerTestCase
 
         self::assertResponseIsSuccessful();
         // user, game with round and team, squares, revealed ids, validated ids,
-        // categories and not validated squares of the steps
-        $this->assertQueryCountAtMost(7);
+        // categories and not validated squares of the steps, highlights
+        $this->assertQueryCountAtMost(8);
     }
 
     public function testUnknownSlugReturnsNotFound(): void

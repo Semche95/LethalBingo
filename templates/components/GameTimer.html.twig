@@ -44,6 +44,9 @@
                 {% else %}
                     <twig:IconButton icon="mdi:pause" title="Mettre en pause" class="btn btn-icon btn-primary" liveAction="pauseGame" size="24" data-game--game-timer-target="pauseButton" />
                 {% endif %}
+
+                <twig:GameHighlights :game="this.game" class="ms-2" />
+
             </div>
         {% endif %}
     </div>

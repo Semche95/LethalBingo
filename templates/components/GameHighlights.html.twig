@@ -1,0 +1,49 @@
+{% props game %}
+{# Referee only: highlights are marked while the game is in progress, read-only once it is over #}
+{% set editable = game.inProgress %}
+{% set count = game.highlights|length %}
+<div {{ attributes.defaults({class: 'd-flex align-items-center gap-2'}).defaults(stimulus_controller('game--game-highlights', {
+    addUrl: editable ? path('app_referee_game_highlight_add', {id: game.id}) : '',
+})) }} data-live-ignore>
+    {% if editable %}
+        {{ component('CsrfInput', {
+            tokenId: 'game-highlights-' ~ game.id,
+            'data-game--game-highlights-target': 'token',
+        }) }}
+        <button type="button"
+                class="btn btn-icon btn-outline-primary"
+                title="Marquer un temps fort"
+                aria-label="Marquer un temps fort"
+                data-bs-toggle="tooltip"
+                data-action="game--game-highlights#mark">
+            {{ ux_icon('mdi:bookmark-plus-outline', {height: '24', width: '24'}) }}
+        </button>
+    {% endif %}
+    <div class="dropdown">
+        {# The tooltip sits on a wrapper: a disabled button receives no mouse event #}
+        <span class="d-inline-block"
+              tabindex="0"
+              title="{{ count ? 'Temps forts' : 'Aucun temps fort' }}"
+              data-bs-toggle="tooltip"
+              {{ stimulus_target('game--game-highlights', 'listTooltip') }}>
+            <button type="button"
+                    class="btn btn-icon btn-outline-primary position-relative"
+                    aria-label="Temps forts"
+                    aria-expanded="false"
+                    {{ stimulus_target('game--game-highlights', 'listButton') }}
+                    data-action="game--game-highlights#toggle"
+                    {% if not count %}disabled{% endif %}>
+                {{ ux_icon('mdi:format-list-bulleted', {height: '24', width: '24'}) }}
+                <span class="badge bg-primary text-primary-fg badge-notification {{ count ? '' : 'd-none' }}"
+                      {{ stimulus_target('game--game-highlights', 'badge') }}>{{ count }}</span>
+            </button>
+        </span>
+        <ul class="dropdown-menu dropdown-menu-end game-highlights-menu"
+            data-bs-popper="static"
+            {{ stimulus_target('game--game-highlights', 'menu') }}>
+            {% for highlight in game.highlights %}
+                {{ include('components/GameHighlights/_row.html.twig') }}
+            {% endfor %}
+        </ul>
+    </div>
+</div>

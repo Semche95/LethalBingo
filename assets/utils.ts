@@ -7,7 +7,7 @@ const TOAST_ANIMATION_DURATION = 250
 const TOOLTIP_SELECTOR = '[data-bs-toggle="tooltip"]'
 
 export function initTooltips(root: ParentNode = document): void {
-    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => new Tooltip(element))
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getOrCreateInstance(element))
 }
 
 export function disposeTooltips(root: ParentNode = document): void {

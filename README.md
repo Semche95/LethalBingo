@@ -60,6 +60,7 @@
 - **Live controls**: start, stop or reset a game; reveal, hide, validate or invalidate squares; pause, resume or adjust the timer
 - **Steps panel**: remaining squares per category, with quick navigation to each square
 - **Notes** saved automatically during the game
+- **Highlights**: mark the key moments of a game from the timer bar, with their elapsed time and an optional note, listed read-only once the game is over
 - **Bingos**: 5×5 boards organized by season and round, with a square editor, square categories and detection of duplicate or missing squares
 - **Teams**: members with a single captain, and search
 - **Profile**: account details and password change
@@ -301,6 +302,13 @@ erDiagram
         string type
         datetime occurredAt
     }
+    GameHighlight {
+        int id PK
+        int game_id FK
+        datetime markedAt
+        int elapsedSeconds
+        text note
+    }
 
     Team ||--o{ TeamMember : "has members"
     Team ||--o{ Game : "plays"
@@ -313,6 +321,7 @@ erDiagram
     BingoSquare ||--o{ BingoSquareValidated : "validated in"
     Game ||--o{ GameSquareAction : "records"
     BingoSquare ||--o{ GameSquareAction : "acted on in"
+    Game ||--o{ GameHighlight : "highlights"
 ```
 
 - `User` holds the referee and admin accounts; it has no relationship with the game data

@@ -8,6 +8,7 @@ use App\Entity\BingoSquare;
 use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
+use App\Entity\GameHighlight;
 use App\Entity\GameRound;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
@@ -66,6 +67,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
 
                 if ($startedAt !== null) {
                     $this->playSquares($manager, $faker, $game, $startedAt, $finishedAt ?? new DateTimeImmutable());
+                    $this->markHighlights($manager, $faker, $game, $startedAt, $finishedAt ?? new DateTimeImmutable());
                 }
             }
         }
@@ -95,6 +97,17 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
 
         foreach ($faker->randomElements($playable, 3) as [$square, $playableFrom]) {
             $this->playActions($manager, $faker, $game, $square, $playableFrom, $to, SquareActionType::Validate, SquareActionType::Invalidate, new BingoSquareValidated());
+        }
+    }
+
+    /**
+     * Marks up to five highlights during the game, some of them with a note.
+     */
+    private function markHighlights(ObjectManager $manager, Generator $faker, Game $game, DateTimeImmutable $from, DateTimeImmutable $to): void
+    {
+        for ($i = $faker->numberBetween(0, 5); $i > 0; --$i) {
+            $markedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween($from->format('Y-m-d H:i:s'), $to->format('Y-m-d H:i:s')));
+            $manager->persist(new GameHighlight($game, $markedAt)->setNote($faker->boolean() ? $faker->sentence() : null));
         }
     }
 

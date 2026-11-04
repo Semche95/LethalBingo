@@ -9,6 +9,7 @@ use App\Entity\BingoSquare;
 use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
+use App\Entity\GameHighlight;
 use App\Entity\GameRound;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
@@ -277,5 +278,29 @@ class GameServiceTest extends TestCase
         $this->assertCount(2, $removedEntities);
         $this->assertContainsOnlyInstancesOf(GameSquareAction::class, $removedEntities);
         $this->assertCount(0, $game->getSquareActions());
+    }
+
+    public function testResetRemovesTheHighlights(): void
+    {
+        $game = new Game();
+        $game->setSlug('test');
+        $game->setStartedAt(new DateTimeImmutable());
+        $game->getHighlights()->add(new GameHighlight($game));
+        $game->getHighlights()->add(new GameHighlight($game));
+
+        $removedEntities = [];
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('remove')->willReturnCallback(function ($entity) use (&$removedEntities): void {
+            $removedEntities[] = $entity;
+        });
+        $em->method('wrapInTransaction')->willReturnCallback(static function (callable $callable) use ($em): void {
+            $callable($em);
+        });
+
+        $this->createGameService($em)->reset($game);
+
+        $this->assertCount(2, $removedEntities);
+        $this->assertContainsOnlyInstancesOf(GameHighlight::class, $removedEntities);
+        $this->assertCount(0, $game->getHighlights());
     }
 }
