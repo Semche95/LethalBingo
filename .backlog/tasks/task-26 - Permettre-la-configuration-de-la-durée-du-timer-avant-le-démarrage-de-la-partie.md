@@ -5,18 +5,28 @@ title: >-
   partie
 status: To Do
 assignee: []
-created_date: '2026-09-30 16:16'
-updated_date: '2026-10-02 21:11'
+created_date: 2026-09-30 16:16
+updated_date: '2026-11-04T14:31:00Z'
 labels:
   - timer
 dependencies: []
+priority: medium
+type: feature
 ordinal: 30000
 ---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+La durée du timer est aujourd'hui fixée à une heure pour toutes les parties. L'arbitre doit pouvoir choisir la durée du timer de chaque partie avant son démarrage, ou s'en passer complètement pour une partie sans limite de temps.
+<!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 La durée par défaut est de 1h30
 - [ ] #2 Le timer peut être complètement désactivé
+- [ ] #3 La durée du timer se règle à la création ou à la modification d'une partie, tant qu'elle n'a pas démarré
+- [ ] #4 Le timer de la partie démarre avec la durée choisie
 <!-- AC:END -->
 
 ## Definition of Done

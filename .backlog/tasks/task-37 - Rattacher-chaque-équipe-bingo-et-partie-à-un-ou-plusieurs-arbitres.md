@@ -5,8 +5,8 @@ title: >-
   d'arbitres
 status: To Do
 assignee: []
-created_date: '2026-10-09 21:10'
-updated_date: '2026-10-09 21:51'
+created_date: 2026-10-09 21:10
+updated_date: '2026-11-04T14:37:00Z'
 labels:
   - gestion-parties
   - dashboard-arbitre
@@ -25,12 +25,10 @@ Aujourd'hui, tout arbitre voit et modifie toutes les équipes, tous les bingos e
 Règles retenues :
 - un arbitre appartient à un seul groupe ;
 - une partie, son équipe et son bingo appartiennent toujours au même groupe ;
-- le blocage du round suivant ne compte que les équipes du groupe ;
 - seul l'administrateur, qui gère techniquement l'application, crée les groupes et y affecte les arbitres ;
 - l'administrateur voit le contenu de tous les groupes.
 
 **Renvois**
-- TASK-28 : Empêcher le démarrage d'un round suivant tant que le round en cours n'est pas terminé par toutes les équipes
 - TASK-38 : Ajouter une page d'administration des comptes
 <!-- SECTION:DESCRIPTION:END -->
 
@@ -39,9 +37,8 @@ Règles retenues :
 - [ ] #1 Chaque arbitre appartient à un seul groupe
 - [ ] #2 Chaque équipe, bingo et partie appartient à un groupe, et une partie ne peut relier qu'une équipe et un bingo de son groupe
 - [ ] #3 Un arbitre ne voit et ne modifie que les équipes, bingos et parties de son groupe, et ne voit pas les arbitres des autres groupes
-- [ ] #4 Le blocage du round suivant ne compte que les équipes du groupe
-- [ ] #5 Seul l'administrateur crée les groupes et y affecte les arbitres
-- [ ] #6 L'administrateur voit et modifie le contenu de tous les groupes
+- [ ] #4 Seul l'administrateur crée les groupes et y affecte les arbitres
+- [ ] #5 L'administrateur voit et modifie le contenu de tous les groupes
 <!-- AC:END -->
 
 ## Definition of Done

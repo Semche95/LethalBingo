@@ -3,15 +3,34 @@ id: TASK-23
 title: Implémenter le calcul automatique des points selon les règles sélectionnées
 status: To Do
 assignee: []
-created_date: '2026-09-30 16:16'
-updated_date: '2026-10-02 21:11'
+created_date: 2026-09-30 16:16
+updated_date: '2026-11-04T14:31:00Z'
 labels:
   - regles-scoring
-dependencies: []
+dependencies:
+  - TASK-21
 documentation:
   - .backlog/docs/doc-1 - Règles-de-scoring-à-définir.md
+priority: medium
+type: feature
 ordinal: 27000
 ---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Le score d'une partie est aujourd'hui calculé à la main. L'application doit calculer automatiquement les points d'une partie à partir des règles sélectionnées pour elle. Le barème n'est pas encore arrêté : les pistes envisagées (nombre de jours maximum, argent maximum sur le terminal, temps restant) sont recensées dans le document « Règles de scoring à définir ».
+
+**Renvois**
+- TASK-21 : Permettre le choix des règles propres à chaque partie
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 Le barème de chaque règle de scoring est arrêté
+- [ ] #2 Les points d'une partie sont calculés automatiquement à partir des règles sélectionnées pour elle
+- [ ] #3 Le détail des points obtenus par règle est affiché à l'arbitre
+<!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->

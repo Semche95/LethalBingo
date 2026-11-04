@@ -3,11 +3,12 @@ id: TASK-36
 title: Ajouter un thème clair et sombre
 status: To Do
 assignee: []
-created_date: '2026-10-09 21:10'
+created_date: 2026-10-09 21:10
+updated_date: '2026-11-04T14:12:00Z'
 labels:
   - ui
 dependencies: []
-priority: medium
+priority: low
 type: feature
 ordinal: 40000
 ---

@@ -3,13 +3,24 @@ id: TASK-18
 title: Conserver la date de chaque action effectuée sur une case
 status: To Do
 assignee: []
-created_date: '2026-09-30 16:16'
-updated_date: '2026-10-02 21:11'
+created_date: 2026-09-30 16:16
+updated_date: '2026-11-04T14:31:00Z'
 labels:
   - historique
 dependencies: []
+priority: medium
+type: feature
 ordinal: 22000
 ---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Aujourd'hui, seule la date à laquelle une case est dévoilée ou validée est conservée, et elle disparaît quand la case est masquée ou invalidée. L'application doit garder la trace datée de chaque action effectuée sur une case pendant une partie, y compris quand la même action est répétée, pour pouvoir reconstituer le déroulé complet de la partie.
+
+**Renvois**
+- TASK-19 : Afficher l'historique des actions à droite du bingo avec les temps forts
+<!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
@@ -17,6 +28,7 @@ ordinal: 22000
 - [ ] #2 La date de masquage est conservée
 - [ ] #3 La date de validation est conservée
 - [ ] #4 La date d'invalidation est conservée
+- [ ] #5 Une action répétée sur la même case conserve la date de chaque occurrence
 <!-- AC:END -->
 
 ## Definition of Done
