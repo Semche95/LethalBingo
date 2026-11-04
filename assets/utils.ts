@@ -10,8 +10,18 @@ export function initTooltips(root: ParentNode = document): void {
     root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getOrCreateInstance(element))
 }
 
+// Also removes `aria-describedby`, left by dispose() on a shown tooltip: a Live
+// Component keeps any attribute changed in JS and would put it back on the
+// element of its next render, pointing to a tooltip that no longer exists.
 export function disposeTooltips(root: ParentNode = document): void {
-    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getInstance(element)?.dispose())
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => {
+        const tooltip = Tooltip.getInstance(element)
+        if (!tooltip) {
+            return
+        }
+        tooltip.dispose()
+        element.removeAttribute('aria-describedby')
+    })
 }
 
 export function showModal(id: string): void {
