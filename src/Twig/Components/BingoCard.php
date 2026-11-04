@@ -9,6 +9,7 @@ use App\Entity\Game;
 use App\Entity\GameRound;
 use App\Repository\BingoSquareCategoryRepository;
 use App\Service\BingoService;
+use App\Service\GameSquareService;
 use App\Service\RefreshEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -51,6 +52,7 @@ final class BingoCard extends AbstractController
 
     public function __construct(
         private readonly BingoService $bingo,
+        private readonly GameSquareService $gameSquareService,
         private readonly BingoSquareCategoryRepository $categoryRepository,
     ) {
     }
@@ -125,7 +127,7 @@ final class BingoCard extends AbstractController
      */
     private function getRevealedSquareIds(): array
     {
-        return $this->revealedSquareIds ??= $this->bingo->getRevealedSquareIds($this->game);
+        return $this->revealedSquareIds ??= $this->gameSquareService->getRevealedSquareIds($this->game);
     }
 
     /**
@@ -133,7 +135,7 @@ final class BingoCard extends AbstractController
      */
     private function getValidatedSquareIds(): array
     {
-        return $this->validatedSquareIds ??= $this->bingo->getValidatedSquareIds($this->game);
+        return $this->validatedSquareIds ??= $this->gameSquareService->getValidatedSquareIds($this->game);
     }
 
     public function getRowLetter(int $row): string
@@ -145,27 +147,27 @@ final class BingoCard extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function reveal(#[LiveArg] int $squareId): void
     {
-        $this->bingo->reveal($this->game, $squareId);
+        $this->gameSquareService->reveal($this->game, $squareId);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function conceal(#[LiveArg] int $squareId): void
     {
-        $this->bingo->conceal($this->game, $squareId);
+        $this->gameSquareService->conceal($this->game, $squareId);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function validate(#[LiveArg] int $squareId): void
     {
-        $this->bingo->validate($this->game, $squareId);
+        $this->gameSquareService->validate($this->game, $squareId);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function invalidate(#[LiveArg] int $squareId): void
     {
-        $this->bingo->invalidate($this->game, $squareId);
+        $this->gameSquareService->invalidate($this->game, $squareId);
     }
 }

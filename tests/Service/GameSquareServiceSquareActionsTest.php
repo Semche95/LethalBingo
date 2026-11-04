@@ -7,14 +7,14 @@ namespace App\Tests\Service;
 use App\Entity\BingoSquare;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
-use App\Service\BingoService;
+use App\Service\GameSquareService;
 use App\Tests\Controller\ControllerTestCase;
 use DateTimeImmutable;
 
 /**
  * History of the square actions, as stored in the database.
  */
-class BingoServiceSquareActionsTest extends ControllerTestCase
+class GameSquareServiceSquareActionsTest extends ControllerTestCase
 {
     public function testEveryOccurrenceOfARepeatedActionIsKeptWithItsDate(): void
     {
@@ -24,13 +24,13 @@ class BingoServiceSquareActionsTest extends ControllerTestCase
         self::assertInstanceOf(BingoSquare::class, $square);
         $squareId = (int) $square->getId();
 
-        $bingo = self::getContainer()->get(BingoService::class);
-        $bingo->reveal($game, $squareId);
-        $bingo->conceal($game, $squareId);
-        $bingo->reveal($game, $squareId);
-        $bingo->validate($game, $squareId);
-        $bingo->invalidate($game, $squareId);
-        $bingo->validate($game, $squareId);
+        $gameSquares = self::getContainer()->get(GameSquareService::class);
+        $gameSquares->reveal($game, $squareId);
+        $gameSquares->conceal($game, $squareId);
+        $gameSquares->reveal($game, $squareId);
+        $gameSquares->validate($game, $squareId);
+        $gameSquares->invalidate($game, $squareId);
+        $gameSquares->validate($game, $squareId);
 
         $this->em->clear();
         $actions = $this->em->getRepository(GameSquareAction::class)->findBy(['game' => $game->getId()], ['id' => 'ASC']);
@@ -59,9 +59,9 @@ class BingoServiceSquareActionsTest extends ControllerTestCase
         $square = $this->em->getRepository(BingoSquare::class)->findOneBy(['round' => $game->getRound(), 'row' => 1, 'col' => 1]);
         self::assertInstanceOf(BingoSquare::class, $square);
 
-        $bingo = self::getContainer()->get(BingoService::class);
-        $bingo->conceal($game, (int) $square->getId());
-        $bingo->invalidate($game, (int) $square->getId());
+        $gameSquares = self::getContainer()->get(GameSquareService::class);
+        $gameSquares->conceal($game, (int) $square->getId());
+        $gameSquares->invalidate($game, (int) $square->getId());
 
         self::assertSame([], $this->em->getRepository(GameSquareAction::class)->findBy(['game' => $game]));
     }
