@@ -33,55 +33,19 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 
 - **DRY dans toute l'app** (PHP, Twig, TS, CSS) : avant d'écrire un bloc qui existe déjà ailleurs, le factoriser (Service, composant Twig, macro, helper TS, classe CSS) et réutiliser l'existant. Ex. : modales de confirmation via le composant `ConfirmModal`.
 
-## PHP (8.5+)
+## Règles par sujet
 
-- Syntaxe moderne : constructor promotion, readonly, enums, match, nullsafe, first-class callables, named arguments. Pas de code déprécié.
-- Attributs PHP partout (routing, validation, ORM, security), jamais d'annotations.
-- `new ClassName()->method()` sans parenthèses autour du `new`.
-- Pas d'appel entre controllers : logique partagée dans un Service. Early returns, pas de globales.
-- **Repository** : DQL uniquement (pas de SQL natif), résultats bruts sans boucle PHP (`foreach`, `array_map`) ; le réarrangement se fait dans le service ou le contrôleur.
-- Pas de fusion PHP de données qu'un template Twig re-parcourt : exposer les jeux de données bruts comme propriétés distinctes du composant et joindre dans le template.
-- Paramètres mot de passe / secret : `#[SensitiveParameter]`.
+Avant de modifier un fichier, lire la ou les règles de `.claude/rules/` qui couvrent son chemin :
 
-## Symfony
-
-- Nouvelle fonctionnalité via `composer require` (la recipe Flex enregistre le bundle et sa config) : jamais de `bundles.php` ni de config de bundle écrits à la main.
-- Autowiring et autoconfiguration ; cas particuliers dans la classe (`#[Autowire]`, `#[Target]`), `services.yaml` en dernier recours.
-- Données de requête via `#[MapRequestPayload]` / `#[MapQueryString]`, pas de `json_decode()` manuel.
-- Pas de service `readonly` susceptible de devenir `lazy: true` (un proxy lazy ne peut pas étendre une classe `readonly`).
-- Exclusion mutuelle (actions concurrentes sur la même donnée) via `symfony/lock` (`LockFactory`), jamais de drapeau ou fichier verrou maison.
-- En cas d'erreur, lire `var/log/dev.log` et le profiler (`/_profiler`) avant de modifier le code.
-- `make:*` avec tous les arguments et `--no-interaction` (sinon la commande s'interrompt).
-- Vérifier plutôt que supposer : `debug:router`, `debug:container`, `debug:autowiring`, `debug:config`, `config:dump-reference`, la source dans `vendor/`, et la doc de la version installée.
-
-## Frontend
-
-- Vite, Bootstrap 5.3 + Tabler, Turbo + Stimulus, Symfony UX Live Components.
-- Pas de `console.log`, pas de JS inline dans Twig, `removeEventListener` systématique avec la même référence bindée (`connect()` / `disconnect()`).
-
-## Twig
-
-- Pas de `style="..."` : classes Bootstrap/Tabler ou classes dédiées dans `app.css`.
-- Macros partagées de `macros.html.twig` ; templates des Live Components dans `templates/components/`.
-- Fonctions `form_*` plutôt que des champs écrits à la main.
-- **Formulaires (Auto-Validating Form)** : `ComponentWithFormTrait` + `DefaultActionTrait` ; `instantiateForm()` crée le formulaire, `hasValidationErrors()` teste l'état, `save()` appelle `submitForm()` puis traite. Les contraintes Assert PHP sont la seule validation (pas de doublon JS). LiveProp `fieldName: 'formData'` pour l'entité, `writable: true` pour les champs modifiables. Validation `data-model="on(change)|*"` (au change, pas à la frappe).
-
-## UI/UX : boutons et actions destructives
-
-- Un seul bouton plein par écran (action principale) ; les actions secondaires en outline/ghost.
-- Suppression irréversible : zone isolée (type « zone dangereuse ») + confirmation obligatoire (modal ou double confirmation).
-- Icônes de suppression mineures : grises par défaut, rouges seulement au hover/focus.
-- Suppression impossible (règle métier, dépendances…) : bouton affiché mais désactivé, avec une tooltip qui explique pourquoi (jamais masqué ni cliquable pour finir sur une erreur).
-- Rouge réservé aux vrais points de non-retour, le moins possible par écran. S'appuyer sur les variants `solid` / `outline` existants.
-
-## Tests
-
-- Toute nouvelle classe dans `src/Service/`, `src/Controller/` ou `src/Repository/` a son test dans le dossier `tests/` correspondant.
-
-## Base de données
-
-- Doctrine ORM, PostgreSQL 18, migrations dans `migrations/`.
-- Après chaque changement d'Entity : `just sf doctrine:migrations:diff`, puis mettre à jour `src/DataFixtures/`.
+| Règle | Chemins |
+|---|---|
+| `.claude/rules/php.md` | `src/`, `tests/`, `config/`, `migrations/` |
+| `.claude/rules/symfony.md` | `src/`, `tests/`, `config/`, `composer.json` |
+| `.claude/rules/database.md` | `src/Entity/`, `src/Repository/`, `src/DataFixtures/`, `migrations/` |
+| `.claude/rules/tests.md` | `tests/`, `src/Service/`, `src/Controller/`, `src/Repository/` |
+| `.claude/rules/twig.md` | `templates/`, `src/Twig/`, `src/Form/` |
+| `.claude/rules/ui-ux.md` | `templates/`, `assets/` |
+| `.claude/rules/frontend.md` | `assets/`, `vite.config.ts`, `vitest.config.ts`, `package.json` |
 
 ## Structure
 

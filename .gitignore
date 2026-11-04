@@ -1,11 +1,13 @@
 /.idea/
 /.phpactor.json
+/CLAUDE.local.md
 /.claude/*
 !/.claude/settings.json
-!/.claude/skills/
 !/.claude/commands/
 !/.claude/agents/
 !/.claude/hooks/
+!/.claude/rules/
+!/.claude/skills/
 /.serena/
 
 ###> symfony/framework-bundle ###
