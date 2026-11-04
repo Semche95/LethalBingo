@@ -1,0 +1,5 @@
+framework:
+    # The lock factory is defined in services.yaml, on PostgreSQL advisory locks
+    # taken through the Doctrine connection: framework.lock only builds such a
+    # store from a DSN, which would duplicate DATABASE_URL.
+    lock: false

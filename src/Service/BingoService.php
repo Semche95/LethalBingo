@@ -11,13 +11,16 @@ use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\GameSquareAction;
 use App\Entity\GameSquareMark;
+use App\Entity\SquareActionType;
 use App\Repository\BingoSquareRepository;
 use App\Repository\BingoSquareRevealedRepository;
 use App\Repository\BingoSquareValidatedRepository;
 use App\Repository\GameRoundRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Lock\LockFactory;
 
 /**
  * @phpstan-import-type BingoSquareGrid from BingoDto
@@ -41,6 +44,7 @@ readonly class BingoService
         private BingoSquareRevealedRepository $bingoSquareRevealedRepository,
         private BingoSquareValidatedRepository $bingoSquareValidatedRepository,
         private GameService $gameService,
+        private LockFactory $lockFactory,
     ) {
     }
 
@@ -228,7 +232,11 @@ readonly class BingoService
             return;
         }
 
-        $this->mark($game, $squareId, new BingoSquareRevealed());
+        $this->withSquaresLock($game, function () use ($game, $squareId): void {
+            if ($this->getRevealedSquare($game, $squareId) === null) {
+                $this->mark($game, $squareId, new BingoSquareRevealed(), SquareActionType::Reveal);
+            }
+        });
     }
 
     public function conceal(Game $game, int $squareId): void
@@ -237,7 +245,9 @@ readonly class BingoService
             return;
         }
 
-        $this->unmark($game, $this->getRevealedSquare($game, $squareId));
+        $this->withSquaresLock($game, function () use ($game, $squareId): void {
+            $this->unmark($game, $this->getRevealedSquare($game, $squareId), SquareActionType::Conceal);
+        });
     }
 
     public function validate(Game $game, int $squareId): void
@@ -246,7 +256,11 @@ readonly class BingoService
             return;
         }
 
-        $this->mark($game, $squareId, new BingoSquareValidated());
+        $this->withSquaresLock($game, function () use ($game, $squareId): void {
+            if ($this->getValidatedSquare($game, $squareId) === null) {
+                $this->mark($game, $squareId, new BingoSquareValidated(), SquareActionType::Validate);
+            }
+        });
     }
 
     public function invalidate(Game $game, int $squareId): void
@@ -255,10 +269,33 @@ readonly class BingoService
             return;
         }
 
-        $this->unmark($game, $this->getValidatedSquare($game, $squareId));
+        $this->withSquaresLock($game, function () use ($game, $squareId): void {
+            $this->unmark($game, $this->getValidatedSquare($game, $squareId), SquareActionType::Invalidate);
+        });
     }
 
-    private function mark(Game $game, int $squareId, GameSquareMark $mark): void
+    /**
+     * Runs a square action of the game under a lock, so that simultaneous
+     * actions (double click, two referees) are applied one after the other:
+     * each one checks the state of the square left by the previous one, and
+     * an action is never recorded twice in the history.
+     */
+    private function withSquaresLock(Game $game, callable $action): void
+    {
+        $lock = $this->lockFactory->createLock('game-squares-' . $game->getId());
+        $lock->acquire(true);
+
+        try {
+            $action();
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * Marks the square and records the action, in the same transaction.
+     */
+    private function mark(Game $game, int $squareId, GameSquareMark $mark, SquareActionType $action): void
     {
         $bingoSquare = $this->findGameSquare($game, $squareId);
         if ($bingoSquare === null) {
@@ -267,17 +304,22 @@ readonly class BingoService
 
         try {
             $this->em->persist($mark->setGame($game)->setBingoSquare($bingoSquare));
+            $this->em->persist(new GameSquareAction($game, $bingoSquare, $action));
             $this->em->flush();
             $this->refreshBingoCard($game);
         } catch (UniqueConstraintViolationException) {
-            // Already marked by a concurrent request.
+            // Safety net: the lock already prevents a concurrent request from marking it.
         }
     }
 
-    private function unmark(Game $game, ?GameSquareMark $mark): void
+    /**
+     * Removes the mark and records the action, in the same transaction.
+     */
+    private function unmark(Game $game, ?GameSquareMark $mark, SquareActionType $action): void
     {
         if ($mark !== null) {
             $this->em->remove($mark);
+            $this->em->persist(new GameSquareAction($game, $mark->getBingoSquare(), $action));
             $this->em->flush();
         }
         $this->refreshBingoCard($game);

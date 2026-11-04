@@ -44,6 +44,13 @@ class Game
     #[ORM\OneToMany(targetEntity: BingoSquareRevealed::class, mappedBy: 'game')]
     private Collection $bingoSquareRevealed;
 
+    /**
+     * @var Collection<int, GameSquareAction>
+     */
+    #[ORM\OneToMany(targetEntity: GameSquareAction::class, mappedBy: 'game')]
+    #[ORM\OrderBy(['occurredAt' => 'ASC', 'id' => 'ASC'])]
+    private Collection $squareActions;
+
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $startedAt = null;
 
@@ -72,6 +79,7 @@ class Game
         $this->generateSlug();
         $this->bingoSquareValidated = new ArrayCollection();
         $this->bingoSquareRevealed = new ArrayCollection();
+        $this->squareActions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -170,6 +178,14 @@ class Game
         $this->bingoSquareRevealed->removeElement($bingoSquareRevealed);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, GameSquareAction>
+     */
+    public function getSquareActions(): Collection
+    {
+        return $this->squareActions;
     }
 
     public function getStartedAt(): ?DateTimeImmutable

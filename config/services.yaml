@@ -34,3 +34,10 @@ services:
 
     # Alias for LiveComponentMetadataFactory to fix autowiring
     Symfony\UX\LiveComponent\Metadata\LiveComponentMetadataFactory: '@ux.live_component.metadata_factory'
+
+    # PostgreSQL advisory locks taken through the Doctrine connection (see
+    # config/packages/lock.yaml).
+    Symfony\Component\Lock\Store\DoctrineDbalPostgreSqlStore:
+        arguments: ['@doctrine.dbal.default_connection']
+    Symfony\Component\Lock\LockFactory:
+        arguments: ['@Symfony\Component\Lock\Store\DoctrineDbalPostgreSqlStore']

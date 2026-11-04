@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
+use App\Entity\BingoSquare;
+use App\Entity\BingoSquareRevealed;
+use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\GameSquareAction;
+use App\Entity\SquareActionType;
 use App\Entity\Team;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Faker\Generator;
 
 /**
  * Fixture for loading games data.
@@ -36,6 +42,9 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 $game->setTeam($team);
                 $game->setRound($gameRound);
 
+                $startedAt = null;
+                $finishedAt = null;
+
                 // Randomly set some games as started or finished
                 if ($faker->boolean(70)) { // 70% chance of being started
                     $startedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-3 months', '-1 week'));
@@ -54,6 +63,10 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 }
 
                 $manager->persist($game);
+
+                if ($startedAt !== null) {
+                    $this->playSquares($manager, $faker, $game, $startedAt, $finishedAt ?? new DateTimeImmutable());
+                }
             }
         }
 
@@ -61,7 +74,71 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * This fixture depends on TeamFixtures and GameRoundFixtures.
+     * Reveals and validates some squares of the game, with the dated history
+     * of these actions, some of them repeated (revealed, concealed, then
+     * revealed again).
+     */
+    private function playSquares(ObjectManager $manager, Generator $faker, Game $game, DateTimeImmutable $from, DateTimeImmutable $to): void
+    {
+        $squares = $manager->getRepository(BingoSquare::class)->findBy(['round' => $game->getRound()]);
+        $hidden = array_values(array_filter($squares, static fn (BingoSquare $square): bool => !$square->isVisible()));
+        $visible = array_values(array_filter($squares, static fn (BingoSquare $square): bool => $square->isVisible()));
+
+        // Squares that can be validated, with the date from which they can be.
+        $playable = array_map(static fn (BingoSquare $square): array => [$square, $from], $visible);
+        foreach ($faker->randomElements($hidden, 6) as $square) {
+            $revealedAt = $this->playActions($manager, $faker, $game, $square, $from, $to, SquareActionType::Reveal, SquareActionType::Conceal, new BingoSquareRevealed());
+            if ($revealedAt !== null) {
+                $playable[] = [$square, $revealedAt];
+            }
+        }
+
+        foreach ($faker->randomElements($playable, 3) as [$square, $playableFrom]) {
+            $this->playActions($manager, $faker, $game, $square, $playableFrom, $to, SquareActionType::Validate, SquareActionType::Invalidate, new BingoSquareValidated());
+        }
+    }
+
+    /**
+     * Records one to three alternating actions (mark, unmark, mark) on the
+     * square and keeps the mark when the last action is a mark.
+     *
+     * @return DateTimeImmutable|null date of the mark the square keeps, null if it is left unmarked
+     */
+    private function playActions(
+        ObjectManager $manager,
+        Generator $faker,
+        Game $game,
+        BingoSquare $square,
+        DateTimeImmutable $from,
+        DateTimeImmutable $to,
+        SquareActionType $markAction,
+        SquareActionType $unmarkAction,
+        BingoSquareRevealed|BingoSquareValidated $mark,
+    ): ?DateTimeImmutable {
+        $dates = [];
+        for ($i = $faker->numberBetween(1, 3); $i > 0; --$i) {
+            $dates[] = DateTimeImmutable::createFromMutable($faker->dateTimeBetween($from->format('Y-m-d H:i:s'), $to->format('Y-m-d H:i:s')));
+        }
+        sort($dates);
+
+        foreach ($dates as $i => $date) {
+            $action = $i % 2 === 0 ? $markAction : $unmarkAction;
+            $manager->persist(new GameSquareAction($game, $square, $action)->setOccurredAt($date));
+        }
+
+        if (count($dates) % 2 === 0) {
+            return null;
+        }
+
+        $markedAt = end($dates);
+        $mark instanceof BingoSquareRevealed ? $mark->setRevealedAt($markedAt) : $mark->setValidatedAt($markedAt);
+        $manager->persist($mark->setGame($game)->setBingoSquare($square));
+
+        return $markedAt;
+    }
+
+    /**
+     * This fixture depends on TeamFixtures, GameRoundFixtures and BingoSquareFixtures.
      *
      * @return string[]
      */
@@ -70,6 +147,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
         return [
             TeamFixtures::class,
             GameRoundFixtures::class,
+            BingoSquareFixtures::class,
         ];
     }
 }

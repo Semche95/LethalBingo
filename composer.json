@@ -26,6 +26,7 @@
         "symfony/framework-bundle": "*",
         "symfony/http-client": "*",
         "symfony/intl": "*",
+        "symfony/lock": "*",
         "symfony/mailer": "*",
         "symfony/mercure-bundle": "^0.7",
         "symfony/mime": "*",

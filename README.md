@@ -294,6 +294,13 @@ erDiagram
         int bingo_square_id FK
         datetime validatedAt
     }
+    GameSquareAction {
+        int id PK
+        int game_id FK
+        int bingo_square_id FK
+        string type
+        datetime occurredAt
+    }
 
     Team ||--o{ TeamMember : "has members"
     Team ||--o{ Game : "plays"
@@ -304,6 +311,8 @@ erDiagram
     BingoSquare ||--o{ BingoSquareRevealed : "revealed in"
     Game ||--o{ BingoSquareValidated : "validates"
     BingoSquare ||--o{ BingoSquareValidated : "validated in"
+    Game ||--o{ GameSquareAction : "records"
+    BingoSquare ||--o{ GameSquareAction : "acted on in"
 ```
 
 - `User` holds the referee and admin accounts; it has no relationship with the game data

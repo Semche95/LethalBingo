@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Dto\GameDto;
+use App\Entity\BingoSquare;
 use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\GameSquareAction;
+use App\Entity\SquareActionType;
 use App\Entity\Team;
 use App\Service\GameService;
 use App\Service\RefreshEvent;
@@ -250,5 +253,29 @@ class GameServiceTest extends TestCase
         $this->assertCount(2, $removedEntities);
         $this->assertContainsOnlyInstancesOf(BingoSquareRevealed::class, $removedEntities);
         $this->assertCount(0, $game->getBingoSquareRevealed());
+    }
+
+    public function testResetRemovesTheHistoryOfTheSquareActions(): void
+    {
+        $game = new Game();
+        $game->setSlug('test');
+        $game->setStartedAt(new DateTimeImmutable());
+        $game->getSquareActions()->add(new GameSquareAction($game, new BingoSquare(), SquareActionType::Reveal));
+        $game->getSquareActions()->add(new GameSquareAction($game, new BingoSquare(), SquareActionType::Validate));
+
+        $removedEntities = [];
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('remove')->willReturnCallback(function ($entity) use (&$removedEntities): void {
+            $removedEntities[] = $entity;
+        });
+        $em->method('wrapInTransaction')->willReturnCallback(static function (callable $callable) use ($em): void {
+            $callable($em);
+        });
+
+        $this->createGameService($em)->reset($game);
+
+        $this->assertCount(2, $removedEntities);
+        $this->assertContainsOnlyInstancesOf(GameSquareAction::class, $removedEntities);
+        $this->assertCount(0, $game->getSquareActions());
     }
 }
