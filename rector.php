@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\MethodCall\RemoveNullNamedArgOnNullDefaultParamRector;
-use Rector\TypeDeclaration\Rector\BooleanAnd\BinaryOpNullableToInstanceofRector;
 use Rector\Symfony\Symfony73\Rector\Class_\GetFiltersAndFunctionsToAsTwigAttributeRector;
 
 return RectorConfig::configure()
@@ -29,7 +28,5 @@ return RectorConfig::configure()
         GetFiltersAndFunctionsToAsTwigAttributeRector::class,
         // Les tests passent parfois `null` explicitement pour rendre le cas testé lisible
         RemoveNullNamedArgOnNullDefaultParamRector::class,
-        // Remplace les tests de nullité par des `instanceof` (contraire au style du projet)
-        BinaryOpNullableToInstanceofRector::class,
     ])
 ;
