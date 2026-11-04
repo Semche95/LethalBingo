@@ -265,9 +265,8 @@ erDiagram
         datetime finishedAt
         text notes
         bool isPaused
-        float totalPausedSeconds
-        int manualAdjustmentSeconds
-        datetime lastPausedAt
+        datetime countdownZeroAt
+        float pausedRemainingSeconds
     }
     BingoSquareCategory {
         int id PK

@@ -7,7 +7,6 @@ namespace App\Twig\Components;
 use App\Entity\Game;
 use App\Service\GameTimerService;
 use App\Service\RefreshEvent;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -69,16 +68,12 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function pauseGame(): void
     {
-        if (!$this->game?->isInProgress() || $this->game->isPaused()) {
+        // Nothing left to pause once the time is up.
+        if (!$this->game?->isInProgress() || $this->game->isPaused() || $this->gameTimerService->isTimeUp($this->game)) {
             return;
         }
 
-        $this->gameTimerService->absorbDeficit($this->game);
-
-        $this->game
-            ->setIsPaused(true)
-            ->setLastPausedAt(new DateTimeImmutable());
-
+        $this->gameTimerService->pause($this->game);
         $this->persistGameChangesAndNotifyClients();
     }
 
@@ -90,9 +85,7 @@ final class GameTimer extends AbstractController
             return;
         }
 
-        $this->gameTimerService->absorbDeficit($this->game);
-        $this->gameTimerService->closeCurrentPause($this->game);
-
+        $this->gameTimerService->resume($this->game);
         $this->persistGameChangesAndNotifyClients();
     }
 
@@ -100,54 +93,33 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function increaseTimer(): void
     {
-        if (!$this->game?->isInProgress()) {
-            return;
-        }
-
-        $this->gameTimerService->absorbDeficit($this->game);
-
-        // Add 1 minute (60 seconds) by incrementing the cumulative manual
-        // adjustment counter. startedAt is never touched.
-        $this->game->setManualAdjustmentSeconds($this->game->getManualAdjustmentSeconds() + 60);
-
-        $this->persistGameChangesAndNotifyClients();
+        $this->addSeconds(60);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function decreaseTimer(): void
     {
+        $this->addSeconds(-60);
+    }
+
+    private function addSeconds(int $seconds): void
+    {
         if (!$this->game?->isInProgress()) {
             return;
         }
 
-        $this->gameTimerService->absorbDeficit($this->game);
-
-        // Remove 1 minute (60 seconds) by decrementing the cumulative manual
-        // adjustment counter. startedAt is never touched. A negative counter
-        // reduces the remaining time; a fresh deficit is absorbed first.
-        $this->game->setManualAdjustmentSeconds($this->game->getManualAdjustmentSeconds() - 60);
-
+        $this->gameTimerService->addSeconds($this->game, $seconds);
         $this->persistGameChangesAndNotifyClients();
     }
 
-    /**
-     * Sets the timer to a specific value by adjusting the cumulative manual
-     * adjustment counter (never by touching startedAt).
-     */
     private function setTimerToSpecificValue(int $targetRemainingSeconds): void
     {
         if (!$this->game?->isInProgress()) {
             return;
         }
 
-        $this->gameTimerService->absorbDeficit($this->game);
-
-        $currentRemainingSeconds = $this->gameTimerService->getRemainingSeconds($this->game);
-        $newAdjustment = $this->game->getManualAdjustmentSeconds() + ($targetRemainingSeconds - $currentRemainingSeconds);
-
-        $this->game->setManualAdjustmentSeconds($newAdjustment);
-
+        $this->gameTimerService->setRemainingSeconds($this->game, $targetRemainingSeconds);
         $this->persistGameChangesAndNotifyClients();
     }
 

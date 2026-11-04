@@ -1,16 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { calculateRemainingSeconds, RemainingSecondsParams } from '../controllers/game/game_timer_math'
+import { isTimeUp, RemainingSecondsParams } from '../controllers/game/game_timer_math'
 import fixtureData from '../../tests/fixtures/game_timer_parity.json'
 
-interface FixtureCase {
-    gameStartedAt: number | null
-    gameFinishedAt: number | null
-    gameTotalPausedSeconds: number
-    gameManualAdjustmentSeconds: number
-    gameLastPausedAt: number | null
-    gameIsPaused: boolean
-    currentServerTime: number
-    expected: number
+interface FixtureCase extends RemainingSecondsParams {
+    timeUp: boolean
 }
 
 // The fixture is generated from the REAL production TS function and committed.
@@ -22,17 +15,8 @@ describe('game_timer parity fixture (TS production function)', () => {
     it('reproduces the expected value for every committed case', () => {
         expect(fixture.length).toBeGreaterThan(0)
 
-        for (const c of fixture) {
-            const params: RemainingSecondsParams = {
-                gameStartedAt: c.gameStartedAt,
-                gameFinishedAt: c.gameFinishedAt,
-                gameTotalPausedSeconds: c.gameTotalPausedSeconds,
-                gameManualAdjustmentSeconds: c.gameManualAdjustmentSeconds,
-                gameLastPausedAt: c.gameLastPausedAt,
-                gameIsPaused: c.gameIsPaused,
-                currentServerTime: c.currentServerTime,
-            }
-            expect(calculateRemainingSeconds(params)).toBe(c.expected)
+        for (const { timeUp, ...params } of fixture) {
+            expect(isTimeUp(params)).toBe(timeUp)
         }
     })
 })

@@ -78,6 +78,8 @@ assets/controllers/ (component/ = UX), icons/, sounds/
 
 - Seuls les arbitres et les administrateurs ont un compte (`User`). Les joueurs n'en ont pas : ce sont des `TeamMember` qui suivent leur partie via son lien unique.
 - Aucun pseudo de compte n'est jamais affiché aux joueurs : rien de ce qui est visible côté joueur ne dépend du `username`.
+- Le temps qui arrive à zéro ne termine jamais la partie : l'arrêt dévoile toutes les cases aux joueurs, seul l'arbitre le décide. À zéro, la partie reste en cours et l'arbitre peut encore remettre du temps.
+- À zéro, le décompte s'arrête : le temps restant n'est jamais négatif, et le temps passé à zéro n'est ni du temps de jeu ni une pause. Les temps forts sont datés depuis le lancement, pauses et temps passé à zéro compris. Détail dans `docs/TIMER.md`, section 3.
 
 ## Sécurité et erreurs
 

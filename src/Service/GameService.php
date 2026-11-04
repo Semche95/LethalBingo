@@ -59,26 +59,26 @@ readonly class GameService
         $this->em->flush();
     }
 
-    public function start(Game $game): void
+    public function start(Game $game, DateTimeImmutable $startedAt, DateTimeImmutable $countdownZeroAt): void
     {
         if ($game->isReadOnly()) {
             return;
         }
 
-        $game->resetTimer(new DateTimeImmutable());
+        $game->resetTimer($startedAt, $countdownZeroAt);
         $this->em->persist($game);
         $this->em->flush();
         $this->refreshGameFrame($game);
     }
 
-    public function stop(Game $game): void
+    public function stop(Game $game, DateTimeImmutable $finishedAt): void
     {
         if (!$game->isInProgress()) {
             return;
         }
 
         // stop() only ever modifies finishedAt; startedAt is never touched here.
-        $game->setFinishedAt(new DateTimeImmutable());
+        $game->setFinishedAt($finishedAt);
         $this->em->persist($game);
         $this->em->flush();
         $this->refreshGameFrame($game);

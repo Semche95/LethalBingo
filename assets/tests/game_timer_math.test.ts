@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
     GAME_DURATION_SECONDS,
+    calculateExactRemainingSeconds,
     calculateRemainingSeconds,
     formatGameDuration,
 } from '../controllers/game/game_timer_math'
@@ -12,130 +13,52 @@ const startedAtSec = START / 1000
 const baseParams = {
     gameStartedAt: startedAtSec,
     gameFinishedAt: null as number | null,
-    gameTotalPausedSeconds: 0,
-    gameManualAdjustmentSeconds: 0,
-    gameLastPausedAt: null as number | null,
+    gameCountdownZeroAt: startedAtSec + GAME_DURATION_SECONDS as number | null,
+    gamePausedRemainingSeconds: 0,
     gameIsPaused: false,
     currentServerTime: START,
 }
 
 describe('calculateRemainingSeconds', () => {
     it('returns the full default duration when the game has not started', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameStartedAt: null,
-        })
-        expect(remaining).toBe(GAME_DURATION_SECONDS)
+        expect(calculateRemainingSeconds({ ...baseParams, gameStartedAt: null, gameCountdownZeroAt: null })).toBe(GAME_DURATION_SECONDS)
     })
 
     it('returns 0 when the game is finished', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameFinishedAt: (START / 1000) + 100,
-        })
-        expect(remaining).toBe(0)
+        expect(calculateRemainingSeconds({ ...baseParams, gameFinishedAt: startedAtSec + 100 })).toBe(0)
     })
 
-    it('counts down linearly from the start time (no pause)', () => {
-        // 600s (10 min) elapsed -> 3600 - 600 = 3000s remaining
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            currentServerTime: START + 600_000,
-        })
-        expect(remaining).toBe(3000)
+    it('counts down to the countdown zero moment with a single final ceil', () => {
+        expect(calculateRemainingSeconds({ ...baseParams, currentServerTime: START + 600_000 })).toBe(3000)
+        expect(calculateRemainingSeconds({ ...baseParams, currentServerTime: START + 600_400 })).toBe(3000)
+        expect(calculateRemainingSeconds({ ...baseParams, currentServerTime: START + 601_000 })).toBe(2999)
     })
 
-    it('floors elapsed time to whole seconds via the single final ceil', () => {
-        // 600.4s elapsed -> 3600 - 600.4 = 2999.6 -> ceil = 3000s remaining
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            currentServerTime: START + 600_400,
-        })
-        expect(remaining).toBe(3000)
+    it('keeps the sub-second part of the countdown zero moment', () => {
+        const params = { ...baseParams, gameCountdownZeroAt: startedAtSec + 60.25 }
+
+        expect(calculateRemainingSeconds({ ...params, currentServerTime: START + 250 })).toBe(60)
+        expect(calculateRemainingSeconds({ ...params, currentServerTime: START + 249 })).toBe(61)
     })
 
-    it('steps down one second past the whole-second mark', () => {
-        // 601s elapsed -> 2999s remaining
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            currentServerTime: START + 601_000,
-        })
-        expect(remaining).toBe(2999)
+    it('shows the frozen remaining time during a pause, whatever the time', () => {
+        const params = { ...baseParams, gameIsPaused: true, gameCountdownZeroAt: null, gamePausedRemainingSeconds: 2999.7 }
+
+        expect(calculateRemainingSeconds({ ...params, currentServerTime: START })).toBe(3000)
+        expect(calculateRemainingSeconds({ ...params, currentServerTime: START + 86_400_000 })).toBe(3000)
     })
 
-    it('subtracts the total previously paused time', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameTotalPausedSeconds: 120,
-            currentServerTime: START + 600_000,
-        })
-        expect(remaining).toBe(3120)
+    it('reaches exactly 0 at the countdown zero moment and never goes negative', () => {
+        expect(calculateRemainingSeconds({ ...baseParams, currentServerTime: START + GAME_DURATION_SECONDS * 1000 })).toBe(0)
+        expect(calculateRemainingSeconds({ ...baseParams, currentServerTime: START + (GAME_DURATION_SECONDS + 5000) * 1000 })).toBe(0)
+        expect(calculateRemainingSeconds({ ...baseParams, gameIsPaused: true, gameCountdownZeroAt: null, gamePausedRemainingSeconds: -1 })).toBe(0)
     })
+})
 
-    it('subtracts the in-progress pause time when currently paused', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameIsPaused: true,
-            gameLastPausedAt: startedAtSec + 300,
-            currentServerTime: START + 900_000,
-        })
-        expect(remaining).toBe(3300)
-    })
-
-    it('adds a positive manual adjustment to the remaining time', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameManualAdjustmentSeconds: 60,
-            currentServerTime: START + 600_000,
-        })
-        expect(remaining).toBe(3060)
-    })
-
-    it('reduces remaining time with a negative manual adjustment', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            gameManualAdjustmentSeconds: -60,
-            currentServerTime: START + 600_000,
-        })
-        expect(remaining).toBe(2940)
-    })
-
-    it('after absorption of the overtime deficit, +1 minute lands on exactly 60 and keeps counting down', () => {
-        // Overtime deficit absorbed into paused time (300s), then a +1 minute
-        // applied on top: the countdown must start at exactly 60 and keep
-        // decreasing as the simulated clock advances with no further adjustment.
-        const t0 = START + (GAME_DURATION_SECONDS + 300) * 1000
-        const r0 = calculateRemainingSeconds({
-            ...baseParams,
-            gameManualAdjustmentSeconds: 60,
-            gameTotalPausedSeconds: 300,
-            currentServerTime: t0,
-        })
-        expect(r0).toBe(60)
-
-        const r1 = calculateRemainingSeconds({
-            ...baseParams,
-            gameManualAdjustmentSeconds: 60,
-            gameTotalPausedSeconds: 300,
-            currentServerTime: t0 + 10_000,
-        })
-        expect(r1).toBe(50)
-    })
-
-    it('floors remaining seconds to 0 (never negative)', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            currentServerTime: START + (GAME_DURATION_SECONDS + 5000) * 1000,
-        })
-        expect(remaining).toBe(0)
-    })
-
-    it('reaches exactly 0 at the boundary', () => {
-        const remaining = calculateRemainingSeconds({
-            ...baseParams,
-            currentServerTime: START + GAME_DURATION_SECONDS * 1000,
-        })
-        expect(remaining).toBe(0)
+describe('calculateExactRemainingSeconds', () => {
+    it('is the unrounded remaining time, clamped at zero', () => {
+        expect(calculateExactRemainingSeconds({ ...baseParams, currentServerTime: START + 600_250 })).toBeCloseTo(2999.75, 6)
+        expect(calculateExactRemainingSeconds({ ...baseParams, currentServerTime: START + 4_000_000 })).toBe(0)
     })
 })
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Doctrine\DateTimeMicroImmutableType;
 use App\Repository\GameRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -70,16 +71,14 @@ class Game
     #[ORM\Column(type: 'boolean')]
     private bool $isPaused = false;
 
-    // Fractional seconds: pause windows are measured from microtime, so the
-    // sub-second part must survive persistence (docs/TIMER.md section 2).
-    #[ORM\Column(type: 'float')]
-    private float $totalPausedSeconds = 0.0;
+    // Moment the countdown reaches zero while the game runs, null during a
+    // pause; kept to the microsecond (docs/TIMER.md section 2).
+    #[ORM\Column(type: DateTimeMicroImmutableType::NAME, nullable: true)]
+    private ?DateTimeImmutable $countdownZeroAt = null;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $manualAdjustmentSeconds = 0;
-
-    #[ORM\Column(nullable: true)]
-    private ?DateTimeImmutable $lastPausedAt = null;
+    // Remaining time frozen during a pause.
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    private float $pausedRemainingSeconds = 0.0;
 
     public function __construct()
     {
@@ -229,15 +228,14 @@ class Game
     }
 
     // Puts the timer back to a fresh state, started at $startedAt (or not started).
-    public function resetTimer(?DateTimeImmutable $startedAt): static
+    public function resetTimer(?DateTimeImmutable $startedAt, ?DateTimeImmutable $countdownZeroAt = null): static
     {
         return $this
             ->setStartedAt($startedAt)
             ->setFinishedAt(null)
             ->setIsPaused(false)
-            ->setTotalPausedSeconds(0)
-            ->setManualAdjustmentSeconds(0)
-            ->setLastPausedAt(null);
+            ->setCountdownZeroAt($countdownZeroAt)
+            ->setPausedRemainingSeconds(0);
     }
 
     public function isStarted(): bool
@@ -284,38 +282,26 @@ class Game
         return $this;
     }
 
-    public function getTotalPausedSeconds(): float
+    public function getCountdownZeroAt(): ?DateTimeImmutable
     {
-        return $this->totalPausedSeconds;
+        return $this->countdownZeroAt;
     }
 
-    public function setTotalPausedSeconds(float $totalPausedSeconds): static
+    public function setCountdownZeroAt(?DateTimeImmutable $countdownZeroAt): static
     {
-        $this->totalPausedSeconds = $totalPausedSeconds;
+        $this->countdownZeroAt = $countdownZeroAt;
 
         return $this;
     }
 
-    public function getLastPausedAt(): ?DateTimeImmutable
+    public function getPausedRemainingSeconds(): float
     {
-        return $this->lastPausedAt;
+        return $this->pausedRemainingSeconds;
     }
 
-    public function setLastPausedAt(?DateTimeImmutable $lastPausedAt): static
+    public function setPausedRemainingSeconds(float $pausedRemainingSeconds): static
     {
-        $this->lastPausedAt = $lastPausedAt;
-
-        return $this;
-    }
-
-    public function getManualAdjustmentSeconds(): int
-    {
-        return $this->manualAdjustmentSeconds;
-    }
-
-    public function setManualAdjustmentSeconds(int $manualAdjustmentSeconds): static
-    {
-        $this->manualAdjustmentSeconds = $manualAdjustmentSeconds;
+        $this->pausedRemainingSeconds = $pausedRemainingSeconds;
 
         return $this;
     }

@@ -18,9 +18,8 @@ function kebab(name: string): string {
 interface TimerValues {
     gameStartedAt?: number | null
     gameFinishedAt?: number | null
-    gameTotalPausedSeconds?: number
-    gameManualAdjustmentSeconds?: number
-    gameLastPausedAt?: number | null
+    gameCountdownZeroAt?: number | null
+    gamePausedRemainingSeconds?: number
     gameIsPaused?: boolean
     serverTime?: number
     serverTimeUrl?: string
@@ -29,11 +28,16 @@ interface TimerValues {
 const SERVER_TIME = 1_700_000_000
 const START_SEC = SERVER_TIME - 1800 // 30 minutes elapsed -> 00:30:00 remaining
 
+// A running game started at gameStartedAt reaches zero one hour later, unless
+// the test gives its own gameCountdownZeroAt.
 function buildElement(values: TimerValues = {}) {
     const el = document.createElement('div')
     el.setAttribute('data-controller', 'game--game-timer')
 
-    for (const [key, val] of Object.entries(values)) {
+    const isRunning = values.gameStartedAt && !values.gameIsPaused
+    const withCountdown = { gameCountdownZeroAt: isRunning ? values.gameStartedAt! + 3600 : null, ...values }
+
+    for (const [key, val] of Object.entries(withCountdown)) {
         if (val === null || val === undefined) continue
         el.setAttribute(`data-game--game-timer-${kebab(key)}-value`, String(val))
     }
@@ -140,7 +144,7 @@ describe('game_timer_controller', () => {
         const controller = await connectWithAnchor({
             gameStartedAt: START_SEC,
             gameIsPaused: false,
-            gameManualAdjustmentSeconds: 60,
+            gameCountdownZeroAt: START_SEC + 3660,
         })
 
         expect(controller.timerDisplayTarget.textContent).toBe('00:31:00')
@@ -247,7 +251,7 @@ describe('game_timer_controller', () => {
 
         // Direct set-to 00:30:03 (above the threshold): the colour must vanish
         // immediately: 00:30:03 is not within 5s below a 10-minute multiple.
-        controller.gameManualAdjustmentSecondsValue = 4
+        controller.gameCountdownZeroAtValue += 4
         controller.updateTimerDisplay()
         expect(controller.timerDisplayTarget.textContent).toBe('00:30:03')
         expect(controller.timerDisplayTarget.className).toBe('')
@@ -324,8 +328,8 @@ describe('game_timer_controller', () => {
         // Simulate a −1 minute manual adjustment: the remaining time drops from
         // ~360s to ~300s, crossing the 00:05:00 threshold. The sound must NOT
         // fire because this is a manual mutation, not natural countdown.
-        controller.gameManualAdjustmentSecondsValue = -60
-        controller.gameManualAdjustmentSecondsValueChanged()
+        controller.gameCountdownZeroAtValue -= 60
+        controller.gameCountdownZeroAtValueChanged()
         expect(controller.timerDisplayTarget.textContent).toBe('00:05:00')
 
         expect(plays('notification')).toBe(playsBefore)
@@ -361,24 +365,54 @@ describe('game_timer_controller', () => {
 
         await vi.advanceTimersByTimeAsync(100)
 
-        // Manual −1 minute: reaches zero silently, pause button hidden.
-        controller.gameManualAdjustmentSecondsValue = -60
-        controller.gameManualAdjustmentSecondsValueChanged()
+        // Manual −1 minute: the server puts the zero at the current time
+        // (never below zero), reached silently, pause button hidden.
+        controller.gameCountdownZeroAtValue = controller.getCurrentServerTime() / 1000
+        controller.gameCountdownZeroAtValueChanged()
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
         expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
         expect(plays('end')).toBe(0)
 
         // Manual +1 minute brings the time back: pause button visible again.
-        controller.gameManualAdjustmentSecondsValue = 0
-        controller.gameManualAdjustmentSecondsValueChanged()
-        expect(controller.timerDisplayTarget.textContent).not.toBe('00:00:00')
+        controller.gameCountdownZeroAtValue = controller.getCurrentServerTime() / 1000 + 60
+        controller.gameCountdownZeroAtValueChanged()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:01:00')
         expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
         expect(plays('end')).toBe(0)
 
         // Natural countdown reaches zero → the end sound MUST fire.
-        await vi.advanceTimersByTimeAsync(31_000)
+        await vi.advanceTimersByTimeAsync(61_000)
         expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
         expect(plays('end')).toBe(1)
+    })
+
+    it('hides the pause button from the computed remaining time', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: SERVER_TIME - 3598,
+            gameIsPaused: false,
+        })
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
+
+        await vi.advanceTimersByTimeAsync(3000)
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(true)
+
+        controller.gameCountdownZeroAtValue = controller.getCurrentServerTime() / 1000 + 60
+        controller.gameCountdownZeroAtValueChanged()
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
+    })
+
+    it('shows the frozen remaining time during a pause', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: START_SEC,
+            gameIsPaused: true,
+            gamePausedRemainingSeconds: 59.3,
+        })
+        await vi.advanceTimersByTimeAsync(10_000)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:01:00')
+
+        controller.gamePausedRemainingSecondsValue = 0
+        controller.gamePausedRemainingSecondsValueChanged()
+        expect(controller.timerDisplayTarget.textContent).toBe('00:00:00')
     })
 
     describe('server time anchor', () => {
@@ -607,13 +641,15 @@ describe('game_timer_controller', () => {
             setVisibility('hidden')
             await flushPromises()
 
-            controller.gameLastPausedAtValue = SERVER_TIME
+            controller.gamePausedRemainingSecondsValue = 301
+            controller.gameCountdownZeroAtValue = 0
             controller.gameIsPausedValue = true
             await flushPromises()
             expect(pendingSounds()).toEqual([])
 
+            // Resumed 10 seconds later: the zero moves back by as much.
             controller.gameIsPausedValue = false
-            controller.gameTotalPausedSecondsValue = 10
+            controller.gameCountdownZeroAtValue = SERVER_TIME + 311
             await flushPromises()
             expect(pendingSounds()[0]).toEqual(['notification', 12])
         })
@@ -623,7 +659,7 @@ describe('game_timer_controller', () => {
             setVisibility('hidden')
             await flushPromises()
 
-            controller.gameManualAdjustmentSecondsValue = 60
+            controller.gameCountdownZeroAtValue += 60
             await flushPromises()
 
             expect(pendingSounds()[0]).toEqual(['notification', 62])

@@ -13,6 +13,7 @@ use App\Entity\GameRound;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
 use App\Entity\Team;
+use App\Service\GameTimerService;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -49,14 +50,16 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 // Randomly set some games as started or finished
                 if ($faker->boolean(70)) { // 70% chance of being started
                     $startedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-3 months', '-1 week'));
-                    $game->setStartedAt($startedAt);
+                    // The countdown of a game still in progress is up long ago.
+                    $countdownZeroAt = $startedAt->modify('+' . GameTimerService::DEFAULT_DURATION_SECONDS . ' seconds');
+                    $game->resetTimer($startedAt, $countdownZeroAt);
 
-                    // 50% chance of being finished if started
+                    // 50% chance of being finished if started, at the latest when its time is up
                     if ($faker->boolean(50)) {
                         $finishedAt = DateTimeImmutable::createFromMutable(
                             $faker->dateTimeBetween(
                                 $startedAt->format('Y-m-d H:i:s'),
-                                'now'
+                                $countdownZeroAt->format('Y-m-d H:i:s'),
                             )
                         );
                         $game->setFinishedAt($finishedAt);

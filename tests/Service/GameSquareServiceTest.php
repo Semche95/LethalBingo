@@ -373,6 +373,28 @@ class GameSquareServiceTest extends TestCase
         $gameSquares->invalidate($game, 1);
     }
 
+    public function testSquaresCanBeRevealedValidatedAndInvalidatedOnceTheTimeIsUp(): void
+    {
+        $game = new Game()
+            ->setRound(new GameRound())
+            ->resetTimer(new DateTimeImmutable('-2 hours'), new DateTimeImmutable('-1 hour'));
+
+        $squareRepository = $this->createStub(BingoSquareRepository::class);
+        $squareRepository->method('findOneBy')->willReturn(new BingoSquare());
+        $validatedRepository = $this->createStub(BingoSquareValidatedRepository::class);
+        $validatedRepository->method('findOneBy')->willReturnOnConsecutiveCalls(null, new BingoSquareValidated()->setBingoSquare(new BingoSquare()));
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        // Revealed and validated square plus their action, then the invalidate action.
+        $em->expects($this->exactly(5))->method('persist');
+        $em->expects($this->once())->method('remove');
+
+        $gameSquares = $this->createGameSquareService(em: $em, validatedRepository: $validatedRepository, squareRepository: $squareRepository);
+        $gameSquares->reveal($game, 1);
+        $gameSquares->validate($game, 1);
+        $gameSquares->invalidate($game, 1);
+    }
+
     public function testSquaresOfAnotherBingoCannotBeRevealedOrValidated(): void
     {
         $game = new Game()->setRound(new GameRound())->setStartedAt(new DateTimeImmutable());

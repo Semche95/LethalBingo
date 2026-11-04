@@ -16,7 +16,8 @@ class GameHighlightControllerTest extends ControllerTestCase
         $this->loginAsReferee();
         $game = $this->createGameInProgress()
             ->setIsPaused(true)
-            ->setLastPausedAt(new DateTimeImmutable('-1 minute'));
+            ->setCountdownZeroAt(null)
+            ->setPausedRemainingSeconds(2940);
         $this->em->flush();
         $token = $this->fetchHighlightsToken($game);
 
@@ -58,6 +59,55 @@ class GameHighlightControllerTest extends ControllerTestCase
 
         self::assertResponseStatusCodeSame(204);
         self::assertNull($this->reload(GameHighlight::class, $highlight->getId()));
+    }
+
+    public function testRefereeMarksAHighlightOnceTheTimeIsUp(): void
+    {
+        $this->loginAsReferee();
+        // At zero for an hour: the game goes on until the referee stops it.
+        $game = $this->createGameInProgress()->resetTimer(new DateTimeImmutable('-2 hours'), new DateTimeImmutable('-1 hour'));
+        $this->em->flush();
+        $token = $this->fetchHighlightsToken($game);
+
+        $this->post('/referee/game/' . $game->getId() . '/highlight', $token);
+
+        self::assertResponseIsSuccessful();
+        $highlights = $this->findHighlights($game);
+        self::assertCount(1, $highlights);
+        self::assertEqualsWithDelta(120 * 60, $highlights[0]->getElapsedSeconds(), 2);
+    }
+
+    public function testRefereeMarksAHighlightDuringAPauseAtZero(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createGameInProgress()
+            ->setIsPaused(true)
+            ->setCountdownZeroAt(null)
+            ->setPausedRemainingSeconds(0);
+        $this->em->flush();
+        $token = $this->fetchHighlightsToken($game);
+
+        $this->post('/referee/game/' . $game->getId() . '/highlight', $token);
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $this->findHighlights($game));
+    }
+
+    public function testHighlightAfterAPassageThroughZeroIncludesTheTimeSpentAtZero(): void
+    {
+        $this->loginAsReferee();
+        // Started 2 hours ago, the referee added time after a passage through zero.
+        $game = $this->createGameInProgress()
+            ->resetTimer(new DateTimeImmutable('-2 hours'), new DateTimeImmutable('+10 minutes'));
+        $this->em->flush();
+        $token = $this->fetchHighlightsToken($game);
+
+        $this->post('/referee/game/' . $game->getId() . '/highlight', $token);
+
+        self::assertResponseIsSuccessful();
+        $highlights = $this->findHighlights($game);
+        self::assertCount(1, $highlights);
+        self::assertEqualsWithDelta(120 * 60, $highlights[0]->getElapsedSeconds(), 2);
     }
 
     public function testRequestWithAnInvalidTokenIsRejected(): void
@@ -142,7 +192,7 @@ class GameHighlightControllerTest extends ControllerTestCase
 
     private function createGameInProgress(): Game
     {
-        $game = $this->createGame()->setStartedAt(new DateTimeImmutable('-12 minutes'));
+        $game = $this->createGame()->resetTimer(new DateTimeImmutable('-12 minutes'), new DateTimeImmutable('+48 minutes'));
         $this->em->flush();
 
         return $game;

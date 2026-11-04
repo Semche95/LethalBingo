@@ -74,10 +74,12 @@ class GameServiceTest extends TestCase
         $this->createGameService(hub: $hub)->refreshGameFrame($game, RefreshEvent::BingoCard);
     }
 
-    public function testStartSetsStartedAtAndResetsPauseState(): void
+    public function testStartSetsTheTimerAndResetsPauseState(): void
     {
         $game = new Game();
         $game->setSlug('test');
+        $startedAt = new DateTimeImmutable();
+        $countdownZeroAt = $startedAt->modify('+1 hour');
 
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects($this->once())->method('persist')->with($game);
@@ -85,13 +87,13 @@ class GameServiceTest extends TestCase
         $hub = $this->createMock(HubInterface::class);
         $hub->expects($this->once())->method('publish');
 
-        $this->createGameService($em, $hub)->start($game);
+        $this->createGameService($em, $hub)->start($game, $startedAt, $countdownZeroAt);
 
-        $this->assertInstanceOf(DateTimeImmutable::class, $game->getStartedAt());
+        $this->assertSame($startedAt, $game->getStartedAt());
+        $this->assertSame($countdownZeroAt, $game->getCountdownZeroAt());
         $this->assertNull($game->getFinishedAt());
         $this->assertFalse($game->isPaused());
-        $this->assertSame(0.0, $game->getTotalPausedSeconds());
-        $this->assertNull($game->getLastPausedAt());
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
     }
 
     public function testStartDoesNothingOnAStartedGame(): void
@@ -105,7 +107,7 @@ class GameServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects($this->never())->method('flush');
 
-        $this->createGameService($em)->start($game);
+        $this->createGameService($em)->start($game, new DateTimeImmutable(), new DateTimeImmutable('+1 hour'));
 
         $this->assertSame($startedAt, $game->getStartedAt());
         $this->assertNotNull($game->getFinishedAt());
@@ -166,7 +168,7 @@ class GameServiceTest extends TestCase
         $hub = $this->createMock(HubInterface::class);
         $hub->expects($this->once())->method('publish');
 
-        $this->createGameService($em, $hub)->stop($game);
+        $this->createGameService($em, $hub)->stop($game, new DateTimeImmutable());
 
         $this->assertInstanceOf(DateTimeImmutable::class, $game->getFinishedAt());
     }
@@ -180,8 +182,8 @@ class GameServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects($this->never())->method('flush');
 
-        $this->createGameService($em)->stop($notStarted);
-        $this->createGameService($em)->stop($finished);
+        $this->createGameService($em)->stop($notStarted, new DateTimeImmutable());
+        $this->createGameService($em)->stop($finished, new DateTimeImmutable());
 
         $this->assertNull($notStarted->getFinishedAt());
         $this->assertSame($finishedAt, $finished->getFinishedAt());
@@ -202,8 +204,8 @@ class GameServiceTest extends TestCase
         $game->setStartedAt(new DateTimeImmutable());
         $game->setFinishedAt(new DateTimeImmutable());
         $game->setIsPaused(true);
-        $game->setTotalPausedSeconds(120);
-        $game->setLastPausedAt(new DateTimeImmutable());
+        $game->setPausedRemainingSeconds(120);
+        $game->setCountdownZeroAt(new DateTimeImmutable());
         $game->getBingoSquareValidated()->add(new BingoSquareValidated());
         $game->getBingoSquareValidated()->add(new BingoSquareValidated());
 
@@ -226,8 +228,8 @@ class GameServiceTest extends TestCase
         $this->assertNull($game->getStartedAt());
         $this->assertNull($game->getFinishedAt());
         $this->assertFalse($game->isPaused());
-        $this->assertSame(0.0, $game->getTotalPausedSeconds());
-        $this->assertNull($game->getLastPausedAt());
+        $this->assertNull($game->getCountdownZeroAt());
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
         $this->assertCount(2, $removedEntities);
         $this->assertInstanceOf(BingoSquareValidated::class, $removedEntities[0]);
     }

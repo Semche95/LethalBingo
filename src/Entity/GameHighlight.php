@@ -9,7 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Moment marked by the referee during a game, to find it again when editing
- * the final video. The elapsed time ignores the pauses: the recording goes on.
+ * the final video. The elapsed time is counted from the start of the game and
+ * includes the pauses and the time spent at zero: the recording goes on.
  */
 #[ORM\Entity]
 class GameHighlight

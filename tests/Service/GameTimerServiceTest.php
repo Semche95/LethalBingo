@@ -15,6 +15,9 @@ use Symfony\Component\Mercure\HubInterface;
 
 class GameTimerServiceTest extends TestCase
 {
+    // 2001-09-09 01:46:40 UTC, in milliseconds.
+    private const float START_MS = 1_000_000_000_000.0;
+
     private GameTimerService $timerService;
 
     protected function setUp(): void
@@ -26,267 +29,244 @@ class GameTimerServiceTest extends TestCase
         $this->timerService = new GameTimerService($gameService);
     }
 
-    public function testGetRemainingSecondsReturnsFullHourWhenNotStarted(): void
+    /**
+     * Game started at START_MS, its countdown reaching zero $durationSeconds later.
+     */
+    private function createRunningGame(float $durationSeconds = GameTimerService::DEFAULT_DURATION_SECONDS): Game
     {
-        $game = new Game();
-
-        $this->assertSame(3600, $this->timerService->getRemainingSeconds($game));
+        return new Game()->resetTimer(self::date(self::START_MS), self::date(self::START_MS + $durationSeconds * 1000));
     }
 
-    public function testGetRemainingSecondsReturnsZeroWhenFinished(): void
+    private static function date(float $milliseconds): DateTimeImmutable
     {
-        $game = new Game();
-        $game->setStartedAt(new DateTimeImmutable('-30 minutes'));
-        $game->setFinishedAt(new DateTimeImmutable());
-
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game));
+        return new DateTimeImmutable(\sprintf('@%.6F', $milliseconds / 1000));
     }
 
-    public function testGetRemainingSecondsCountsDownLinearly(): void
+    private static function toMilliseconds(?DateTimeImmutable $date): float
     {
-        $startedAt = new DateTimeImmutable('-10 minutes');
-        $game = new Game();
-        $game->setStartedAt($startedAt);
-
-        $remaining = $this->timerService->getRemainingSeconds($game);
-
-        $elapsed = (int) floor(microtime(true) - $startedAt->getTimestamp());
-        $this->assertSame(max(0, 3600 - $elapsed), $remaining);
+        return (float) $date?->format('U.u') * 1000;
     }
 
-    public function testGetRemainingSecondsAccountsForPausedTime(): void
+    /**
+     * Exact remaining seconds of a game in progress, read from its stored state.
+     */
+    private static function remainingSeconds(Game $game, float $nowMs): float
     {
-        $startedAt = new DateTimeImmutable('-50 minutes');
-        $game = new Game();
-        $game->setStartedAt($startedAt);
-        $game->setTotalPausedSeconds(1800);
-        $game->setIsPaused(false);
-
-        $remaining = $this->timerService->getRemainingSeconds($game);
-
-        $elapsed = (int) floor(microtime(true) - $startedAt->getTimestamp());
-        $this->assertSame(max(0, 3600 - ($elapsed - 1800)), $remaining);
-    }
-
-    public function testGetRemainingSecondsAccountsForCurrentPause(): void
-    {
-        $startedAt = new DateTimeImmutable('-50 minutes');
-        $lastPausedAt = new DateTimeImmutable('-2 minutes');
-
-        $game = new Game();
-        $game->setStartedAt($startedAt);
-        $game->setIsPaused(true);
-        $game->setLastPausedAt($lastPausedAt);
-        $game->setTotalPausedSeconds(0);
-
-        $remaining = $this->timerService->getRemainingSeconds($game);
-
-        $now = microtime(true);
-        $elapsed = $now - $startedAt->getTimestamp();
-        $currentPause = $now - $lastPausedAt->getTimestamp();
-        $this->assertSame((int) ceil(max(0, 3600 - ($elapsed - $currentPause))), $remaining);
-    }
-
-    public function testGetRemainingSecondsReturnsZeroWhenTimeIsUp(): void
-    {
-        $game = new Game();
-        $game->setStartedAt(new DateTimeImmutable('-2 hours'));
-        $game->setIsPaused(false);
-        $game->setTotalPausedSeconds(0);
-
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game));
-    }
-
-    public function testGetRemainingSecondsDoesNotGoNegative(): void
-    {
-        $game = new Game();
-        $game->setStartedAt(new DateTimeImmutable('-3 hours'));
-        $game->setTotalPausedSeconds(0);
-        $game->setIsPaused(false);
-
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game));
-    }
-
-    public function testGetRemainingSecondsWithManualAdjustment(): void
-    {
-        $startedAt = new DateTimeImmutable('-10 minutes');
-        $game = new Game();
-        $game->setStartedAt($startedAt);
-        $game->setManualAdjustmentSeconds(60);
-
-        $base = $this->timerService->getRemainingSeconds(clone $game);
-        $game->setManualAdjustmentSeconds(0);
-        $without = $this->timerService->getRemainingSeconds($game);
-
-        $this->assertSame(60, $base - $without);
-    }
-
-    public function testAbsorbDeficitBringsOvertimeBackToExactlyZero(): void
-    {
-        $startedAt = new DateTimeImmutable('@1000000000');
-        $game = new Game();
-        $game->setStartedAt($startedAt);
-
-        // 5 minutes of overtime: the raw remaining time is -300s (clamped to 0).
-        $nowMs = (1_000_003_600 + 300) * 1000;
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game, $nowMs));
-
-        $this->timerService->absorbDeficit($game, $nowMs);
-
-        // The whole deficit is absorbed, minus the sub-millisecond safety margin.
-        $this->assertEqualsWithDelta(300.0, $game->getTotalPausedSeconds(), 0.002);
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game, $nowMs));
-    }
-
-    public function testPlusOneMinuteAfterFractionalOvertimeLastsAFullSecondOnOneMinute(): void
-    {
-        $game = new Game();
-        $game->setStartedAt(new DateTimeImmutable('@1000000000'));
-
-        // 300.4s of overtime, then +1 minute.
-        $nowMs = 1_000_003_900_400.0;
-        $this->timerService->absorbDeficit($game, $nowMs);
-        $game->setManualAdjustmentSeconds($game->getManualAdjustmentSeconds() + 60);
-
-        // 00:01:00 must still be shown 900ms later: absorbing only the whole
-        // seconds of the deficit would leave 59.6s and drop to 00:00:59 already.
-        $this->assertSame(60, $this->timerService->getRemainingSeconds($game, $nowMs));
-        $this->assertSame(60, $this->timerService->getRemainingSeconds($game, $nowMs + 900));
-    }
-
-    public function testAbsorbDeficitNeverLandsOnOneSecondWhateverTheOvertimeFraction(): void
-    {
-        for ($fractionMs = 0; $fractionMs < 1000; $fractionMs += 7) {
-            $game = new Game();
-            $game->setStartedAt(new DateTimeImmutable('@1000000000'));
-            $nowMs = 1_000_003_900_000.0 + $fractionMs + 0.123;
-
-            $this->timerService->absorbDeficit($game, $nowMs);
-
-            $this->assertSame(0, $this->timerService->getRemainingSeconds($game, $nowMs), "fraction {$fractionMs}ms");
+        if ($game->isPaused()) {
+            return $game->getPausedRemainingSeconds();
         }
+
+        return max(0.0, (self::toMilliseconds($game->getCountdownZeroAt()) - $nowMs) / 1000);
     }
 
-    public function testCloseCurrentPauseKeepsTheSubSecondPartOfThePause(): void
+    public function testRealClockIsUsedByDefault(): void
     {
-        $game = new Game();
-        $game
-            ->setStartedAt(new DateTimeImmutable('@1000000000'))
-            ->setIsPaused(true)
-            ->setLastPausedAt(new DateTimeImmutable('@1000000600'))
-            ->setTotalPausedSeconds(12.25);
+        $now = new DateTimeImmutable();
 
-        // Resumed 90.7s after the pause started: truncating "now" to whole
-        // seconds would only count 90s and shift the remaining time.
-        $nowMs = 1_000_000_690_700.0;
-        $frozenRemaining = $this->timerService->getRemainingSeconds($game, $nowMs);
+        $this->assertFalse($this->timerService->isTimeUp(new Game()->resetTimer($now, $now->modify('+90 seconds'))));
+        $this->assertTrue($this->timerService->isTimeUp(new Game()->resetTimer($now, $now->modify('-1 second'))));
+    }
 
-        $this->timerService->closeCurrentPause($game, $nowMs);
+    public function testStartSetsTheCountdownZeroMomentOneHourLater(): void
+    {
+        $game = new Game()->setSlug('test');
+
+        $this->timerService->start($game, self::START_MS + 0.25);
+
+        $this->assertEqualsWithDelta(self::START_MS + 0.25, self::toMilliseconds($game->getStartedAt()), 0.001);
+        $this->assertEqualsWithDelta(self::START_MS + 3_600_000.25, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+    }
+
+    public function testPauseFreezesTheRemainingTimeAndResumeStartsAgainFromIt(): void
+    {
+        $game = $this->createRunningGame();
+
+        $this->timerService->pause($game, self::START_MS + 600_300);
+
+        $this->assertTrue($game->isPaused());
+        $this->assertNull($game->getCountdownZeroAt());
+        $this->assertEqualsWithDelta(2999.7, $game->getPausedRemainingSeconds(), 1e-6);
+        $this->assertFalse($this->timerService->isTimeUp($game, self::START_MS + 3_600_000 * 5));
+
+        $this->timerService->resume($game, self::START_MS + 900_000);
 
         $this->assertFalse($game->isPaused());
-        $this->assertNull($game->getLastPausedAt());
-        $this->assertEqualsWithDelta(12.25 + 90.7, $game->getTotalPausedSeconds(), 1e-6);
-        // Resuming never changes the displayed remaining time.
-        $this->assertSame($frozenRemaining, $this->timerService->getRemainingSeconds($game, $nowMs));
+        $this->assertEqualsWithDelta(self::START_MS + 900_000 + 2_999_700, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
     }
 
-    public function testCloseCurrentPauseDoesNothingWhenNotPaused(): void
+    public function testAddingAMinuteStartsFromTheExactRemainingTime(): void
     {
-        $game = new Game();
-        $game
-            ->setStartedAt(new DateTimeImmutable('@1000000000'))
-            ->setTotalPausedSeconds(5.5);
+        $game = $this->createRunningGame();
+        $nowMs = self::START_MS + 600_300;
 
-        $this->timerService->closeCurrentPause($game, 1_000_000_690_700.0);
+        $this->timerService->addSeconds($game, 60, $nowMs);
+        $this->assertEqualsWithDelta(3059.7, self::remainingSeconds($game, $nowMs), 0.001);
 
-        $this->assertSame(5.5, $game->getTotalPausedSeconds());
+        $this->timerService->addSeconds($game, -60, $nowMs);
+        $this->timerService->addSeconds($game, -60, $nowMs);
+        $this->assertEqualsWithDelta(2939.7, self::remainingSeconds($game, $nowMs), 0.001);
     }
 
-    public function testPlusOneMinuteAfterArbitraryOvertimeLandsOnExactlyOneMinute(): void
+    public function testRemovingAMinuteNeverGoesBelowZero(): void
     {
-        // Whatever the overtime duration (simulated, not just a few seconds), a
-        // single +1 minute applied on top of the absorption must land back on
-        // exactly 00:01:00. The result must not depend on the simulated delay
-        // between the zero-crossing and the click.
-        foreach ([0, 30, 300, 3600, 7200] as $overtimeSeconds) {
-            $startedAt = new DateTimeImmutable('@1000000000');
-            $game = new Game();
-            $game->setStartedAt($startedAt);
+        $game = $this->createRunningGame(30.5);
 
-            // "now": 1 hour after start (the timer hit zero) plus the overtime delay.
-            $nowMs = (1_000_003_600 + $overtimeSeconds) * 1000;
+        $this->timerService->addSeconds($game, -60, self::START_MS);
 
-            // Simulate the +1 minute action flow: absorb first, then add 60.
-            $this->timerService->absorbDeficit($game, $nowMs);
-            $game->setManualAdjustmentSeconds($game->getManualAdjustmentSeconds() + 60);
+        $this->assertEqualsWithDelta(self::START_MS, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+        $this->assertTrue($this->timerService->isTimeUp($game, self::START_MS));
+    }
 
-            $this->assertSame(60, $this->timerService->getRemainingSeconds($game, $nowMs), "overtime {$overtimeSeconds}s");
+    public function testAddingAMinuteAtZeroGivesExactlyOneMinute(): void
+    {
+        foreach ([0.4, 300_000.0, 86_400_123.7] as $atZeroMs) {
+            $game = $this->createRunningGame();
+            $nowMs = self::START_MS + 3_600_000 + $atZeroMs;
+
+            $this->timerService->addSeconds($game, 60, $nowMs);
+
+            // Never above 60: the displayed time, rounded up, would show 61.
+            $this->assertLessThanOrEqual(60.0, self::remainingSeconds($game, $nowMs), "at zero for {$atZeroMs}ms");
+            $this->assertEqualsWithDelta(60.0, self::remainingSeconds($game, $nowMs), 0.001, "at zero for {$atZeroMs}ms");
         }
     }
 
-    public function testMultipleMutationsAfterOvertimeRemainCoherent(): void
+    public function testRemovingAMinuteAtZeroStaysAtZero(): void
     {
-        // Sequence: +1 minute, then −1 minute, then a set-to-value. Each step
-        // starts by absorbing any deficit, so the remaining time stays coherent
-        // at every stage.
-        $startedAt = new DateTimeImmutable('@1000000000');
-        $game = new Game();
-        $game->setStartedAt($startedAt);
+        $game = $this->createRunningGame();
+        $nowMs = self::START_MS + 3_900_000;
 
-        $nowMs = (1_000_003_600 + 300) * 1000; // 5 minutes overtime
+        $this->timerService->addSeconds($game, -60, $nowMs);
 
-        // +1 minute: absorbs the 300s deficit, then adds 60.
-        $this->timerService->absorbDeficit($game, $nowMs);
-        $game->setManualAdjustmentSeconds($game->getManualAdjustmentSeconds() + 60);
-        $this->assertSame(60, $this->timerService->getRemainingSeconds($game, $nowMs));
+        $this->assertSame(0.0, self::remainingSeconds($game, $nowMs));
 
-        // −1 minute: no deficit to absorb (60 > 0), then removes 60.
-        $this->timerService->absorbDeficit($game, $nowMs);
-        $game->setManualAdjustmentSeconds($game->getManualAdjustmentSeconds() - 60);
-        $this->assertSame(0, $this->timerService->getRemainingSeconds($game, $nowMs));
+        // Adding time later restarts the countdown from zero.
+        $this->timerService->addSeconds($game, 60, $nowMs + 100_000);
+        $this->assertEqualsWithDelta(60.0, self::remainingSeconds($game, $nowMs + 100_000), 0.001);
+    }
 
-        // Set-to-value 30: still no deficit, set the adjustment so 30 remain.
-        $this->timerService->absorbDeficit($game, $nowMs);
-        $current = $this->timerService->getRemainingSeconds($game, $nowMs);
-        $game->setManualAdjustmentSeconds($game->getManualAdjustmentSeconds() + (30 - $current));
-        $this->assertSame(30, $this->timerService->getRemainingSeconds($game, $nowMs));
+    public function testAdjustingDuringAPauseChangesTheFrozenTimeOnly(): void
+    {
+        $game = $this->createRunningGame();
+        $this->timerService->pause($game, self::START_MS + 3_570_000);
+
+        $this->timerService->addSeconds($game, 60, self::START_MS + 4_000_000);
+        $this->assertEqualsWithDelta(90.0, $game->getPausedRemainingSeconds(), 1e-6);
+        $this->assertNull($game->getCountdownZeroAt());
+
+        $this->timerService->addSeconds($game, -60, self::START_MS + 4_000_000);
+        $this->timerService->addSeconds($game, -60, self::START_MS + 4_000_000);
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
+        $this->assertTrue($this->timerService->isTimeUp($game));
+
+        // Adding time to a pause at zero gives exactly that time.
+        $this->timerService->addSeconds($game, 60, self::START_MS + 5_000_000);
+        $this->assertSame(60.0, $game->getPausedRemainingSeconds());
+    }
+
+    public function testSetRemainingSecondsSetsTheExactValueEvenAtZeroOrPaused(): void
+    {
+        $game = $this->createRunningGame();
+
+        $this->timerService->setRemainingSeconds($game, 603, self::START_MS + 600_300);
+        $this->assertEqualsWithDelta(603.0, self::remainingSeconds($game, self::START_MS + 600_300), 0.001);
+
+        $zeroMs = self::START_MS + 600_300 + 603_000;
+        $this->timerService->setRemainingSeconds($game, 3, $zeroMs + 20_000);
+        $this->assertEqualsWithDelta(3.0, self::remainingSeconds($game, $zeroMs + 20_000), 0.001);
+
+        $this->timerService->pause($game, $zeroMs + 21_000);
+        $this->timerService->setRemainingSeconds($game, 183, $zeroMs + 30_000);
+        $this->assertSame(183.0, $game->getPausedRemainingSeconds());
+    }
+
+    public function testAdjustmentsDoNothingOnAGameNotInProgress(): void
+    {
+        $game = $this->createRunningGame()->setFinishedAt(self::date(self::START_MS));
+        $countdownZeroAt = $game->getCountdownZeroAt();
+
+        $this->timerService->addSeconds($game, 60, self::START_MS);
+        $this->timerService->setRemainingSeconds($game, 60, self::START_MS);
+        $this->timerService->pause($game, self::START_MS);
+
+        $this->assertSame($countdownZeroAt, $game->getCountdownZeroAt());
+        $this->assertFalse($game->isPaused());
+    }
+
+    public function testIsTimeUp(): void
+    {
+        $game = $this->createRunningGame();
+
+        $this->assertFalse($this->timerService->isTimeUp(new Game()));
+        $this->assertFalse($this->timerService->isTimeUp($game, self::START_MS + 3_599_999));
+        $this->assertTrue($this->timerService->isTimeUp($game, self::START_MS + 3_600_000));
+
+        $this->timerService->pause($game, self::START_MS + 3_599_000);
+        $this->assertFalse($this->timerService->isTimeUp($game, self::START_MS + 9_000_000));
+
+        $finished = $this->createRunningGame()->setFinishedAt(self::date(self::START_MS));
+        $this->assertFalse($this->timerService->isTimeUp($finished, self::START_MS + 9_000_000));
+    }
+
+    public function testStopBeforeZeroEndsTheGameNow(): void
+    {
+        $game = $this->createRunningGame()->setSlug('test');
+
+        $this->timerService->stop($game, self::START_MS + 1_000_500);
+
+        $this->assertEqualsWithDelta(self::START_MS + 1_000_500, self::toMilliseconds($game->getFinishedAt()), 0.001);
+    }
+
+    public function testStopAfterZeroEndsTheGameWhenTheCountdownReachedZero(): void
+    {
+        $game = $this->createRunningGame()->setSlug('test');
+
+        $this->timerService->stop($game, self::START_MS + 3_600_000 + 172_800_000);
+
+        $this->assertEqualsWithDelta(self::START_MS + 3_600_000, self::toMilliseconds($game->getFinishedAt()), 0.01);
+    }
+
+    public function testStopDuringAPauseEndsTheGameNow(): void
+    {
+        $game = $this->createRunningGame()->setSlug('test');
+        $this->timerService->pause($game, self::START_MS + 1_000_000);
+
+        $this->timerService->stop($game, self::START_MS + 9_000_000);
+
+        $this->assertEqualsWithDelta(self::START_MS + 9_000_000, self::toMilliseconds($game->getFinishedAt()), 0.001);
     }
 
     #[DataProvider('provideParityFixture')]
     public function testPhpMatchesCommittedTsFixture(
-        ?int $gameStartedAt,
-        ?int $gameFinishedAt,
-        int $gameTotalPausedSeconds,
-        int $gameManualAdjustmentSeconds,
-        ?int $gameLastPausedAt,
+        ?float $gameStartedAt,
+        ?float $gameFinishedAt,
+        ?float $gameCountdownZeroAt,
+        float $gamePausedRemainingSeconds,
         bool $gameIsPaused,
         float $currentServerTime,
-        int $expected,
+        bool $timeUp,
     ): void {
-        $game = new Game();
+        $game = new Game()
+            ->setIsPaused($gameIsPaused)
+            ->setPausedRemainingSeconds($gamePausedRemainingSeconds);
 
         if ($gameStartedAt !== null) {
-            $game->setStartedAt(new DateTimeImmutable('@' . $gameStartedAt));
+            $game->setStartedAt(self::date($gameStartedAt * 1000));
         }
         if ($gameFinishedAt !== null) {
-            $game->setFinishedAt(new DateTimeImmutable('@' . $gameFinishedAt));
+            $game->setFinishedAt(self::date($gameFinishedAt * 1000));
         }
-        $game
-            ->setTotalPausedSeconds($gameTotalPausedSeconds)
-            ->setManualAdjustmentSeconds($gameManualAdjustmentSeconds)
-            ->setIsPaused($gameIsPaused);
-        if ($gameLastPausedAt !== null) {
-            $game->setLastPausedAt(new DateTimeImmutable('@' . $gameLastPausedAt));
+        if ($gameCountdownZeroAt !== null) {
+            $game->setCountdownZeroAt(self::date($gameCountdownZeroAt * 1000));
         }
 
-        // $currentServerTime is in milliseconds; getRemainingSeconds expects ms.
-        $remaining = $this->timerService->getRemainingSeconds($game, $currentServerTime);
-
-        $this->assertSame($expected, $remaining);
+        // $currentServerTime is in milliseconds, like isTimeUp() expects.
+        $this->assertSame($timeUp, $this->timerService->isTimeUp($game, $currentServerTime));
     }
 
     /**
-     * @return array<string, array{int|null, int|null, int, int, int|null, bool, float|int, int}>
+     * @return array<string, array{float|null, float|null, float|null, float, bool, float, bool}>
      */
     public static function provideParityFixture(): array
     {
@@ -296,14 +276,13 @@ class GameTimerServiceTest extends TestCase
 
         foreach ($cases as $index => $case) {
             $rows['case #' . $index] = [
-                $case['gameStartedAt'],
-                $case['gameFinishedAt'],
-                $case['gameTotalPausedSeconds'],
-                $case['gameManualAdjustmentSeconds'],
-                $case['gameLastPausedAt'],
+                $case['gameStartedAt'] === null ? null : (float) $case['gameStartedAt'],
+                $case['gameFinishedAt'] === null ? null : (float) $case['gameFinishedAt'],
+                $case['gameCountdownZeroAt'] === null ? null : (float) $case['gameCountdownZeroAt'],
+                (float) $case['gamePausedRemainingSeconds'],
                 $case['gameIsPaused'],
-                $case['currentServerTime'],
-                $case['expected'],
+                (float) $case['currentServerTime'],
+                $case['timeUp'],
             ];
         }
 

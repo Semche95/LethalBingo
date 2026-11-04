@@ -1,9 +1,8 @@
 <div {{ attributes.defaults(stimulus_controller('game--game-timer', {
     gameStartedAt: this.game.startedAt ? this.game.startedAt.format('U.u') : null,
     gameFinishedAt: this.game.finishedAt ? this.game.finishedAt.format('U.u') : null,
-    gameTotalPausedSeconds: this.game.totalPausedSeconds,
-    gameManualAdjustmentSeconds: this.game.manualAdjustmentSeconds,
-    gameLastPausedAt: this.game.lastPausedAt ? this.game.lastPausedAt.format('U.u') : null,
+    gameCountdownZeroAt: this.game.countdownZeroAt ? this.game.countdownZeroAt.format('U.u') : null,
+    gamePausedRemainingSeconds: this.game.pausedRemainingSeconds,
     gameIsPaused: this.game.isPaused,
     serverTime: this.serverTime,
     serverTimeUrl: path('app_server_time')
@@ -45,7 +44,9 @@
                     <twig:IconButton icon="mdi:pause" title="Mettre en pause" class="btn btn-icon btn-primary" liveAction="pauseGame" size="24" data-game--game-timer-target="pauseButton" />
                 {% endif %}
 
-                <twig:GameHighlights :game="this.game" class="ms-2" />
+                <div class="vr mx-3"></div>
+
+                <twig:GameHighlights :game="this.game" />
 
             </div>
         {% endif %}

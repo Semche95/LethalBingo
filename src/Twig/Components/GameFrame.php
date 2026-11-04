@@ -6,6 +6,7 @@ namespace App\Twig\Components;
 
 use App\Entity\Game;
 use App\Service\GameService;
+use App\Service\GameTimerService;
 use App\Service\RefreshEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -25,6 +26,7 @@ final class GameFrame extends AbstractController
 
     public function __construct(
         private readonly GameService $gameService,
+        private readonly GameTimerService $gameTimerService,
     ) {
     }
 
@@ -37,14 +39,14 @@ final class GameFrame extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function startGame(): void
     {
-        $this->gameService->start($this->game);
+        $this->gameTimerService->start($this->game);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function stopGame(): void
     {
-        $this->gameService->stop($this->game);
+        $this->gameTimerService->stop($this->game);
     }
 
     #[LiveAction]

@@ -4,6 +4,7 @@ import {
     calculateRemainingSeconds,
     formatGameDuration,
     GAME_DURATION_SECONDS,
+    isTimeUp,
     type RemainingSecondsParams,
 } from './game_timer_math'
 import {
@@ -20,9 +21,8 @@ export default class extends Controller<HTMLDivElement> {
     static override values = {
         gameStartedAt: Number,
         gameFinishedAt: Number,
-        gameTotalPausedSeconds: Number,
-        gameManualAdjustmentSeconds: Number,
-        gameLastPausedAt: Number,
+        gameCountdownZeroAt: Number,
+        gamePausedRemainingSeconds: Number,
         gameIsPaused: Boolean,
         // Server timestamp (fractional seconds) shared by all clients through the
         // Mercure broadcast, or taken at mount() on first render.
@@ -35,9 +35,8 @@ export default class extends Controller<HTMLDivElement> {
 
     declare readonly gameStartedAtValue: number | null
     declare readonly gameFinishedAtValue: number | null
-    declare readonly gameTotalPausedSecondsValue: number
-    declare readonly gameManualAdjustmentSecondsValue: number
-    declare readonly gameLastPausedAtValue: number | null
+    declare readonly gameCountdownZeroAtValue: number | null
+    declare readonly gamePausedRemainingSecondsValue: number
     declare readonly gameIsPausedValue: boolean
     declare readonly serverTimeValue: number
     declare readonly serverTimeUrlValue: string
@@ -143,15 +142,11 @@ export default class extends Controller<HTMLDivElement> {
         this.onGameStateChanged()
     }
 
-    gameTotalPausedSecondsValueChanged() {
+    gameCountdownZeroAtValueChanged() {
         this.onGameStateChanged()
     }
 
-    gameManualAdjustmentSecondsValueChanged() {
-        this.onGameStateChanged()
-    }
-
-    gameLastPausedAtValueChanged() {
+    gamePausedRemainingSecondsValueChanged() {
         this.onGameStateChanged()
     }
 
@@ -240,15 +235,17 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private updateTimerDisplay(canTriggerSound: boolean = true) {
-        const formattedTime = this.formatGameDisplay()
+        const remainingSeconds = this.computeRemainingSeconds()
+        const formattedTime = formatGameDuration(this.gameStartedAtValue, this.gameFinishedAtValue, remainingSeconds)
 
         if (formattedTime !== this.lastRenderedText) {
             this.lastRenderedText = formattedTime
             this.timerDisplayTarget.textContent = formattedTime
         }
 
+        // The pause is refused once the time is up, like GameTimerService::isTimeUp() does.
         if (this.hasPauseButtonTarget) {
-            this.pauseButtonTarget.classList.toggle('d-none', formattedTime === '00:00:00')
+            this.pauseButtonTarget.classList.toggle('d-none', isTimeUp(this.remainingSecondsParams()))
         }
 
         this.updatePauseBadge()
@@ -298,20 +295,11 @@ export default class extends Controller<HTMLDivElement> {
         return {
             gameStartedAt: this.gameStartedAtValue,
             gameFinishedAt: this.gameFinishedAtValue,
-            gameTotalPausedSeconds: this.gameTotalPausedSecondsValue,
-            gameManualAdjustmentSeconds: this.gameManualAdjustmentSecondsValue,
-            gameLastPausedAt: this.gameLastPausedAtValue,
+            gameCountdownZeroAt: this.gameCountdownZeroAtValue,
+            gamePausedRemainingSeconds: this.gamePausedRemainingSecondsValue,
             gameIsPaused: this.gameIsPausedValue,
             currentServerTime: this.getCurrentServerTime(),
         }
-    }
-
-    private formatGameDisplay(): string {
-        return formatGameDuration(
-            this.gameStartedAtValue,
-            this.gameFinishedAtValue,
-            this.computeRemainingSeconds(),
-        )
     }
 
     private playSound(name: TimerSoundName) {
