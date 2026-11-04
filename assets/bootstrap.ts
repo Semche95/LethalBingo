@@ -3,7 +3,7 @@ import { startStimulusApp, registerControllers } from 'vite-plugin-symfony/stimu
 import AutocompleteController from '../vendor/symfony/ux-autocomplete/assets/dist/controller.js'
 import type { Component } from '@symfony/ux-live-component'
 import { restoreHiddenNonces } from './turbo_nonce'
-import { disposeTooltips, initTooltips } from './utils'
+import { hideTooltips, syncTooltips } from './utils'
 
 turboConfig.drive.progressBarDelay = 10
 
@@ -15,9 +15,11 @@ if (import.meta.env.DEV) {
     })
 }
 
-// A re-render replaces the elements of a Live Component, while Bootstrap shows
-// the tooltip at the end of the page: the tooltip of the clicked button (pause,
-// resume...) would stay on screen and the new buttons would have none.
+// A re-render replaces some elements of a Live Component, while Bootstrap shows
+// the tooltip at the end of the page: the tooltip of a removed button (pause,
+// resume...) would stay on screen and the new buttons would have none. The
+// tooltips are hidden first, the one of a clicked button staying otherwise as
+// long as it keeps the focus.
 // Listened before Stimulus starts, so that no component connects unseen; the
 // listener lives as long as the document, so it is never removed.
 const tooltipComponents = new WeakSet<Component>()
@@ -28,8 +30,8 @@ document.addEventListener('live:connect', (event) => {
     }
     tooltipComponents.add(component)
 
-    component.on('render:started', () => disposeTooltips(component.element))
-    component.on('render:finished', () => initTooltips(component.element))
+    component.on('render:started', () => hideTooltips(component.element))
+    component.on('render:finished', () => syncTooltips(component.element))
 })
 
 const app = startStimulusApp()

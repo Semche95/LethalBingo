@@ -1,7 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
-import { Tooltip } from 'bootstrap'
 import { postJson } from '../../csrf_post'
-import { debounce, disposeTooltips, initTooltips, showToast } from '../../utils'
+import { debounce, disposeTooltips, hideTooltip, initTooltips, setTooltipTitle, showToast } from '../../utils'
 
 // The menu is opened and closed here rather than by a Bootstrap dropdown, whose
 // toggle cannot sit in the wrapper that shows the tooltip of the disabled button.
@@ -60,6 +59,8 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     toggle(): void {
+        // Shown on focus too, the tooltip would stay open after the click
+        hideTooltip(this.listTooltipTarget)
         if (this.isOpen()) {
             this.close()
         } else {
@@ -159,10 +160,7 @@ export default class extends Controller<HTMLDivElement> {
         this.badgeTarget.textContent = String(count)
         this.badgeTarget.classList.toggle('d-none', count === 0)
         this.listButtonTarget.disabled = count === 0
-        // Kept in the attribute too: a tooltip recreated after a re-render reads it.
-        const title = count === 0 ? 'Aucun temps fort' : 'Temps forts'
-        this.listTooltipTarget.setAttribute('data-bs-original-title', title)
-        Tooltip.getInstance(this.listTooltipTarget)?.setContent({ '.tooltip-inner': title })
+        setTooltipTitle(this.listTooltipTarget, count === 0 ? 'Aucun temps fort' : 'Temps forts')
     }
 
     private restoreRow(row: HTMLLIElement): void {

@@ -114,7 +114,7 @@ class GameHighlightControllerTest extends ControllerTestCase
         $this->client->request('GET', '/game/' . $game->getSlug());
 
         self::assertSelectorExists('[data-game--game-highlights-target="listButton"][disabled]');
-        self::assertSelectorExists('[data-game--game-highlights-target="listTooltip"][title="Aucun temps fort"]');
+        self::assertSelectorExists('[data-game--game-highlights-target="listTooltip"][data-bs-title="Aucun temps fort"]');
     }
 
     public function testPlayerSeesNoHighlight(): void

@@ -57,7 +57,7 @@
                             {% endif %}
                             <a href="{{ path('app_referee_bingo_edit', {id: bingo.id}) }}"
                                class="round-pill{% if isDuplicate %} round-pill--duplicate{% endif %}{% if isIncomplete %} round-pill--incomplete{% endif %}"
-                               {% if tooltipParts|length > 0 %}data-bs-toggle="tooltip" title="{{ tooltipParts|join(' · ') }}"{% endif %}>
+                               {% if tooltipParts|length > 0 %}data-bs-toggle="tooltip" data-bs-title="{{ tooltipParts|join(' · ') }}"{% endif %}>
                                 Round {{ bingo.number }}
                                 {{ ux_icon('tabler:pencil', {height: '16', width: '16'}) }}
                                 {% if isIncomplete or isDuplicate %}

@@ -6,22 +6,99 @@ const TOAST_ANIMATION_DURATION = 250
 
 const TOOLTIP_SELECTOR = '[data-bs-toggle="tooltip"]'
 
-export function initTooltips(root: ParentNode = document): void {
-    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getOrCreateInstance(element))
-}
+// Elements given a tooltip by initTooltips(), so that the ones a render removes
+// can be disposed, and the title each one shows, to follow `data-bs-title`
+// when a render changes it.
+const tooltipElements = new Set<HTMLElement>()
+const tooltipTitles = new WeakMap<HTMLElement, string>()
+// Whether the tooltip is on screen or fading in or out: dispose() during a fade
+// throws at its end, so such a tooltip is hidden first and disposed once gone.
+// The listeners live as long as the document, so they are never removed.
+const visibleTooltips = new WeakSet<HTMLElement>()
 
-// Also removes `aria-describedby`, left by dispose() on a shown tooltip: a Live
-// Component keeps any attribute changed in JS and would put it back on the
-// element of its next render, pointing to a tooltip that no longer exists.
-export function disposeTooltips(root: ParentNode = document): void {
+document.addEventListener('show.bs.tooltip', event => visibleTooltips.add(event.target as HTMLElement))
+document.addEventListener('hidden.bs.tooltip', event => visibleTooltips.delete(event.target as HTMLElement))
+
+// The tooltips open on hover only, so that a clicked button, which keeps the
+// focus, does not keep its tooltip: the keyboard focus (`:focus-visible`, never
+// given by a click) opens them here instead.
+document.addEventListener('focusin', event => {
+    const element = event.target
+    if (element instanceof HTMLElement && element.matches(TOOLTIP_SELECTOR) && element.matches(':focus-visible')) {
+        Tooltip.getInstance(element)?.show()
+    }
+})
+document.addEventListener('focusout', event => {
+    const element = event.target
+    if (element instanceof HTMLElement && element.matches(TOOLTIP_SELECTOR)) {
+        Tooltip.getInstance(element)?.hide()
+    }
+})
+
+export function initTooltips(root: ParentNode = document): void {
     root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => {
-        const tooltip = Tooltip.getInstance(element)
-        if (!tooltip) {
+        const tooltip = Tooltip.getOrCreateInstance(element, { trigger: 'hover' })
+        tooltipElements.add(element)
+
+        const title = element.getAttribute('data-bs-title')
+        if (title === null) {
             return
         }
-        tooltip.dispose()
-        element.removeAttribute('aria-describedby')
+        const shownTitle = tooltipTitles.get(element)
+        if (shownTitle !== undefined && shownTitle !== title) {
+            tooltip.setContent({ '.tooltip-inner': title })
+        }
+        tooltipTitles.set(element, title)
     })
+}
+
+export function setTooltipTitle(element: HTMLElement, title: string): void {
+    element.setAttribute('data-bs-title', title)
+    tooltipTitles.set(element, title)
+    Tooltip.getInstance(element)?.setContent({ '.tooltip-inner': title })
+}
+
+export function hideTooltip(element: HTMLElement): void {
+    Tooltip.getInstance(element)?.hide()
+}
+
+// After a render of a Live Component, which keeps the elements that did not
+// change: only the tooltips of the removed elements go, the others stay.
+export function syncTooltips(root: HTMLElement): void {
+    tooltipElements.forEach(element => {
+        if (!element.isConnected || !element.matches(TOOLTIP_SELECTOR)) {
+            disposeTooltip(element)
+        }
+    })
+    initTooltips(root)
+}
+
+// hide(), unlike dispose(), can stop a tooltip during its fade.
+export function hideTooltips(root: ParentNode = document): void {
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(element => Tooltip.getInstance(element)?.hide())
+}
+
+export function disposeTooltips(root: ParentNode = document): void {
+    root.querySelectorAll<HTMLElement>(TOOLTIP_SELECTOR).forEach(disposeTooltip)
+}
+
+function disposeTooltip(element: HTMLElement): void {
+    tooltipElements.delete(element)
+    tooltipTitles.delete(element)
+    const tooltip = Tooltip.getInstance(element)
+    if (!tooltip) {
+        return
+    }
+    if (!visibleTooltips.has(element)) {
+        tooltip.dispose()
+        return
+    }
+    // Listened on the element: once removed from the page, its events no longer reach the document.
+    element.addEventListener('hidden.bs.tooltip', () => {
+        visibleTooltips.delete(element)
+        tooltip.dispose()
+    }, { once: true })
+    tooltip.hide()
 }
 
 export function showModal(id: string): void {
