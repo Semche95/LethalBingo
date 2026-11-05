@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-04T14:31:00Z'
+updated_date: '2026-11-05T19:56:00Z'
 labels:
   - rounds
 dependencies: []
@@ -19,6 +19,9 @@ ordinal: 33000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Modifier un round ou une équipe change aussi les parties qui y sont liées, y compris celles déjà jouées ou en cours, ce qui fausse leur déroulé et leur résultat. Un round ou une équipe ne doit plus être modifiable dès qu'une partie associée est en cours ou terminée. La modification reste autorisée tant que ses parties associées n'ont pas démarré.
+
+**Renvois**
+- TASK-43 : Archiver toutes les informations liées à une partie terminée
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
