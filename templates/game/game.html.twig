@@ -3,7 +3,8 @@
 {% block body_classes %}d-flex flex-column{% endblock %}
 
 {% block body %}
-    <div class="position-fixed top-0 end-0 mt-3 me-3 d-flex gap-3 z-1">
+    {# Beside the history of the referee on a wide screen, not under it #}
+    <div class="position-fixed top-0 end-0 mt-3 me-3 d-flex gap-3 z-1{{ is_granted('ROLE_REFEREE') ? ' game-top-actions-beside-history' }}">
         {% if is_granted('ROLE_REFEREE') %}
             <a href="{{ path('app_referee_game_edit', {id: game.id}) }}" class="btn btn-icon btn-primary"
                aria-label="Éditer la partie" title="Éditer la partie">

@@ -8,6 +8,8 @@ use App\Dto\GameHighlightNoteDto;
 use App\Entity\Game;
 use App\Entity\GameHighlight;
 use App\Service\CsrfGuard;
+use App\Service\GameService;
+use App\Service\RefreshEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +30,7 @@ class GameHighlightController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CsrfGuard $csrfGuard,
+        private readonly GameService $gameService,
     ) {
     }
 
@@ -49,6 +52,7 @@ class GameHighlightController extends AbstractController
         $highlight = new GameHighlight($game);
         $this->em->persist($highlight);
         $this->em->flush();
+        $this->gameService->refreshGameFrame($game, RefreshEvent::GameHistory);
 
         return $this->render('components/GameHighlights/_row.html.twig', [
             'highlight' => $highlight,
@@ -68,6 +72,7 @@ class GameHighlightController extends AbstractController
 
         $highlight->setNote($payload->note === '' ? null : $payload->note);
         $this->em->flush();
+        $this->gameService->refreshGameFrame($highlight->getGame(), RefreshEvent::GameHistory);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }
@@ -82,8 +87,10 @@ class GameHighlightController extends AbstractController
     {
         $this->assertEditable($request, $highlight->getGame());
 
+        $game = $highlight->getGame();
         $this->em->remove($highlight);
         $this->em->flush();
+        $this->gameService->refreshGameFrame($game, RefreshEvent::GameHistory);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

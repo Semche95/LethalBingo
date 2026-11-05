@@ -1,7 +1,7 @@
 <div {{ attributes.defaults(stimulus_controller('game--game-frame', {
     mercureUrl: mercure('game/' ~ this.game.slug)
 })) }}>
-    <div class="page">
+    <div class="page{{ is_granted('ROLE_REFEREE') ? ' page-with-history' }}">
         <div class="container game-container my-auto">
             <div class="py-4">
                 {{ component('BingoCardTitle', {game: this.game}) }}
@@ -86,6 +86,8 @@
     </div>
 
     {% if is_granted('ROLE_REFEREE') %}
+        <twig:GameHistory :game="this.game" />
+
         {% component ConfirmModal with {
             id: 'reset-game-modal',
             title: 'Confirmation de la réinitialisation',

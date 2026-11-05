@@ -1,6 +1,6 @@
 {# One highlight of the list, rendered on the page and returned when a highlight is marked #}
-{% set seconds = highlight.elapsedSeconds %}
-{% set elapsed = '%02d:%02d:%02d'|format(seconds // 3600, seconds // 60 % 60, seconds % 60) %}
+{% import 'macros.html.twig' as macros %}
+{% set elapsed = macros.elapsed(highlight.elapsedSeconds) %}
 <li class="game-highlight"
     {{ stimulus_target('game--game-highlights', 'row') }}
     {% if editable %}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\GameSquareActionRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -11,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Dated trace of an action performed on a square during a game. Unlike the
  * marks, every occurrence is kept, so the course of the game can be replayed.
  */
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: GameSquareActionRepository::class)]
 class GameSquareAction
 {
     #[ORM\Id]

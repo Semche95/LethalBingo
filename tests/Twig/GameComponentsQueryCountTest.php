@@ -50,6 +50,17 @@ class GameComponentsQueryCountTest extends ControllerTestCase
         $this->assertQueryCountAtMost(4);
     }
 
+    public function testGameHistoryRerenderRunsAFixedNumberOfQueries(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createPlayedGame();
+
+        $this->rerender('GameHistory', $game, 'gameHistoryRefresh');
+
+        // user, game, actions with their square, highlights
+        $this->assertQueryCountAtMost(4);
+    }
+
     public function testGameStepsListsTheNotValidatedSquaresUnderTheirCategory(): void
     {
         $this->loginAsReferee();

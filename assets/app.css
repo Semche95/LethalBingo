@@ -1366,3 +1366,167 @@ li.sidebar-category > span {
 .game-highlight-delete:focus-visible {
     color: var(--tblr-danger);
 }
+
+/* History of the game, docked in the right margin like the comments of a document */
+:root {
+    --game-history-width: 22rem;
+}
+
+/* Docked in the right margin of the page, outside the game container: the grid keeps its width */
+.game-history-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030;
+    display: flex;
+    flex-direction: column;
+    width: var(--game-history-width);
+    border-left: var(--tblr-border-width) solid var(--tblr-border-color);
+    background: var(--tblr-bg-surface);
+}
+
+.game-history-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 2px solid var(--tblr-blue);
+    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color);
+}
+
+.game-history-open {
+    position: fixed;
+    top: 5.5rem;
+    right: 0;
+    z-index: 1029;
+    display: none;
+    gap: 0.4rem;
+    /* Opaque: the button lies over the page, which must not show through */
+    --tblr-btn-bg: var(--tblr-bg-surface);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.game-history-close {
+    display: none;
+}
+
+/* Wide screen: the page leaves the margin to the history, the game stays centered beside it */
+@media (min-width: 1500px) {
+    .page-with-history {
+        padding-right: var(--game-history-width);
+    }
+
+    /* The utility classes of the buttons are !important */
+    .game-top-actions-beside-history {
+        right: var(--game-history-width) !important;
+    }
+}
+
+/* Narrower screen: the history becomes a drawer opened on demand, over the page */
+@media (max-width: 1499.98px) {
+    .game-history-panel {
+        box-shadow: -0.5rem 0 1.5rem rgba(0, 0, 0, 0.4);
+        transform: translateX(100%);
+        transition: transform 0.2s ease-out;
+    }
+
+    .game-history-panel.show {
+        transform: none;
+    }
+
+    .game-history-open {
+        display: inline-flex;
+    }
+
+    .game-history-close {
+        display: inline-flex;
+    }
+}
+
+.game-history-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+}
+
+.game-history-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color-translucent);
+}
+
+.game-history-item:last-child {
+    border-bottom: 0;
+}
+
+.game-history-time {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    min-width: 4.5rem;
+    line-height: 1.25;
+}
+
+.game-history-time small {
+    font-size: 0.75rem;
+}
+
+.game-history-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--tblr-border-radius);
+}
+
+.game-history-text {
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.game-history-highlight {
+    background: rgba(var(--tblr-warning-rgb), 0.08);
+    box-shadow: inset 3px 0 0 var(--tblr-warning);
+}
+
+.game-history-new {
+    animation: game-history-new 2s ease-out;
+}
+
+@keyframes game-history-new {
+    from { background: rgba(var(--app-blue-rgb), 0.25); }
+}
+
+.game-history-empty {
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.game-history-launch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    color: var(--tblr-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.game-history-launch::before,
+.game-history-launch::after {
+    content: '';
+    flex: 1;
+    border-top: var(--tblr-border-width) dashed var(--tblr-border-color);
+}
