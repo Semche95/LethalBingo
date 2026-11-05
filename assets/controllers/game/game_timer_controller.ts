@@ -55,7 +55,6 @@ export default class extends Controller<HTMLDivElement> {
     private sound: TimerSound | null = null
     private stopSoundLockWatch: (() => void) | null = null
     private animationFrameId: number | null = null
-    private lastRenderedText: string | null = null
     // performance.now() taken when syncedServerTime was anchored.
     private clientTimeAtRender: number = 0
     private thresholdState = createThresholdState()
@@ -238,8 +237,9 @@ export default class extends Controller<HTMLDivElement> {
         const remainingSeconds = this.computeRemainingSeconds()
         const formattedTime = formatGameDuration(this.gameStartedAtValue, this.gameFinishedAtValue, remainingSeconds)
 
-        if (formattedTime !== this.lastRenderedText) {
-            this.lastRenderedText = formattedTime
+        // Compared to what is on screen rather than to the last text written, so
+        // an element emptied by anything else is rewritten on the next frame.
+        if (formattedTime !== this.timerDisplayTarget.textContent) {
             this.timerDisplayTarget.textContent = formattedTime
         }
 
