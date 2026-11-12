@@ -28,6 +28,13 @@ final class GameTimer extends AbstractController
     #[LiveProp]
     public float $serverTime = 0.0;
 
+    /** Duration added or removed by the referee, as "min:s" or "min". */
+    #[LiveProp(writable: true)]
+    public string $adjustDuration = '1:00';
+
+    // Only for the render that follows the rejected entry, not kept afterwards.
+    public bool $adjustDurationInvalid = false;
+
     public function __construct(
         private readonly GameTimerService $gameTimerService,
         private readonly EntityManagerInterface $entityManager,
@@ -93,24 +100,45 @@ final class GameTimer extends AbstractController
     #[IsGranted('ROLE_REFEREE')]
     public function increaseTimer(): void
     {
-        $this->addSeconds(60);
+        $this->adjustTimer(1);
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function decreaseTimer(): void
     {
-        $this->addSeconds(-60);
+        $this->adjustTimer(-1);
     }
 
-    private function addSeconds(int $seconds): void
+    /**
+     * Adds (sign 1) or removes (sign -1) the duration entered by the referee.
+     */
+    private function adjustTimer(int $sign): void
     {
-        if (!$this->game?->isInProgress()) {
+        $seconds = self::parseDuration($this->adjustDuration);
+        $this->adjustDurationInvalid = $seconds === null;
+
+        if ($seconds === null || !$this->game?->isInProgress()) {
             return;
         }
 
-        $this->gameTimerService->addSeconds($this->game, $seconds);
+        $this->gameTimerService->addSeconds($this->game, $sign * $seconds);
         $this->persistGameChangesAndNotifyClients();
+    }
+
+    /**
+     * Seconds of a "min:s" (seconds on two digits) or "min" duration; null when
+     * the entry is malformed or zero.
+     */
+    private static function parseDuration(string $duration): ?int
+    {
+        if (preg_match('/^(\d{1,3})(?::([0-5]\d))?$/', trim($duration), $matches) !== 1) {
+            return null;
+        }
+
+        $seconds = (int) $matches[1] * 60 + (int) ($matches[2] ?? 0);
+
+        return $seconds > 0 ? $seconds : null;
     }
 
     private function setTimerToSpecificValue(int $targetRemainingSeconds): void

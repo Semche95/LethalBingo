@@ -28,9 +28,32 @@
         </div>
         {% if is_granted('ROLE_REFEREE') and this.game.inProgress %}
             <div class="ms-3 d-flex">
-                <twig:IconButton icon="mdi:minus" title="Retirer 1 minute" class="btn btn-icon btn-danger me-2" liveAction="decreaseTimer" size="24" />
-
-                <twig:IconButton icon="mdi:plus" title="Ajouter 1 minute" class="btn btn-icon btn-success me-2" liveAction="increaseTimer" size="24" />
+                <div class="dropdown me-2" {{ stimulus_controller('game--game-timer-adjust') }}>
+                    <twig:IconButton icon="mdi:timer-edit-outline" title="Ajuster le temps" class="btn btn-icon btn-outline-secondary" size="24"
+                                     aria-expanded="false"
+                                     data-game--game-timer-adjust-target="button"
+                                     data-action="game--game-timer-adjust#toggle" />
+                    <div class="dropdown-menu game-timer-adjust-menu" data-game--game-timer-adjust-target="menu">
+                        <label class="form-label small text-secondary mb-1" for="game-timer-adjust-{{ this.game.id }}">Durée (min:s)</label>
+                        <input type="text" id="game-timer-adjust-{{ this.game.id }}"
+                               class="form-control game-timer-adjust-input{{ this.adjustDurationInvalid ? ' is-invalid' }}"
+                               value="{{ this.adjustDuration }}" inputmode="numeric" autocomplete="off"
+                               data-game--game-timer-adjust-target="input"
+                               data-action="blur->game--game-timer-adjust#completeSeconds"
+                               data-model="norender|adjustDuration">
+                        {% if this.adjustDurationInvalid %}
+                            <div class="invalid-feedback">Format attendu : min:s, par exemple 2:30</div>
+                        {% endif %}
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="button" class="btn btn-outline-danger flex-fill" {{ stimulus_action('live', 'action', 'click', {action: 'decreaseTimer'}) }}>
+                                {{ ux_icon('mdi:minus', {height: '18', width: '18', class: 'me-1'}) }}Retirer
+                            </button>
+                            <button type="button" class="btn btn-outline-success flex-fill" {{ stimulus_action('live', 'action', 'click', {action: 'increaseTimer'}) }}>
+                                {{ ux_icon('mdi:plus', {height: '18', width: '18', class: 'me-1'}) }}Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 {% if is_granted('ROLE_ADMIN') and app.request.server.get('DEBUG_TIMER') == 'true' %}
                     {% for time in ['2003', '1003', '0503', '0303', '0103', '0003'] %}
