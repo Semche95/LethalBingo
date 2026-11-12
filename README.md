@@ -267,6 +267,10 @@ erDiagram
         bool isPaused
         datetime countdownZeroAt
         float pausedRemainingSeconds
+        string timerMode
+        int countdownDurationSeconds
+        datetime pausedAt
+        float pausedDurationSeconds
     }
     BingoSquareCategory {
         int id PK

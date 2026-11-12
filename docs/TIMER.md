@@ -79,7 +79,7 @@ La partie ne stocke pas un temps écoulé à recalculer depuis `startedAt`, mais
 - `countdownZeroAt` : heure où le décompte atteint zéro, renseignée pendant que la partie tourne, `null` en pause ;
 - `pausedRemainingSeconds` : temps restant figé pendant une pause.
 
-Temps restant d'une partie en cours : en pause, `pausedRemainingSeconds` ; quand elle tourne, `max(0, countdownZeroAt − maintenant)`. **Le temps restant n'est jamais négatif.** Une partie non lancée affiche la durée par défaut (`DEFAULT_DURATION_SECONDS`, 1 h), une partie arrêtée `0`.
+Temps restant d'une partie en cours : en pause, `pausedRemainingSeconds` ; quand elle tourne, `max(0, countdownZeroAt − maintenant)`. **Le temps restant n'est jamais négatif.** Une partie non lancée affiche sa durée de décompte (`countdownDurationSeconds`, choisie par l'arbitre, 1 h 30 par défaut), une partie arrêtée `0`.
 
 Toute la chaîne de calcul conserve la précision sous-seconde jusqu'au bout et n'applique l'arrondi (`ceil`) qu'une seule fois, à la toute fin, jamais sur des valeurs intermédiaires. Si le calcul tronquait un timestamp à la seconde entière avant la soustraction, le résultat pourrait différer d'une seconde selon la fraction exacte de l'instant considéré.
 
@@ -101,7 +101,7 @@ Un test de parité doit appeler **les vraies fonctions de production** des deux 
 
 `GameTimerService` est la seule autorité sur ces règles. Chaque action part du temps restant actuel, à précision sous-seconde (jamais du `HH:MM:SS` affiché ni d'un entier de secondes) :
 
-- **Lancement** (`start()`) : `countdownZeroAt = maintenant + DEFAULT_DURATION_SECONDS`. **Réinitialisation** (`reset()`) : tout revient à zéro.
+- **Lancement** (`start()`) : `countdownZeroAt = maintenant + countdownDurationSeconds`. **Réinitialisation** (`reset()`) : tout revient à zéro.
 - **Pause** : `pausedRemainingSeconds = temps restant actuel`, `countdownZeroAt = null`.
 - **Reprise** : `countdownZeroAt = maintenant + pausedRemainingSeconds`.
 - **Ajout / retrait d'une durée** (saisie de l'arbitre) **et réglage direct** (boutons `DEBUG_TIMER`) : partir du temps restant actuel (0 au minimum), appliquer l'effet, jamais en dessous de 0, puis recalculer `countdownZeroAt` (ou `pausedRemainingSeconds` en pause).
@@ -127,6 +127,8 @@ Le décompte, lui, s'arrête à zéro : le temps passé à zéro n'est ni du tem
 - Révéler, valider et invalider une case, et marquer un temps fort, restent autorisés : la partie n'est pas terminée tant que l'arbitre ne l'a pas arrêtée.
 - La durée écoulée d'un temps fort vaut `markedAt − startedAt` : elle compte les pauses et le temps passé à zéro, l'enregistrement continuant.
 - Une partie arrêtée alors que son temps est écoulé est datée (`finishedAt`) du moment où le décompte est arrivé à zéro, pas du moment du clic sur l'arrêt.
+
+Les sections 2 à 5 décrivent le décompte. Une partie sans limite de temps affiche un compteur, décrit en section 8.
 
 ---
 
@@ -232,3 +234,31 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 - Spécification des seuils : chaque multiple de 10 minutes restantes → warning ; 5/3min → danger (flash 5s) ; 1min → bascule directe en danger continu (section 5).
 - Sons via Web Audio : bouton « Activer le son des alertes » tant que le navigateur bloque le son, débloqué par n'importe quelle interaction avec la page. Page cachée : sons programmés à l'avance sur l'horloge audio, pas de bip en retard au retour (section 5).
 - Toute correction sur ce composant se valide en navigateur réel. Safari reste à tester.
+- Partie sans limite de temps : compteur du temps écoulé, pauses déduites, avec ses propres champs (`pausedAt`, `pausedDurationSeconds`), sans alerte, son ni ajustement (section 8).
+
+---
+
+## 8. Partie sans limite de temps : le compteur
+
+L'arbitre choisit le mode du timer dans le formulaire de la partie, tant qu'elle n'a pas démarré : case « Limiter le temps » et durée en deux champs, heures (0 à 99) et minutes (0 à 59), 1 h 30 par défaut et 99 h 59 min au maximum. Un champ vide compte pour 0, une durée nulle est refusée. Des boutons proposent les durées habituelles (0h30, 1h, 1h30, 2h, 2h30, 3h) : un clic remplit les deux champs et coche la case. Le mode est stocké dans `timerMode` (enum `TimerMode`) :
+
+- `countdown` : le décompte décrit dans les sections 2 à 5, qui part de `countdownDurationSeconds` ;
+- `stopwatch` : un compteur du temps écoulé depuis le lancement, pauses déduites.
+
+Chaque champ ne sert qu'à un seul mode. Le compteur n'utilise ni `countdownZeroAt`, ni `pausedRemainingSeconds`, ni `countdownDurationSeconds`. Il a ses propres champs :
+
+- `pausedAt` : début de la pause en cours (à la microseconde), `null` hors pause ;
+- `pausedDurationSeconds` : total des pauses terminées.
+
+Temps écoulé = `fin − startedAt − pausedDurationSeconds`, arrondi à la seconde inférieure et jamais négatif. `fin` vaut `pausedAt` en pause, `finishedAt` une fois la partie arrêtée, et l'heure serveur estimée sinon (`calculateElapsedSeconds()` dans `game_timer_math.ts`). L'ancre de l'heure serveur est la même que pour le décompte (section 1).
+
+Actions (`GameTimerService`) :
+
+- **Lancement** : `countdownZeroAt` reste `null`.
+- **Pause** : `pausedAt = maintenant`. **Reprise** : `pausedDurationSeconds += maintenant − pausedAt`, puis `pausedAt = null`.
+- **Ajout / retrait d'une durée et réglage direct** : sans effet, et non affichés.
+- **Arrêt** : `finishedAt = maintenant`. `isTimeUp()` vaut toujours `false`, la pause n'est jamais refusée.
+
+Affichage : libellé « Temps écoulé », ni couleur de seuil, ni son, ni bouton d'activation du son. La pause, la reprise et les temps forts (section 3) restent identiques.
+
+Une fois la partie arrêtée, le bloc du timer est remplacé par « Durée de la partie », le temps écoulé figé à l'arrêt (ou au début de la pause en cours à l'arrêt), calculé par `GameTimerService::elapsedSeconds()` avec la même formule. Une partie à décompte n'affiche pas de durée.

@@ -30,6 +30,19 @@ final class GameFrame extends AbstractController
     ) {
     }
 
+    /**
+     * Duration of a finished game without time limit, shown in place of its
+     * timer; null otherwise.
+     */
+    public function getStopwatchDurationSeconds(): ?int
+    {
+        if (!$this->game->isFinished() || !$this->game->isStopwatch()) {
+            return null;
+        }
+
+        return $this->gameTimerService->elapsedSeconds($this->game);
+    }
+
     #[LiveListener(RefreshEvent::GameFrame->value)]
     public function __invoke(): void
     {

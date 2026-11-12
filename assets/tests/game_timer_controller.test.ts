@@ -13,6 +13,48 @@ describe('game_timer_controller', () => {
         expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
     })
 
+    it('shows the countdown duration of the game before it starts', async () => {
+        const controller = await connectWithAnchor({
+            gameStartedAt: null,
+            countdownDurationSeconds: 5400,
+        })
+
+        expect(controller.timerDisplayTarget.textContent).toBe('01:30:00')
+    })
+
+    it('counts the elapsed time of a stopwatch, without alert colour nor sound', async () => {
+        const controller = await connectWithAnchor({
+            timerMode: 'stopwatch',
+            gameStartedAt: SERVER_TIME - 599,
+            gamePausedDurationSeconds: 0,
+        })
+        const plays = spyOnSounds(controller)
+        expect(controller.timerDisplayTarget.textContent).toBe('00:09:59')
+
+        await vi.advanceTimersByTimeAsync(2000)
+
+        expect(controller.timerDisplayTarget.textContent).toBe('00:10:01')
+        expect(controller.timerDisplayTarget.className).toBe('')
+        expect(plays('notification') + plays('end')).toBe(0)
+        expect(controller.pauseButtonTarget.classList.contains('d-none')).toBe(false)
+    })
+
+    it('freezes the stopwatch at the start of the pause, pauses excluded', async () => {
+        const controller = await connectWithAnchor({
+            timerMode: 'stopwatch',
+            gameStartedAt: SERVER_TIME - 3600,
+            gameIsPaused: true,
+            gamePausedAt: SERVER_TIME - 600,
+            gamePausedDurationSeconds: 1200,
+        })
+        expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
+
+        await vi.advanceTimersByTimeAsync(5000)
+
+        expect(controller.timerDisplayTarget.textContent).toBe('00:30:00')
+        expect(controller.pauseBadgeTarget.classList.contains('d-none')).toBe(false)
+    })
+
     it('drives the display with requestAnimationFrame and updates as time passes', async () => {
         const controller = await connectWithAnchor({
             gameStartedAt: START_SEC,

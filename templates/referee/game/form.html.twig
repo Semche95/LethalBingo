@@ -31,7 +31,7 @@
     <div class="row g-4" {{ stimulus_controller('referee--game-form') }} data-action="team:added@document->referee--game-form#onTeamAdded team:updated@document->referee--game-form#onTeamAdded">
         <div class="col-lg-7">
             <div class="card">
-                {{ macros.card_header('Paramètres', 'adjustments', 'Le bingo joué et l\'équipe qui y participe.') }}
+                {{ macros.card_header('Paramètres', 'adjustments', 'Le bingo joué, l\'équipe qui y participe et le timer.') }}
 
                 {{ form_start(form, {attr: stimulus_target('referee--game-form', 'form').toArray()}) }}
                 <div class="card-body">
@@ -39,9 +39,9 @@
                         <twig:Alert>{{ error.message }}</twig:Alert>
                     {% endfor %}
                     {% if mode == 'edit' and game.finished %}
-                        <twig:Alert type="info" icon="flag-check">La partie est terminée&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</twig:Alert>
+                        <twig:Alert type="info" icon="flag-check">La partie est terminée&nbsp;: le bingo, l'équipe et le timer ne peuvent plus être modifiés.</twig:Alert>
                     {% elseif mode == 'edit' and game.readOnly %}
-                        <twig:Alert type="info" icon="lock">La partie est en cours&nbsp;: le bingo et l'équipe ne peuvent plus être modifiés.</twig:Alert>
+                        <twig:Alert type="info" icon="lock">La partie est en cours&nbsp;: le bingo, l'équipe et le timer ne peuvent plus être modifiés.</twig:Alert>
                     {% endif %}
 
                     <div class="mb-3">
@@ -61,6 +61,37 @@
                         </div>
                         {{ form_widget(form.team) }}
                         {{ form_errors(form.team) }}
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="mb-2">
+                            {{ form_widget(form.hasCountdown) }}
+                        </div>
+                        <div class="form-label">Durée</div>
+                        {% if not form.countdownHours.vars.disabled %}
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                {% for preset in constant('App\\Dto\\GameDto::COUNTDOWN_PRESETS') %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            {{ stimulus_action('referee--game-form', 'selectCountdownPreset', 'click', {hours: preset[0], minutes: preset[1]}) }}>
+                                        {{ preset[0] }}h{{ preset[1] ? '%02d'|format(preset[1]) }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="row g-2">
+                            {% for field in [{field: form.countdownHours, unit: 'h'}, {field: form.countdownMinutes, unit: 'min'}] %}
+                                <div class="col-auto">
+                                    {{ form_label(field.field, null, {label_attr: {class: 'visually-hidden'}}) }}
+                                    <div class="input-group countdown-duration-group">
+                                        {{ form_widget(field.field) }}
+                                        <span class="input-group-text">{{ field.unit }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(form.countdownHours) }}
+                        {{ form_errors(form.countdownMinutes) }}
+                        <div class="form-hint">{{ constant('App\\Dto\\GameDto::MAX_COUNTDOWN_HOURS') }} h {{ constant('App\\Dto\\GameDto::MAX_COUNTDOWN_MINUTES') }} min au maximum. Sans limite de temps, le timer affiche le temps écoulé depuis le lancement.</div>
                     </div>
                 </div>
 

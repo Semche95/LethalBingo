@@ -13,7 +13,7 @@ use App\Entity\GameRound;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
 use App\Entity\Team;
-use App\Service\GameTimerService;
+use App\Entity\TimerMode;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -43,6 +43,10 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 $game = new Game();
                 $game->setTeam($team);
                 $game->setRound($gameRound);
+                // Some games have no time limit: their timer counts the elapsed time.
+                if ($faker->boolean(20)) {
+                    $game->setTimerMode(TimerMode::Stopwatch);
+                }
 
                 $startedAt = null;
                 $finishedAt = null;
@@ -51,7 +55,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 if ($faker->boolean(70)) { // 70% chance of being started
                     $startedAt = DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-3 months', '-1 week'));
                     // The countdown of a game still in progress is up long ago.
-                    $countdownZeroAt = $startedAt->modify('+' . GameTimerService::DEFAULT_DURATION_SECONDS . ' seconds');
+                    $countdownZeroAt = $game->isStopwatch() ? null : $startedAt->modify('+' . $game->getCountdownDurationSeconds() . ' seconds');
                     $game->resetTimer($startedAt, $countdownZeroAt);
 
                     // 50% chance of being finished if started, at the latest when its time is up
@@ -59,7 +63,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                         $finishedAt = DateTimeImmutable::createFromMutable(
                             $faker->dateTimeBetween(
                                 $startedAt->format('Y-m-d H:i:s'),
-                                $countdownZeroAt->format('Y-m-d H:i:s'),
+                                ($countdownZeroAt ?? $startedAt->modify('+2 hours'))->format('Y-m-d H:i:s'),
                             )
                         );
                         $game->setFinishedAt($finishedAt);

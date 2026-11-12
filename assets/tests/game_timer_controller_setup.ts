@@ -15,11 +15,15 @@ function kebab(name: string): string {
 }
 
 export interface TimerValues {
+    timerMode?: 'countdown' | 'stopwatch'
+    countdownDurationSeconds?: number
     gameStartedAt?: number | null
     gameFinishedAt?: number | null
     gameCountdownZeroAt?: number | null
     gamePausedRemainingSeconds?: number
     gameIsPaused?: boolean
+    gamePausedAt?: number | null
+    gamePausedDurationSeconds?: number
     serverTime?: number
     serverTimeUrl?: string
 }
@@ -27,14 +31,21 @@ export interface TimerValues {
 export const SERVER_TIME = 1_700_000_000
 export const START_SEC = SERVER_TIME - 1800 // 30 minutes elapsed -> 00:30:00 remaining
 
-// A running game started at gameStartedAt reaches zero one hour later, unless
-// the test gives its own gameCountdownZeroAt.
+// A one-hour countdown by default: a running game started at gameStartedAt
+// reaches zero one hour later, unless the test gives its own gameCountdownZeroAt.
+// A stopwatch has no countdown zero moment.
 export function buildElement(values: TimerValues = {}) {
     const el = document.createElement('div')
     el.setAttribute('data-controller', 'game--game-timer')
 
-    const isRunning = values.gameStartedAt && !values.gameIsPaused
-    const withCountdown = { gameCountdownZeroAt: isRunning ? values.gameStartedAt! + 3600 : null, ...values }
+    const isStopwatch = values.timerMode === 'stopwatch'
+    const isRunning = values.gameStartedAt && !values.gameIsPaused && !isStopwatch
+    const withCountdown = {
+        timerMode: 'countdown',
+        countdownDurationSeconds: 3600,
+        gameCountdownZeroAt: isRunning ? values.gameStartedAt! + 3600 : null,
+        ...values,
+    }
 
     for (const [key, val] of Object.entries(withCountdown)) {
         if (val === null || val === undefined) continue

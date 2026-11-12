@@ -14,6 +14,7 @@ use App\Entity\GameRound;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
 use App\Entity\Team;
+use App\Entity\TimerMode;
 use App\Service\GameService;
 use App\Service\RefreshEvent;
 use DateTimeImmutable;
@@ -123,6 +124,24 @@ class GameServiceTest extends TestCase
 
         $this->assertSame($team, $gameDto->team);
         $this->assertSame($round, $gameDto->round);
+        $this->assertTrue($gameDto->hasCountdown);
+        $this->assertSame(1, $gameDto->countdownHours);
+        $this->assertSame(30, $gameDto->countdownMinutes);
+    }
+
+    public function testEntityToDtoCopiesTheTimer(): void
+    {
+        $game = new Game()
+            ->setTeam(new Team())
+            ->setRound(new GameRound())
+            ->setTimerMode(TimerMode::Stopwatch)
+            ->setCountdownDurationSeconds(8100);
+
+        $gameDto = $this->createGameService()->entityToDto($game);
+
+        $this->assertFalse($gameDto->hasCountdown);
+        $this->assertSame(2, $gameDto->countdownHours);
+        $this->assertSame(15, $gameDto->countdownMinutes);
     }
 
     public function testCreatePersistsANewGameFromTheDto(): void
@@ -138,6 +157,26 @@ class GameServiceTest extends TestCase
 
         $this->assertSame($team, $game->getTeam());
         $this->assertSame($round, $game->getRound());
+        $this->assertSame(TimerMode::Countdown, $game->getTimerMode());
+        $this->assertSame(5400, $game->getCountdownDurationSeconds());
+    }
+
+    public function testCreateAppliesTheCountdownDuration(): void
+    {
+        $game = $this->createGameService()->create(new GameDto(new Team(), new GameRound(), true, 0, 45));
+
+        $this->assertSame(TimerMode::Countdown, $game->getTimerMode());
+        $this->assertSame(2700, $game->getCountdownDurationSeconds());
+    }
+
+    public function testUpdateWithoutCountdownSwitchesToTheStopwatchAndKeepsTheDuration(): void
+    {
+        $game = new Game()->setTeam(new Team())->setRound(new GameRound())->setCountdownDurationSeconds(2700);
+
+        $this->createGameService()->update(new GameDto(new Team(), new GameRound(), false, 5, 0), $game);
+
+        $this->assertSame(TimerMode::Stopwatch, $game->getTimerMode());
+        $this->assertSame(2700, $game->getCountdownDurationSeconds());
     }
 
     public function testUpdateAppliesTheDtoToTheGame(): void

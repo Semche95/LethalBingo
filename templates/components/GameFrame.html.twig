@@ -1,3 +1,4 @@
+{% import 'macros.html.twig' as macros %}
 <div {{ attributes.defaults(stimulus_controller('game--game-frame', {
     mercureUrl: mercure('game/' ~ this.game.slug)
 })) }}>
@@ -6,11 +7,19 @@
             <div class="py-4">
                 {{ component('BingoCardTitle', {game: this.game}) }}
 
-                {% if not this.game.finished %}
+                {% set stopwatchDurationSeconds = computed.stopwatchDurationSeconds %}
+                {% if not this.game.finished or stopwatchDurationSeconds is not null %}
                     <div class="mb-4">
                         <div class="card">
                             <div class="card-body">
-                                {{ component('GameTimer', {game: this.game}) }}
+                                {% if not this.game.finished %}
+                                    {{ component('GameTimer', {game: this.game}) }}
+                                {% else %}
+                                    {% set stopwatchDuration = macros.elapsed(stopwatchDurationSeconds) %}
+                                    <twig:TimerPanel title="Durée de la partie">
+                                        <twig:block name="value">{{ stopwatchDuration }}</twig:block>
+                                    </twig:TimerPanel>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

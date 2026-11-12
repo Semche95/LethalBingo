@@ -17,6 +17,8 @@ use Symfony\Component\String\ByteString;
 #[DoctrineAssert\UniqueEntity(fields: ['team', 'round'])]
 class Game
 {
+    public const int DEFAULT_COUNTDOWN_DURATION_SECONDS = 5400;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -79,6 +81,21 @@ class Game
     // Remaining time frozen during a pause.
     #[ORM\Column(type: 'float', options: ['default' => 0])]
     private float $pausedRemainingSeconds = 0.0;
+
+    #[ORM\Column(length: 20, enumType: TimerMode::class, options: ['default' => TimerMode::Countdown->value])]
+    private TimerMode $timerMode = TimerMode::Countdown;
+
+    // Countdown only: time given when the game starts.
+    #[ORM\Column(options: ['default' => self::DEFAULT_COUNTDOWN_DURATION_SECONDS])]
+    private int $countdownDurationSeconds = self::DEFAULT_COUNTDOWN_DURATION_SECONDS;
+
+    // Stopwatch only: start of the current pause, null outside a pause.
+    #[ORM\Column(type: DateTimeMicroImmutableType::NAME, nullable: true)]
+    private ?DateTimeImmutable $pausedAt = null;
+
+    // Stopwatch only: total of the finished pauses.
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    private float $pausedDurationSeconds = 0.0;
 
     public function __construct()
     {
@@ -235,7 +252,9 @@ class Game
             ->setFinishedAt(null)
             ->setIsPaused(false)
             ->setCountdownZeroAt($countdownZeroAt)
-            ->setPausedRemainingSeconds(0);
+            ->setPausedRemainingSeconds(0)
+            ->setPausedAt(null)
+            ->setPausedDurationSeconds(0);
     }
 
     public function isStarted(): bool
@@ -302,6 +321,59 @@ class Game
     public function setPausedRemainingSeconds(float $pausedRemainingSeconds): static
     {
         $this->pausedRemainingSeconds = $pausedRemainingSeconds;
+
+        return $this;
+    }
+
+    public function getTimerMode(): TimerMode
+    {
+        return $this->timerMode;
+    }
+
+    public function setTimerMode(TimerMode $timerMode): static
+    {
+        $this->timerMode = $timerMode;
+
+        return $this;
+    }
+
+    public function isStopwatch(): bool
+    {
+        return $this->timerMode === TimerMode::Stopwatch;
+    }
+
+    public function getCountdownDurationSeconds(): int
+    {
+        return $this->countdownDurationSeconds;
+    }
+
+    public function setCountdownDurationSeconds(int $countdownDurationSeconds): static
+    {
+        $this->countdownDurationSeconds = $countdownDurationSeconds;
+
+        return $this;
+    }
+
+    public function getPausedAt(): ?DateTimeImmutable
+    {
+        return $this->pausedAt;
+    }
+
+    public function setPausedAt(?DateTimeImmutable $pausedAt): static
+    {
+        $this->pausedAt = $pausedAt;
+
+        return $this;
+    }
+
+    public function getPausedDurationSeconds(): float
+    {
+        return $this->pausedDurationSeconds;
+    }
+
+    public function setPausedDurationSeconds(float $pausedDurationSeconds): static
+    {
+        $this->pausedDurationSeconds = $pausedDurationSeconds;
 
         return $this;
     }

@@ -7,13 +7,12 @@ use DateTimeImmutable;
 use DateTimeZone;
 
 /**
- * Time authority for the countdown (docs/TIMER.md sections 2 and 3). Every
+ * Time authority for the countdown and the stopwatch (docs/TIMER.md sections 2,
+ * 3 and 8). Every
  * $nowMs parameter is in milliseconds and defaults to the real clock.
  */
 readonly class GameTimerService
 {
-    public const DEFAULT_DURATION_SECONDS = 3600;
-
     public function __construct(
         private GameService $gameService,
     ) {
@@ -30,7 +29,7 @@ readonly class GameTimerService
      */
     public function isTimeUp(Game $game, ?float $nowMs = null): bool
     {
-        if (!$game->isInProgress()) {
+        if (!$game->isInProgress() || $game->isStopwatch()) {
             return false;
         }
 
@@ -50,7 +49,7 @@ readonly class GameTimerService
         $this->gameService->start(
             $game,
             self::fromMilliseconds($nowMs),
-            self::countdownZeroAt($nowMs, self::DEFAULT_DURATION_SECONDS),
+            $game->isStopwatch() ? null : self::countdownZeroAt($nowMs, $game->getCountdownDurationSeconds()),
         );
     }
 
@@ -77,6 +76,14 @@ readonly class GameTimerService
 
         $nowMs ??= self::now();
 
+        if ($game->isStopwatch()) {
+            $game
+                ->setPausedAt(self::fromMilliseconds($nowMs))
+                ->setIsPaused(true);
+
+            return;
+        }
+
         $game
             ->setPausedRemainingSeconds($this->computeExactRemainingSeconds($game, $nowMs))
             ->setCountdownZeroAt(null)
@@ -91,6 +98,17 @@ readonly class GameTimerService
 
         $nowMs ??= self::now();
 
+        if ($game->isStopwatch()) {
+            $pausedAt = $game->getPausedAt();
+            $pauseSeconds = $pausedAt === null ? 0.0 : max(0.0, ($nowMs - self::toMilliseconds($pausedAt)) / 1000);
+            $game
+                ->setPausedDurationSeconds($game->getPausedDurationSeconds() + $pauseSeconds)
+                ->setPausedAt(null)
+                ->setIsPaused(false);
+
+            return;
+        }
+
         $game
             ->setCountdownZeroAt(self::countdownZeroAt($nowMs, $game->getPausedRemainingSeconds()))
             ->setPausedRemainingSeconds(0)
@@ -99,11 +117,11 @@ readonly class GameTimerService
 
     /**
      * Adds (or removes, when negative) seconds to the remaining time, never
-     * going below zero.
+     * going below zero. A stopwatch has no remaining time to adjust.
      */
     public function addSeconds(Game $game, int $seconds, ?float $nowMs = null): void
     {
-        if (!$game->isInProgress()) {
+        if (!$game->isInProgress() || $game->isStopwatch()) {
             return;
         }
 
@@ -113,7 +131,7 @@ readonly class GameTimerService
 
     public function setRemainingSeconds(Game $game, int $seconds, ?float $nowMs = null): void
     {
-        if (!$game->isInProgress()) {
+        if (!$game->isInProgress() || $game->isStopwatch()) {
             return;
         }
 
@@ -131,6 +149,30 @@ readonly class GameTimerService
         }
 
         $game->setCountdownZeroAt(self::countdownZeroAt($nowMs, $remainingSeconds));
+    }
+
+    /**
+     * Elapsed seconds of a stopwatch, pauses excluded, rounded down and never
+     * negative. Frozen at the start of the current pause, or at the end of the
+     * game. Mirrored by calculateElapsedSeconds() in game_timer_math.ts.
+     */
+    public function elapsedSeconds(Game $game, ?float $nowMs = null): int
+    {
+        $startedAt = $game->getStartedAt();
+        if ($startedAt === null) {
+            return 0;
+        }
+
+        $endMs = $nowMs ?? self::now();
+        $pausedAt = $game->getPausedAt();
+        $finishedAt = $game->getFinishedAt();
+        if ($game->isPaused() && $pausedAt !== null) {
+            $endMs = self::toMilliseconds($pausedAt);
+        } elseif ($finishedAt !== null) {
+            $endMs = self::toMilliseconds($finishedAt);
+        }
+
+        return max(0, (int) floor(($endMs - self::toMilliseconds($startedAt)) / 1000 - $game->getPausedDurationSeconds()));
     }
 
     /**

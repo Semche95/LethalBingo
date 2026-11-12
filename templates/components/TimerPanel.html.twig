@@ -1,0 +1,15 @@
+{# Layout of the timer block: icon, title and value, then the actions on the right. #}
+{% props title %}
+<div class="d-flex justify-content-center align-items-center">
+    <div class="me-3">
+        {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
+    </div>
+    <div class="text-center">
+        <h3 class="m-0">{{ title }}</h3>
+        <div {{ attributes.defaults({class: 'fs-1 fw-bold'}) }}>
+            {%- block value %}{% endblock -%}
+        </div>
+        {% block below %}{% endblock %}
+    </div>
+    {% block actions %}{% endblock %}
+</div>

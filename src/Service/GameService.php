@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Dto\GameDto;
 use App\Entity\Game;
+use App\Entity\TimerMode;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mercure\HubInterface;
@@ -36,14 +37,14 @@ readonly class GameService
 
     public function entityToDto(Game $game): GameDto
     {
-        return new GameDto($game->getTeam(), $game->getRound());
+        return new GameDto($game->getTeam(), $game->getRound(), !$game->isStopwatch())
+            ->setCountdownDurationSeconds($game->getCountdownDurationSeconds());
     }
 
     public function create(GameDto $gameDto): Game
     {
-        $game = new Game()
-            ->setTeam($gameDto->team)
-            ->setRound($gameDto->round);
+        $game = new Game();
+        $this->applyDto($gameDto, $game);
         $this->em->persist($game);
         $this->em->flush();
 
@@ -52,14 +53,27 @@ readonly class GameService
 
     public function update(GameDto $gameDto, Game $game): void
     {
-        $game
-            ->setTeam($gameDto->team)
-            ->setRound($gameDto->round);
+        $this->applyDto($gameDto, $game);
         $this->em->persist($game);
         $this->em->flush();
+        // Open pages show the timer mode and duration before the start.
+        $this->refreshGameFrame($game);
     }
 
-    public function start(Game $game, DateTimeImmutable $startedAt, DateTimeImmutable $countdownZeroAt): void
+    // The countdown duration is kept as is when the game has no countdown.
+    private function applyDto(GameDto $gameDto, Game $game): void
+    {
+        $game
+            ->setTeam($gameDto->team)
+            ->setRound($gameDto->round)
+            ->setTimerMode($gameDto->hasCountdown ? TimerMode::Countdown : TimerMode::Stopwatch);
+
+        if ($gameDto->hasCountdown) {
+            $game->setCountdownDurationSeconds($gameDto->getCountdownDurationSeconds());
+        }
+    }
+
+    public function start(Game $game, DateTimeImmutable $startedAt, ?DateTimeImmutable $countdownZeroAt): void
     {
         if ($game->isReadOnly()) {
             return;

@@ -1356,6 +1356,19 @@ li.sidebar-category > span {
     font-variant-numeric: tabular-nums;
 }
 
+/* Countdown duration of the game form: two digits and their unit. */
+.countdown-duration-group {
+    width: 8rem;
+}
+
+/* The red border is enough: the error icon would hide the digits. Tabler
+   sizes the room left for it from these variables, with !important. */
+.countdown-duration-group .form-control.is-invalid {
+    --tblr-form-feedback-icon-size: 0px;
+    --tblr-form-feedback-icon-inset: calc(var(--tblr-control-padding-x) / 2);
+    background-image: none;
+}
+
 /* Highlights of the game, listed in the timer bar */
 .game-highlights-menu {
     width: 24rem;

@@ -1,9 +1,10 @@
 import { Controller } from '@hotwired/stimulus'
 import {
+    calculateElapsedSeconds,
     calculateExactRemainingSeconds,
     calculateRemainingSeconds,
     formatGameDuration,
-    GAME_DURATION_SECONDS,
+    formatSeconds,
     isTimeUp,
     type RemainingSecondsParams,
 } from './game_timer_math'
@@ -19,11 +20,17 @@ import { computeAlertColor, createThresholdState, evaluateThresholds, listUpcomi
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
     static override values = {
+        // 'countdown' or 'stopwatch' (TimerMode on the PHP side).
+        timerMode: String,
+        countdownDurationSeconds: Number,
         gameStartedAt: Number,
         gameFinishedAt: Number,
         gameCountdownZeroAt: Number,
         gamePausedRemainingSeconds: Number,
         gameIsPaused: Boolean,
+        // Stopwatch only: start of the current pause and total of the finished ones.
+        gamePausedAt: Number,
+        gamePausedDurationSeconds: Number,
         // Server timestamp (fractional seconds) shared by all clients through the
         // Mercure broadcast, or taken at mount() on first render.
         serverTime: Number,
@@ -33,11 +40,15 @@ export default class extends Controller<HTMLDivElement> {
 
     static override targets = ['timerDisplay', 'pauseBadge', 'pauseButton', 'soundButton']
 
+    declare readonly timerModeValue: string
+    declare readonly countdownDurationSecondsValue: number
     declare readonly gameStartedAtValue: number | null
     declare readonly gameFinishedAtValue: number | null
     declare readonly gameCountdownZeroAtValue: number | null
     declare readonly gamePausedRemainingSecondsValue: number
     declare readonly gameIsPausedValue: boolean
+    declare readonly gamePausedAtValue: number | null
+    declare readonly gamePausedDurationSecondsValue: number
     declare readonly serverTimeValue: number
     declare readonly serverTimeUrlValue: string
     declare readonly hasServerTimeUrlValue: boolean
@@ -234,22 +245,34 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private updateTimerDisplay(canTriggerSound: boolean = true) {
-        const remainingSeconds = this.computeRemainingSeconds()
-        const formattedTime = formatGameDuration(this.gameStartedAtValue, this.gameFinishedAtValue, remainingSeconds)
+        this.updatePauseBadge()
 
-        // Compared to what is on screen rather than to the last text written, so
-        // an element emptied by anything else is rewritten on the next frame.
-        if (formattedTime !== this.timerDisplayTarget.textContent) {
-            this.timerDisplayTarget.textContent = formattedTime
+        // A stopwatch has neither alert nor sound, and its pause is never refused.
+        if (this.isStopwatch()) {
+            this.writeTimerDisplay(formatSeconds(this.computeElapsedSeconds()))
+            return
         }
+
+        this.writeTimerDisplay(formatGameDuration(this.gameFinishedAtValue, this.computeRemainingSeconds()))
 
         // The pause is refused once the time is up, like GameTimerService::isTimeUp() does.
         if (this.hasPauseButtonTarget) {
             this.pauseButtonTarget.classList.toggle('d-none', isTimeUp(this.remainingSecondsParams()))
         }
 
-        this.updatePauseBadge()
         this.updateHighlighting(canTriggerSound)
+    }
+
+    // Compared to what is on screen rather than to the last text written, so
+    // an element emptied by anything else is rewritten on the next frame.
+    private writeTimerDisplay(formattedTime: string) {
+        if (formattedTime !== this.timerDisplayTarget.textContent) {
+            this.timerDisplayTarget.textContent = formattedTime
+        }
+    }
+
+    private isStopwatch(): boolean {
+        return this.timerModeValue === 'stopwatch'
     }
 
     private updatePauseBadge() {
@@ -261,7 +284,7 @@ export default class extends Controller<HTMLDivElement> {
 
         // Evaluated whatever the game state so the sound reference never goes stale
         // (docs/TIMER.md section 5).
-        const alert = evaluateThresholds(remainingSeconds, GAME_DURATION_SECONDS, this.thresholdState, canTriggerSound)
+        const alert = evaluateThresholds(remainingSeconds, this.countdownDurationSecondsValue, this.thresholdState, canTriggerSound)
 
         if (!this.gameStartedAtValue || this.gameFinishedAtValue || this.gameIsPausedValue) {
             this.timerDisplayTarget.className = ''
@@ -274,7 +297,7 @@ export default class extends Controller<HTMLDivElement> {
             this.playSound('notification')
         }
 
-        const color = computeAlertColor(remainingSeconds, GAME_DURATION_SECONDS)
+        const color = computeAlertColor(remainingSeconds, this.countdownDurationSecondsValue)
         this.timerDisplayTarget.className = color ? `text-${color} animate-pulse` : ''
     }
 
@@ -288,7 +311,18 @@ export default class extends Controller<HTMLDivElement> {
     }
 
     private computeRemainingSeconds(): number {
-        return calculateRemainingSeconds(this.remainingSecondsParams())
+        return calculateRemainingSeconds(this.remainingSecondsParams(), this.countdownDurationSecondsValue)
+    }
+
+    private computeElapsedSeconds(): number {
+        return calculateElapsedSeconds({
+            gameStartedAt: this.gameStartedAtValue,
+            gameFinishedAt: this.gameFinishedAtValue,
+            gamePausedAt: this.gamePausedAtValue,
+            gamePausedDurationSeconds: this.gamePausedDurationSecondsValue,
+            gameIsPaused: this.gameIsPausedValue,
+            currentServerTime: this.getCurrentServerTime(),
+        })
     }
 
     private remainingSecondsParams(): RemainingSecondsParams {
@@ -321,14 +355,14 @@ export default class extends Controller<HTMLDivElement> {
             return
         }
 
-        const isCountingDown = this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue
+        const isCountingDown = !this.isStopwatch() && this.gameStartedAtValue && !this.gameFinishedAtValue && !this.gameIsPausedValue
         if (document.visibilityState !== 'hidden' || !isCountingDown) {
             this.sound.cancelScheduled()
             return
         }
 
         const exactRemainingSeconds = calculateExactRemainingSeconds(this.remainingSecondsParams())
-        this.sound.schedule(listUpcomingAlerts(exactRemainingSeconds, GAME_DURATION_SECONDS).map(({ alert, inSeconds }) => ({
+        this.sound.schedule(listUpcomingAlerts(exactRemainingSeconds, this.countdownDurationSecondsValue).map(({ alert, inSeconds }) => ({
             name: alert === 'end' ? 'end' : 'notification',
             inSeconds,
         })))

@@ -2,9 +2,6 @@
 // instead of reading Stimulus controller values, so they can be unit-tested in
 // isolation (no DOM required).
 
-// Default game duration in seconds (1 hour) when a game has no start time.
-export const GAME_DURATION_SECONDS = 3600
-
 export interface RemainingSecondsParams {
     gameStartedAt: number | null
     gameFinishedAt: number | null
@@ -17,12 +14,26 @@ export interface RemainingSecondsParams {
     currentServerTime: number
 }
 
+// Stopwatch of a game without time limit (docs/TIMER.md section 8).
+export interface ElapsedSecondsParams {
+    gameStartedAt: number | null
+    gameFinishedAt: number | null
+    // Start of the current pause (fractional seconds), null outside a pause.
+    gamePausedAt: number | null
+    // Total of the finished pauses.
+    gamePausedDurationSeconds: number
+    gameIsPaused: boolean
+    // Current server time in milliseconds.
+    currentServerTime: number
+}
+
 /**
- * Computes the remaining seconds in the game.
+ * Computes the remaining seconds of a countdown, the whole countdown duration
+ * before the game starts.
  */
-export function calculateRemainingSeconds(params: RemainingSecondsParams): number {
+export function calculateRemainingSeconds(params: RemainingSecondsParams, countdownDurationSeconds: number): number {
     if (!params.gameStartedAt) {
-        return GAME_DURATION_SECONDS
+        return countdownDurationSeconds
     } else if (params.gameFinishedAt) {
         return 0
     }
@@ -59,26 +70,45 @@ export function isTimeUp(params: RemainingSecondsParams): boolean {
 }
 
 /**
- * Formats a number of remaining seconds as HH:MM:SS.
- * Returns '01:00:00' if the game has not started and '00:00:00' if finished
- * or when time is up (remainingSeconds <= 0).
+ * Elapsed seconds of a stopwatch, pauses excluded, rounded down and never
+ * negative. Frozen at the start of the current pause, or at the end of the game.
  */
-export function formatGameDuration(gameStartedAt: number | null, gameFinishedAt: number | null, remainingSeconds: number): string {
+export function calculateElapsedSeconds(params: ElapsedSecondsParams): number {
+    const { gameStartedAt, gameFinishedAt, gamePausedAt, gamePausedDurationSeconds, gameIsPaused, currentServerTime } = params
+
     if (!gameStartedAt) {
-        return '01:00:00'
+        return 0
+    }
+
+    let endMs = currentServerTime
+    if (gameIsPaused && gamePausedAt) {
+        endMs = gamePausedAt * 1000
     } else if (gameFinishedAt) {
+        endMs = gameFinishedAt * 1000
+    }
+
+    return Math.max(0, Math.floor((endMs - gameStartedAt * 1000) / 1000 - gamePausedDurationSeconds))
+}
+
+/**
+ * Formats the remaining seconds of a countdown as HH:MM:SS: '00:00:00' once the
+ * game is finished or the time is up.
+ */
+export function formatGameDuration(gameFinishedAt: number | null, remainingSeconds: number): string {
+    if (gameFinishedAt || remainingSeconds <= 0) {
         return '00:00:00'
     }
 
-    // If time is up, return 00:00:00
-    if (remainingSeconds <= 0) {
-        return '00:00:00'
-    }
+    return formatSeconds(remainingSeconds)
+}
 
-    // Convert remaining seconds to hours, minutes, seconds
-    const hours = Math.floor(remainingSeconds / 3600)
-    const minutes = Math.floor((remainingSeconds % 3600) / 60)
-    const seconds = remainingSeconds % 60
+/**
+ * Formats a whole number of seconds as HH:MM:SS.
+ */
+export function formatSeconds(totalSeconds: number): string {
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
 
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }

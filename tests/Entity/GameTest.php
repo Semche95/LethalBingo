@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\Game;
+use App\Entity\TimerMode;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -80,6 +81,26 @@ class GameTest extends TestCase
         $this->assertFalse($game->isPaused());
         $this->assertNull($game->getCountdownZeroAt());
         $this->assertSame(0.0, $game->getPausedRemainingSeconds());
+        $this->assertSame(TimerMode::Countdown, $game->getTimerMode());
+        $this->assertFalse($game->isStopwatch());
+        $this->assertSame(5400, $game->getCountdownDurationSeconds());
+        $this->assertNull($game->getPausedAt());
+        $this->assertSame(0.0, $game->getPausedDurationSeconds());
+    }
+
+    public function testResetTimerClearsTheStopwatchPausesAndKeepsTheMode(): void
+    {
+        $startedAt = new DateTimeImmutable();
+        $game = new Game()
+            ->setTimerMode(TimerMode::Stopwatch)
+            ->setPausedAt(new DateTimeImmutable())
+            ->setPausedDurationSeconds(42.5)
+            ->resetTimer($startedAt);
+
+        $this->assertSame($startedAt, $game->getStartedAt());
+        $this->assertNull($game->getPausedAt());
+        $this->assertSame(0.0, $game->getPausedDurationSeconds());
+        $this->assertTrue($game->isStopwatch());
     }
 
     public function testSetNotes(): void

@@ -5,12 +5,23 @@ import { focusFirstInput, getTomSelect, showToast } from '../../utils'
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
-    static override targets = ['team', 'form']
+    static override targets = ['team', 'form', 'hasCountdown', 'countdownHours', 'countdownMinutes']
     declare readonly teamTarget: HTMLElement
     declare readonly formTarget: HTMLFormElement
+    declare readonly hasCountdownTarget: HTMLInputElement
+    declare readonly countdownHoursTarget: HTMLInputElement
+    declare readonly countdownMinutesTarget: HTMLInputElement
 
     override connect() {
         focusFirstInput(this.formTarget)
+    }
+
+    // Fills the countdown duration with one of the usual durations, which
+    // implies a time limit.
+    selectCountdownPreset({ params: { hours, minutes } }: ActionEvent) {
+        this.hasCountdownTarget.checked = true
+        this.countdownHoursTarget.value = String(hours)
+        this.countdownMinutesTarget.value = String(minutes)
     }
 
     async copyGameLink({ params: { url } }: ActionEvent) {

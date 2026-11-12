@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Entity\Game;
+use App\Entity\TimerMode;
 use App\Service\GameService;
 use App\Service\GameTimerService;
 use DateTimeImmutable;
@@ -32,9 +33,14 @@ class GameTimerServiceTest extends TestCase
     /**
      * Game started at START_MS, its countdown reaching zero $durationSeconds later.
      */
-    private function createRunningGame(float $durationSeconds = GameTimerService::DEFAULT_DURATION_SECONDS): Game
+    private function createRunningGame(float $durationSeconds = 3600): Game
     {
         return new Game()->resetTimer(self::date(self::START_MS), self::date(self::START_MS + $durationSeconds * 1000));
+    }
+
+    private function createRunningStopwatch(): Game
+    {
+        return new Game()->setTimerMode(TimerMode::Stopwatch)->resetTimer(self::date(self::START_MS));
     }
 
     private static function date(float $milliseconds): DateTimeImmutable
@@ -67,14 +73,103 @@ class GameTimerServiceTest extends TestCase
         $this->assertTrue($this->timerService->isTimeUp(new Game()->resetTimer($now, $now->modify('-1 second'))));
     }
 
-    public function testStartSetsTheCountdownZeroMomentOneHourLater(): void
+    public function testStartSetsTheCountdownZeroMomentAfterTheCountdownDuration(): void
     {
         $game = new Game()->setSlug('test');
 
         $this->timerService->start($game, self::START_MS + 0.25);
 
         $this->assertEqualsWithDelta(self::START_MS + 0.25, self::toMilliseconds($game->getStartedAt()), 0.001);
-        $this->assertEqualsWithDelta(self::START_MS + 3_600_000.25, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+        $this->assertEqualsWithDelta(self::START_MS + 5_400_000.25, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+    }
+
+    public function testStartUsesTheCountdownDurationOfTheGame(): void
+    {
+        $game = new Game()->setSlug('test')->setCountdownDurationSeconds(1800);
+
+        $this->timerService->start($game, self::START_MS);
+
+        $this->assertEqualsWithDelta(self::START_MS + 1_800_000, self::toMilliseconds($game->getCountdownZeroAt()), 0.01);
+    }
+
+    public function testStartOfAStopwatchSetsNoCountdownZeroMoment(): void
+    {
+        $game = new Game()->setSlug('test')->setTimerMode(TimerMode::Stopwatch);
+
+        $this->timerService->start($game, self::START_MS);
+
+        $this->assertEqualsWithDelta(self::START_MS, self::toMilliseconds($game->getStartedAt()), 0.001);
+        $this->assertNull($game->getCountdownZeroAt());
+    }
+
+    public function testStopwatchPausesAddUpAndLeaveTheCountdownFieldsUntouched(): void
+    {
+        $game = $this->createRunningStopwatch();
+
+        $this->timerService->pause($game, self::START_MS + 600_000);
+
+        $this->assertTrue($game->isPaused());
+        $this->assertEqualsWithDelta(self::START_MS + 600_000, self::toMilliseconds($game->getPausedAt()), 0.001);
+        $this->assertFalse($this->timerService->isTimeUp($game, self::START_MS + 9_000_000));
+
+        $this->timerService->resume($game, self::START_MS + 900_500);
+        $this->timerService->pause($game, self::START_MS + 1_000_000);
+        $this->timerService->resume($game, self::START_MS + 1_060_000);
+
+        $this->assertFalse($game->isPaused());
+        $this->assertNull($game->getPausedAt());
+        $this->assertEqualsWithDelta(360.5, $game->getPausedDurationSeconds(), 1e-6);
+        $this->assertNull($game->getCountdownZeroAt());
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
+    }
+
+    public function testStopwatchTimeIsNeverUpAndCannotBeAdjusted(): void
+    {
+        $game = $this->createRunningStopwatch();
+
+        $this->timerService->addSeconds($game, 60, self::START_MS);
+        $this->timerService->setRemainingSeconds($game, 60, self::START_MS);
+
+        $this->assertNull($game->getCountdownZeroAt());
+        $this->assertSame(0.0, $game->getPausedRemainingSeconds());
+        $this->assertFalse($this->timerService->isTimeUp($game, self::START_MS + 1e10));
+    }
+
+    public function testElapsedSecondsOfAStopwatchExcludeThePauses(): void
+    {
+        $game = $this->createRunningStopwatch();
+
+        $this->assertSame(0, $this->timerService->elapsedSeconds(new Game(), self::START_MS + 60_000));
+        $this->assertSame(61, $this->timerService->elapsedSeconds($game, self::START_MS + 61_999));
+
+        $this->timerService->pause($game, self::START_MS + 100_000);
+        $this->assertSame(100, $this->timerService->elapsedSeconds($game, self::START_MS + 900_000));
+
+        $this->timerService->resume($game, self::START_MS + 130_500);
+        $this->assertSame(169, $this->timerService->elapsedSeconds($game, self::START_MS + 200_000));
+    }
+
+    public function testElapsedSecondsOfAStopwatchStopAtTheEndOfTheGame(): void
+    {
+        $game = $this->createRunningStopwatch()->setSlug('test');
+        $this->timerService->stop($game, self::START_MS + 3_725_000);
+
+        $this->assertSame(3725, $this->timerService->elapsedSeconds($game, self::START_MS + 9_000_000));
+
+        $paused = $this->createRunningStopwatch()->setSlug('test');
+        $this->timerService->pause($paused, self::START_MS + 600_000);
+        $this->timerService->stop($paused, self::START_MS + 900_000);
+
+        $this->assertSame(600, $this->timerService->elapsedSeconds($paused, self::START_MS + 9_000_000));
+    }
+
+    public function testStopOfAStopwatchEndsTheGameNow(): void
+    {
+        $game = $this->createRunningStopwatch()->setSlug('test');
+
+        $this->timerService->stop($game, self::START_MS + 172_800_000);
+
+        $this->assertEqualsWithDelta(self::START_MS + 172_800_000, self::toMilliseconds($game->getFinishedAt()), 0.001);
     }
 
     public function testPauseFreezesTheRemainingTimeAndResumeStartsAgainFromIt(): void
