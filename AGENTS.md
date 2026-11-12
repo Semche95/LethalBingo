@@ -29,16 +29,13 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 - L'agent peut lancer `just up`, `just dev` et `just fixtures`. Avant `just dev`, vérifier qu'il ne tourne pas déjà : `docker compose ps` et `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` (un process `vite` ne suffit pas).
 - **Jamais de build d'assets** (`pnpm run build`, `just build-assets`, `vite build`) sauf demande explicite ou vérification de build de prod : le HMR de Vite gère les changements frontend.
 
-## Principes généraux
-
-- **DRY dans toute l'app** (PHP, Twig, TS, CSS) : avant d'écrire un bloc qui existe déjà ailleurs, le factoriser (Service, composant Twig, macro, helper TS, classe CSS) et réutiliser l'existant. Ex. : modales de confirmation via le composant `ConfirmModal`.
-
 ## Règles par sujet
 
 Avant de modifier un fichier, lire la ou les règles de `.claude/rules/` qui couvrent son chemin :
 
 | Règle | Chemins |
 |---|---|
+| `.claude/rules/design.md` (DRY, SRP, conception validée avant le code) | tous |
 | `.claude/rules/php.md` | `src/`, `tests/`, `config/`, `migrations/` |
 | `.claude/rules/symfony.md` | `src/`, `tests/`, `config/`, `composer.json` |
 | `.claude/rules/database.md` | `src/Entity/`, `src/Repository/`, `src/DataFixtures/`, `migrations/` |
