@@ -4,7 +4,7 @@ title: Permettre le choix des règles propres à chaque partie
 status: To Do
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-04T14:31:00Z'
+updated_date: '2026-11-18T22:11:00Z'
 labels:
   - regles-scoring
 dependencies:
@@ -38,9 +38,10 @@ Toutes les parties ne se jouent pas avec les mêmes règles. Lors de la créatio
 <!-- DOD:BEGIN -->
 - [ ] #1 Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test
 - [ ] #2 Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour
-- [ ] #3 `just test` passe
-- [ ] #4 `just sf lint:container` passe
-- [ ] #5 `just phpstan` passe
-- [ ] #6 `just cs` passe
-- [ ] #7 `just rector` passe
+- [ ] #3 Les docs concernées par le changement (`docs/`, `AGENTS.md`, `.claude/`) sont mises à jour
+- [ ] #4 `just test` passe
+- [ ] #5 `just sf lint:container` passe
+- [ ] #6 `just phpstan` passe
+- [ ] #7 `just cs` passe
+- [ ] #8 `just rector` passe
 <!-- DOD:END -->

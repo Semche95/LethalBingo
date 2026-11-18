@@ -3,8 +3,8 @@ id: TASK-35
 title: Traduire l'application en anglais avec le français en seconde langue
 status: To Do
 assignee: []
-created_date: '2026-10-02 23:06'
-updated_date: '2026-10-02 23:06'
+created_date: 2026-10-02 23:06
+updated_date: '2026-11-18T22:11:00Z'
 labels:
   - ui
   - traduction
@@ -33,9 +33,10 @@ L'interface et une partie des fichiers sources (textes, commentaires) sont aujou
 <!-- DOD:BEGIN -->
 - [ ] #1 Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test
 - [ ] #2 Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour
-- [ ] #3 `just test` passe
-- [ ] #4 `just sf lint:container` passe
-- [ ] #5 `just phpstan` passe
-- [ ] #6 `just cs` passe
-- [ ] #7 `just rector` passe
+- [ ] #3 Les docs concernées par le changement (`docs/`, `AGENTS.md`, `.claude/`) sont mises à jour
+- [ ] #4 `just test` passe
+- [ ] #5 `just sf lint:container` passe
+- [ ] #6 `just phpstan` passe
+- [ ] #7 `just cs` passe
+- [ ] #8 `just rector` passe
 <!-- DOD:END -->

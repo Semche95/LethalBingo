@@ -4,6 +4,7 @@ title: Permettre de modifier les temps forts après la fin de la partie
 status: To Do
 assignee: []
 created_date: '2026-11-04T16:45:00Z'
+updated_date: '2026-11-18T22:11:00Z'
 labels:
   - historique
 dependencies: []
@@ -31,9 +32,10 @@ Une fois la partie terminée, la liste des temps forts reste consultable mais n'
 <!-- DOD:BEGIN -->
 - [ ] #1 Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test
 - [ ] #2 Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour
-- [ ] #3 `just test` passe
-- [ ] #4 `just sf lint:container` passe
-- [ ] #5 `just phpstan` passe
-- [ ] #6 `just cs` passe
-- [ ] #7 `just rector` passe
+- [ ] #3 Les docs concernées par le changement (`docs/`, `AGENTS.md`, `.claude/`) sont mises à jour
+- [ ] #4 `just test` passe
+- [ ] #5 `just sf lint:container` passe
+- [ ] #6 `just phpstan` passe
+- [ ] #7 `just cs` passe
+- [ ] #8 `just rector` passe
 <!-- DOD:END -->
