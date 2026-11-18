@@ -41,7 +41,7 @@ class GameHistoryTest extends ControllerTestCase
         self::assertSame([
             $clock(-120) . ' A1 dévoilée ' . $this->squareLabel($game, 1, 1),
             $clock(-60) . ' A1 masquée ' . $this->squareLabel($game, 1, 1),
-            'Lancement de la partie · ' . $clock(0),
+            'Lancement · ' . $clock(0),
             '00:01:05 ' . $clock(65) . ' A3 validée ' . $this->squareLabel($game, 1, 3),
             '00:02:00 ' . $clock(120) . ' Temps fort Premier mort',
             '00:03:20 ' . $clock(200) . ' Temps fort Sans note',
@@ -79,7 +79,7 @@ class GameHistoryTest extends ControllerTestCase
         self::assertStringContainsString('Partie terminée', $crawler->filter('.game-history-header')->text());
         self::assertCount(0, $crawler->filter('.game-history-header .status-dot'));
         self::assertSame(
-            ['Lancement de la partie · ' . $startedAt->format('H:i:s'), '00:00:30 ' . $startedAt->modify('+30 seconds')->format('H:i:s') . ' A1 dévoilée ' . $this->squareLabel($game, 1, 1)],
+            ['Lancement · ' . $startedAt->format('H:i:s'), '00:00:30 ' . $startedAt->modify('+30 seconds')->format('H:i:s') . ' A1 dévoilée ' . $this->squareLabel($game, 1, 1)],
             $crawler->filter('.game-history-list > li')->each(static fn (Crawler $row): string => $row->text()),
         );
     }

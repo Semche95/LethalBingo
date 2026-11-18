@@ -2,15 +2,15 @@ import { Controller } from '@hotwired/stimulus'
 import { Component, getComponent } from '@symfony/ux-live-component'
 
 /*
- * History of the game, referee only: drawer opened on demand on narrow
- * screens, and kept scrolled to the newest entry, which flashes when it
+ * History of the game, referee only: drawer opened on demand, and kept scrolled to the newest entry, which flashes when it
  * arrives live.
  */
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
-    static override targets = ['panel', 'list']
+    static override targets = ['panel', 'list', 'toggle']
 
     declare readonly panelTarget: HTMLElement
+    declare readonly toggleTarget: HTMLButtonElement
     declare readonly hasListTarget: boolean
     declare readonly listTarget: HTMLOListElement
 
@@ -39,13 +39,21 @@ export default class extends Controller<HTMLDivElement> {
         this.component = null
     }
 
-    open() {
-        this.panelTarget.classList.add('show')
-        this.scrollToNewest('auto')
+    toggle() {
+        this.setOpen(!this.panelTarget.classList.contains('show'))
     }
 
     close() {
-        this.panelTarget.classList.remove('show')
+        this.setOpen(false)
+    }
+
+    private setOpen(open: boolean) {
+        this.panelTarget.classList.toggle('show', open)
+        this.toggleTarget.setAttribute('aria-expanded', String(open))
+        this.toggleTarget.setAttribute('title', open ? "Masquer l'historique" : "Afficher l'historique")
+        if (open) {
+            this.scrollToNewest('auto')
+        }
     }
 
     private rows(): HTMLLIElement[] {

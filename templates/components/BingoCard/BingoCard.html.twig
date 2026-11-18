@@ -8,7 +8,7 @@
                 {% set firstCol = loop.first %}
                 {% if not firstRow and not firstCol %}
                     {% set square = squares[row][col] ?? null %}
-                    {% set cellClasses = cellClasses|merge(['p-1', 'bingo-square']) %}
+                    {% set cellClasses = cellClasses|merge(this.editMode ? ['p-1', 'bingo-square'] : ['bingo-square']) %}
                     {% if this.editMode %}
                         {% set missingCategory = (square.category ?? '') == '' %}
                         {% set missingLabel = (square.label ?? '')|trim == '' %}
@@ -37,13 +37,17 @@
                     {% if not this.editMode and this.squareValidated(square.id) and this.squareContentShowable(square.id, row, col) %}
                         {% set cellClasses = cellClasses|merge(['bingo-square-validated']) %}
                     {% endif %}
+                    {# Hidden from the players right now #}
+                    {% if not this.editMode and not this.squareVisible(row, col) and not this.squareRevealed(square.id) and not this.game.finished %}
+                        {% set cellClasses = cellClasses|merge(['bingo-square-masked']) %}
+                    {% endif %}
                 {% else %}
                     {% set cellClasses = cellClasses|merge(['d-flex', 'justify-content-center', 'align-items-center']) %}
                     {% if firstRow %}
-                        {% set cellClasses = cellClasses|merge(['bingo-row pb-3']) %}
+                        {% set cellClasses = cellClasses|merge([this.editMode ? 'bingo-row pb-3' : 'bingo-row']) %}
                     {% endif %}
                     {% if firstCol %}
-                        {% set cellClasses = cellClasses|merge(['bingo-col pe-5']) %}
+                        {% set cellClasses = cellClasses|merge([this.editMode ? 'bingo-col pe-5' : 'bingo-col']) %}
                     {% endif %}
                 {% endif %}
 

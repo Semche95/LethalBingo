@@ -2,23 +2,75 @@
 <div {{ attributes.defaults(stimulus_controller('game--game-frame', {
     mercureUrl: mercure('game/' ~ this.game.slug)
 })) }}>
-    <div class="page{{ is_granted('ROLE_REFEREE') ? ' page-with-history' }}">
+    <div class="page">
         <div class="container game-container my-auto">
-            <div class="py-4">
+            <div class="game-stack">
                 {{ component('BingoCardTitle', {game: this.game}) }}
 
                 {% set stopwatchDurationSeconds = computed.stopwatchDurationSeconds %}
                 {% if not this.game.finished or stopwatchDurationSeconds is not null %}
-                    <div class="mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                {% if not this.game.finished %}
-                                    {{ component('GameTimer', {game: this.game}) }}
+                    <div class="card">
+                        <div class="card-body timer-card">
+                            {% if not this.game.finished %}
+                                {{ component('GameTimer', {game: this.game}) }}
+                            {% else %}
+                                {% set stopwatchDuration = macros.elapsed(stopwatchDurationSeconds) %}
+                                <twig:TimerPanel title="Durée de la partie">
+                                    <twig:block name="value">{{ stopwatchDuration }}</twig:block>
+                                </twig:TimerPanel>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if is_granted('ROLE_REFEREE') %}
+                    <div class="card">
+                        <div class="card-body game-footer">
+                            {% if this.game.started %}
+                                {% set footerDate = this.game.finished ? this.game.finishedAt : this.game.startedAt %}
+                                <span class="game-footer-date">
+                                    {{ ux_icon('tabler:clock') }}
+                                    Partie {{ this.game.finished ? 'terminée' : 'démarrée' }} le
+                                    <span class="hud-num">{{ footerDate|date('d/m/Y') }}</span> à
+                                    <span class="hud-num">{{ footerDate|date('H:i:s') }}</span>
+                                </span>
+                            {% endif %}
+                            <div class="game-footer-actions">
+                                <a href="{{ path('app_referee_game_edit', {id: this.game.id}) }}"
+                                   class="btn btn-outline-secondary game-footer-back">
+                                    {{ ux_icon('tabler:arrow-left') }}
+                                    Retour au tableau de bord
+                                </a>
+                                {% if not this.game.started %}
+                                    <button
+                                            type="button"
+                                            class="btn btn-primary game-footer-main"
+                                            data-action="live#action"
+                                            data-live-action-param="startGame"
+                                    >
+                                        Démarrer la partie
+                                    </button>
                                 {% else %}
-                                    {% set stopwatchDuration = macros.elapsed(stopwatchDurationSeconds) %}
-                                    <twig:TimerPanel title="Durée de la partie">
-                                        <twig:block name="value">{{ stopwatchDuration }}</twig:block>
-                                    </twig:TimerPanel>
+                                    {% if this.game.finished %}
+                                        {# Wrapped: Live never removes an element with data-live-ignore, but removes its parent on reset #}
+                                        <div class="game-footer-main">
+                                            <twig:GameHighlights :game="this.game" />
+                                        </div>
+                                    {% else %}
+                                        <button
+                                                type="button"
+                                                class="btn btn-primary game-footer-main"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#stop-game-modal"
+                                        >
+                                            Arrêter la partie
+                                        </button>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-danger game-footer-reset" data-bs-toggle="modal"
+                                            data-bs-target="#reset-game-modal">
+                                        {{ ux_icon('tabler:restore') }}
+                                        Réinitialiser
+                                    </button>
                                 {% endif %}
                             </div>
                         </div>
@@ -26,64 +78,18 @@
                 {% endif %}
 
                 <div class="card">
-                    <div class="card-body">
-                        <div class="m-auto">
-                            {{ component('BingoCard', {
-                                'editMode': false,
-                                'game': this.game,
-                            }) }}
-                        </div>
+                    <div class="card-body bingo-frame">
+                        {{ component('BingoCard', {
+                            'editMode': false,
+                            'game': this.game,
+                        }) }}
                     </div>
-                    {% if is_granted('ROLE_REFEREE') %}
-                        <div class="card-footer text-center d-flex justify-content-center align-items-center">
-                            <a href="{{ path('app_referee_game_edit', {id: this.game.id}) }}"
-                               class="btn btn-secondary me-5">
-                                Retour au tableau de bord
-                            </a>
-                            {% if not this.game.started %}
-                                <button
-                                        type="button"
-                                        class="btn btn-success"
-                                        data-action="live#action"
-                                        data-live-action-param="startGame"
-                                >
-                                    Démarrer la partie
-                                </button>
-                            {% else %}
-                                {% if this.game.finished %}
-                                    <span>
-                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
-                                        Partie terminée le {{ this.game.finishedAt|date('d/m/Y à H:i:s') }}
-                                    </span>
-                                    <twig:GameHighlights :game="this.game" class="ms-3" />
-                                {% elseif this.game.started %}
-                                    <span class="me-5">
-                                        {{ ux_icon('mdi:progress-clock', {height: '18', width: '18'}) }}
-                                        Partie démarrée le {{ this.game.startedAt|date('d/m/Y à H:i:s') }}
-                                    </span>
-                                    <button
-                                            type="button"
-                                            class="btn btn-warning"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#stop-game-modal"
-                                    >
-                                        Arrêter la partie
-                                    </button>
-                                {% endif %}
-                                <button type="button" class="btn btn-outline-danger ms-5" data-bs-toggle="modal"
-                                        data-bs-target="#reset-game-modal">
-                                    {{ ux_icon('tabler:restore', {height: '18', width: '18'}) }}&nbsp;Réinitialiser
-                                </button>
-                            {% endif %}
-                        </div>
-                    {% endif %}
                 </div>
 
                 {% if is_granted('ROLE_REFEREE') %}
-                    <div class="card mt-4">
-                        <div class="card-status-top bg-blue"></div>
+                    <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Étapes</h3>
+                            <h3 class="hud-label hud-label-blue m-0">Étapes</h3>
                         </div>
                         <div class="card-body">
                             {{ component('GameSteps', {game: this.game}) }}
@@ -115,7 +121,7 @@
             title: "Confirmation de l'arrêt de la partie",
             confirmLabel: 'Arrêter la partie',
             confirmIcon: 'player-stop',
-            status: 'warning',
+            status: 'primary',
             liveAction: 'stopGame',
         } %}
             {% block content %}

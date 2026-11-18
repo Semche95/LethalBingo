@@ -57,8 +57,8 @@ readonly class BingoService
     /**
      * Squares of the game's round as a player sees them: until the game is
      * over, the label and category of every square that is neither visible nor
-     * revealed (all of them before the start) are removed, so they never reach
-     * the browser. Referees get every square.
+     * revealed are removed, before the start too, so they never reach the
+     * browser. Referees get every square.
      *
      * @param array<int, int> $revealedSquareIds revealed square ids as keys (see GameSquareService::getRevealedSquareIds())
      *
@@ -71,11 +71,9 @@ readonly class BingoService
             return $squares;
         }
 
-        $isStarted = $game->isStarted();
-
         foreach ($squares as $row => $cols) {
             foreach ($cols as $col => $square) {
-                if ($isStarted && (self::isSquareVisible($row, $col) || isset($revealedSquareIds[$square['id']]))) {
+                if (self::isSquareVisible($row, $col) || isset($revealedSquareIds[$square['id']])) {
                     continue;
                 }
                 $squares[$row][$col]['label'] = null;

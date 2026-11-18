@@ -34,7 +34,7 @@
                     data-action="game--game-highlights#toggle"
                     {% if not count %}disabled{% endif %}>
                 {{ ux_icon('mdi:format-list-bulleted', {height: '24', width: '24'}) }}
-                <span class="badge bg-warning text-dark badge-notification {{ count ? '' : 'd-none' }}"
+                <span class="badge bg-warning text-dark badge-notification rounded-pill{{ count ? '' : ' d-none' }}"
                       {{ stimulus_target('game--game-highlights', 'badge') }}>{{ count }}</span>
             </button>
         </span>

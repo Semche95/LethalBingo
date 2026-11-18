@@ -1,20 +1,13 @@
 {% extends 'layouts/base.html.twig' %}
 
-{% block body_classes %}d-flex flex-column{% endblock %}
+{% block body_classes %}d-flex flex-column game-page{% endblock %}
 
 {% block body %}
     {# Beside the history of the referee on a wide screen, not under it #}
-    <div class="position-fixed top-0 end-0 mt-3 me-3 d-flex gap-3 z-1{{ is_granted('ROLE_REFEREE') ? ' game-top-actions-beside-history' }}">
-        {% if is_granted('ROLE_REFEREE') %}
-            <a href="{{ path('app_referee_game_edit', {id: game.id}) }}" class="btn btn-icon btn-primary"
-               aria-label="Éditer la partie" title="Éditer la partie">
-                {{ ux_icon('mdi:pencil', {height: '24', width: '24'}) }}
-            </a>
-        {% endif %}
-
-        <a href="{{ path('app_home') }}" class="btn btn-icon btn-primary" aria-label="Retour à l'accueil"
+    <div class="position-fixed top-0 end-0 mt-3 me-3 d-flex gap-2 z-1{{ is_granted('ROLE_REFEREE') ? ' game-top-actions-beside-history' }}">
+        <a href="{{ path('app_home') }}" class="btn btn-icon btn-overlay" aria-label="Retour à l'accueil"
            title="Retour à l'accueil">
-            {{ ux_icon('mdi:home', {height: '24', width: '24'}) }}
+            {{ ux_icon('mdi:home', {height: '20', width: '20'}) }}
         </a>
     </div>
 
@@ -28,34 +21,28 @@
                 'data-game--game-notes-target': 'token',
             }) }}
             <div class="notes-sidebar" {{ stimulus_target('game--game-notes', 'panel') }}>
-                <div class="card h-100 border-0 rounded-0">
-                    <div class="card-status-top bg-green"></div>
-                    <div class="card-header">
-                        <h3 class="card-title">Notes</h3>
-                    </div>
-                    <div class="card-body">
-                    <textarea
-                            class="form-control resize-vertical"
-                            rows="50"
-                            placeholder="Prenez des notes ici..."
-                        {{ stimulus_target('game--game-notes', 'notes') }}
-                        data-action="input->game--game-notes#saveNotes resize->game--game-notes#saveTextareaHeight"
-                    >{{ game.notes }}</textarea>
-                        <div class="text-muted small mt-2" {{ stimulus_target('game--game-notes', 'status') }}>
-                            Notes sauvegardées automatiquement
-                        </div>
-                    </div>
+                <h3 class="hud-label hud-label-green m-0">Notes</h3>
+                <textarea
+                        class="form-control resize-vertical notes-textarea"
+                        rows="50"
+                        placeholder="Prenez des notes ici..."
+                        aria-label="Notes"
+                    {{ stimulus_target('game--game-notes', 'notes') }}
+                    data-action="input->game--game-notes#saveNotes resize->game--game-notes#saveTextareaHeight"
+                >{{ game.notes }}</textarea>
+                <div class="text-secondary small" {{ stimulus_target('game--game-notes', 'status') }}>
+                    Notes sauvegardées automatiquement
                 </div>
             </div>
 
             <button
                     type="button"
-                    class="btn btn-icon btn-primary notes-toggle-btn"
+                    class="btn btn-icon btn-overlay notes-toggle-btn"
                     {{ stimulus_target('game--game-notes', 'toggle') }}
                     data-action="click->game--game-notes#togglePanel"
                     aria-label="Afficher/masquer les notes"
                     title="Afficher les notes">
-                {{ ux_icon('mdi:note-text', {height: '24', width: '24'}) }}
+                {{ ux_icon('mdi:note-text', {height: '20', width: '20'}) }}
             </button>
         </div>
     {% endif %}

@@ -1,24 +1,26 @@
-<div class="d-flex flex-column align-middle h-full">
+{% set showable = this.squareContentShowable(square.id, row, col) %}
+<div class="bingo-square-content">
     {% if is_granted('ROLE_REFEREE') and not this.game.finished %}
-        <span class="d-flex justify-content-evenly p-1 mb-0">
+        {# Each icon shows the current state of the square, not the next action #}
+        <div class="bingo-square-actions">
             {% if not this.squareRevealed(square.id) and not this.squareVisible(row, col) %}
-                <twig:IconButton icon="tabler:eye-closed" title="Révéler la case" class="btn btn-secondary" liveAction="reveal" :params="{squareId: square.id}" />
+                <twig:IconButton icon="tabler:eye-closed" title="Révéler la case" class="bingo-square-btn is-masked" size="16" liveAction="reveal" :params="{squareId: square.id}" />
             {% else %}
-                <twig:IconButton icon="tabler:eye" title="Masquer la case" class="btn btn-primary" liveAction="conceal" :params="{squareId: square.id}" :disabled="this.squareVisible(row, col)" />
+                <twig:IconButton icon="tabler:eye" title="Masquer la case" class="bingo-square-btn is-revealed" size="16" liveAction="conceal" :params="{squareId: square.id}" :disabled="this.squareVisible(row, col)" />
             {% endif %}
             {% if this.game.inProgress %}
                 {% if not this.squareValidated(square.id) %}
-                    <twig:IconButton icon="mdi:remove" title="Valider la case" class="btn btn-secondary" liveAction="validate" :params="{squareId: square.id}" />
+                    <twig:IconButton icon="tabler:check" title="Valider la case" class="bingo-square-btn" size="16" liveAction="validate" :params="{squareId: square.id}" />
                 {% else %}
-                    <twig:IconButton icon="tabler:check" title="Invalider la case" class="btn btn-primary" liveAction="invalidate" :params="{squareId: square.id}" />
+                    <twig:IconButton icon="tabler:check" title="Invalider la case" class="bingo-square-btn is-validated" size="16" liveAction="invalidate" :params="{squareId: square.id}" />
                 {% endif %}
             {% endif %}
-        </span>
+        </div>
+    {% elseif this.squareValidated(square.id) and showable %}
+        {{ ux_icon('tabler:check', {class: 'bingo-square-check'}) }}
     {% endif %}
 
-    {% if is_granted('ROLE_REFEREE') or this.game.inProgress or this.game.finished %}
-        <span class="d-flex flex-grow-1 justify-content-center align-items-center">
-            <span>{{ this.squareContentShowable(square.id, row, col) ? square.label : '???' }}</span>
-        </span>
-    {% endif %}
+    <span class="bingo-square-label">
+        {%- if showable %}{{ square.label }}{% else %}<span class="bingo-square-mask">???</span>{% endif -%}
+    </span>
 </div>

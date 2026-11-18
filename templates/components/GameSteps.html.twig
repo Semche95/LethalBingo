@@ -1,16 +1,16 @@
 <div {{ attributes }}>
-    <ul class="navbar-nav">
+    <ul class="game-steps">
         {% set notValidatedSquares = this.notValidatedSquares %}
         {% for category in this.categories %}
             {% set categorySquares = notValidatedSquares|filter(square => square.category is same as(category)) %}
-            <li class="sidebar-category px-3 pt-2">
-                <span>{{ category }}</span>
+            <li class="sidebar-category">
+                <span class="hud-label game-steps-category">{{ category }}</span>
                 {% if categorySquares is not empty %}
                     <ul>
                         {% for square in categorySquares %}
-                            <li class="pt-2">
-                                <a href="#" {{ stimulus_action('game--game-frame', 'scrollToSquare', 'click', {row: square.row, col: square.col}) }}>{{ square.coords }}</a>
-                                {{ square }}
+                            <li>
+                                <a href="#" class="game-coord" {{ stimulus_action('game--game-frame', 'scrollToSquare', 'click', {row: square.row, col: square.col}) }}>{{ square.coords }}</a>
+                                <span>{{ square }}</span>
                             </li>
                         {% endfor %}
                     </ul>

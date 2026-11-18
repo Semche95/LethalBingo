@@ -30,14 +30,19 @@ class GameControllerTest extends ControllerTestCase
         self::assertSelectorExists('[data-controller~="game--game-notes"]');
     }
 
-    public function testPlayerReceivesNoLabelBeforeTheStart(): void
+    public function testPlayerReceivesOnlyVisibleAndRevealedLabelsBeforeTheStart(): void
     {
         $game = $this->createGame();
+        $this->revealSquare($game, 1, 1);
 
         $this->client->request('GET', '/game/' . $game->getSlug());
 
         self::assertResponseIsSuccessful();
-        self::assertStringNotContainsString('Square ', $this->client->getResponse()->getContent());
+        $html = $this->client->getResponse()->getContent();
+        self::assertStringContainsString('Square 1-3', $html, 'A square visible from the start is shown before the start.');
+        self::assertStringContainsString('Square 1-1', $html, 'A square revealed by the referee is shown before the start.');
+        self::assertStringNotContainsString('Square 1-2', $html);
+        self::assertStringNotContainsString('Square 5-5', $html);
     }
 
     public function testPlayerReceivesOnlyVisibleAndRevealedLabelsDuringTheGame(): void

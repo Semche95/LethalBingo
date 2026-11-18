@@ -14,7 +14,7 @@
     <twig:TimerPanel :title="this.game.stopwatch ? 'Temps écoulé' : 'Temps restant'" id="timer-display">
         <twig:block name="value">
             <span data-game--game-timer-target="timerDisplay" data-live-ignore></span>
-            <span data-game--game-timer-target="pauseBadge" class="badge text-bg-warning ms-2 d-none">PAUSE</span>
+            <span data-game--game-timer-target="pauseBadge" class="timer-pause-badge d-none">PAUSE</span>
         </twig:block>
         <twig:block name="below">
             {% if not outerScope.this.game.stopwatch %}
@@ -30,14 +30,14 @@
         </twig:block>
         <twig:block name="actions">
             {% if is_granted('ROLE_REFEREE') and outerScope.this.game.inProgress %}
-                <div class="ms-3 d-flex">
+                <div class="d-flex align-items-center gap-3">
                     {% if not outerScope.this.game.stopwatch %}
-                        <div class="dropdown me-2" {{ stimulus_controller('game--game-timer-adjust') }}>
+                        <div class="dropdown" {{ stimulus_controller('game--game-timer-adjust') }}>
                             <twig:IconButton icon="mdi:timer-edit-outline" title="Ajuster le temps" class="btn btn-icon btn-outline-secondary" size="24"
                                              aria-expanded="false"
                                              data-game--game-timer-adjust-target="button"
                                              data-action="game--game-timer-adjust#toggle" />
-                            <div class="dropdown-menu game-timer-adjust-menu" data-game--game-timer-adjust-target="menu">
+                            <div class="dropdown-menu dropdown-menu-end game-timer-adjust-menu" data-bs-popper="static" data-game--game-timer-adjust-target="menu">
                                 <label class="form-label small text-secondary mb-1" for="game-timer-adjust-{{ outerScope.this.game.id }}">Durée (min:s)</label>
                                 <input type="text" id="game-timer-adjust-{{ outerScope.this.game.id }}"
                                        class="form-control game-timer-adjust-input{{ outerScope.this.adjustDurationInvalid ? ' is-invalid' }}"
@@ -61,20 +61,18 @@
 
                         {% if is_granted('ROLE_ADMIN') and app.request.server.get('DEBUG_TIMER') == 'true' %}
                             {% for time in ['2003', '1003', '0503', '0303', '0103', '0003'] %}
-                                <twig:IconButton icon="mdi:timer-outline" :title="'Définir à 00:' ~ time|slice(0, 2) ~ ':' ~ time|slice(2)" class="btn btn-icon btn-info me-2" :liveAction="'setTimerTo' ~ time" size="24" />
+                                <twig:IconButton icon="mdi:timer-outline" :title="'Définir à 00:' ~ time|slice(0, 2) ~ ':' ~ time|slice(2)" class="btn btn-icon btn-outline-secondary" :liveAction="'setTimerTo' ~ time" size="24" />
                             {% endfor %}
                         {% endif %}
                     {% endif %}
 
                     {% if outerScope.this.game.isPaused %}
-                        <twig:IconButton icon="mdi:play" title="Reprendre la partie" class="btn btn-icon btn-success" liveAction="resumeGame" size="24" />
+                        <twig:IconButton icon="mdi:play" title="Reprendre la partie" class="btn btn-icon btn-outline-primary" liveAction="resumeGame" size="24" />
                     {% else %}
-                        <twig:IconButton icon="mdi:pause" title="Mettre en pause" class="btn btn-icon btn-primary" liveAction="pauseGame" size="24" data-game--game-timer-target="pauseButton" />
+                        <twig:IconButton icon="mdi:pause" title="Mettre en pause" class="btn btn-icon btn-outline-primary" liveAction="pauseGame" size="24" data-game--game-timer-target="pauseButton" />
                     {% endif %}
 
-                    <div class="vr mx-3"></div>
-
-                    <twig:GameHighlights :game="outerScope.this.game" />
+                    <twig:GameHighlights :game="outerScope.this.game" class="gap-3" />
 
                 </div>
             {% endif %}

@@ -1,4 +1,12 @@
+@import "tom-select/dist/css/tom-select.bootstrap5.css";
 @import "@tabler/core/dist/css/tabler.min.css";
+
+/* IBM 3270, hosted with its license in assets/fonts */
+@font-face {
+    font-family: "3270";
+    src: url("./fonts/3270-Regular.woff2") format("woff2");
+    font-display: swap;
+}
 
 :root {
     --bingo-square-blue: #57dbff;
@@ -447,10 +455,6 @@ ul#rules > li:before {
     max-width: 1140px;
 }
 
-li.sidebar-category > span {
-    text-decoration: underline;
-}
-
 .btn-link {
     color: rgba(var(--tblr-link-color-rgb), var(--tblr-link-opacity, 1));
 }
@@ -566,23 +570,23 @@ li.sidebar-category > span {
 }
 
 /* Notes toggle button fixed at top left of page */
+:root {
+    --notes-width: 20rem;
+    /* Opening and closing of the side panels: notes and history */
+    --app-drawer-transition: 0.2s ease-out;
+}
+
 .notes-toggle-btn {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 1rem;
+    left: 1rem;
     z-index: 1000;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: left var(--app-drawer-transition);
 }
 
 /* Move toggle button to the right of the sidebar when sidebar is visible */
-[data-controller="game--game-notes"] .notes-sidebar:not(.d-none) ~ .notes-toggle-btn {
-    left: 320px; /* 300px (sidebar width) + 20px (margin) */
+.notes-sidebar.show ~ .notes-toggle-btn {
+    left: calc(min(var(--notes-width), 100vw - 3.5rem) + 0.5rem);
 }
 
 /* Notes sidebar styles */
@@ -591,24 +595,41 @@ li.sidebar-category > span {
     top: 0;
     left: 0;
     height: 100vh;
-    width: 300px;
+    width: min(var(--notes-width), 100vw);
     z-index: 999;
-    background-color: var(--tblr-bg-surface);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: var(--app-surface);
+    box-shadow: 0 0 40px var(--app-overlay-shadow);
     overflow-y: auto;
-    transition: transform 0.3s ease;
-}
-
-.notes-sidebar.d-none {
+    /* Hidden once closed, so that the notes leave the keyboard navigation */
+    visibility: hidden;
     transform: translateX(-100%);
+    transition: transform var(--app-drawer-transition), visibility var(--app-drawer-transition);
 }
 
-.notes-sidebar:not(.d-none) {
-    transform: translateX(0);
+.notes-sidebar.show {
+    visibility: visible;
+    transform: none;
+}
+
+.notes-textarea,
+.notes-textarea:focus {
+    color: var(--app-text);
+    background: var(--app-bg);
+    border-color: var(--app-border);
+    border-radius: var(--app-radius-sm);
+    box-shadow: none;
+}
+
+.notes-textarea:focus {
+    border-color: var(--app-green);
 }
 
 /* Adjust main content when sidebar is visible */
-.notes-sidebar:not(.d-none) ~ .page {
+.notes-sidebar.show ~ .page {
     margin-left: 300px;
 }
 
@@ -1394,10 +1415,10 @@ li.sidebar-category > span {
 
 /* History of the game, docked in the right margin like the comments of a document */
 :root {
-    --game-history-width: 22rem;
+    --game-history-width: 20rem;
 }
 
-/* Docked in the right margin of the page, outside the game container: the grid keeps its width */
+/* Drawer opened on demand over the page, at the right like the notes one at the left */
 .game-history-panel {
     position: fixed;
     top: 0;
@@ -1406,69 +1427,59 @@ li.sidebar-category > span {
     z-index: 1030;
     display: flex;
     flex-direction: column;
-    width: var(--game-history-width);
-    border-left: var(--tblr-border-width) solid var(--tblr-border-color);
-    background: var(--tblr-bg-surface);
+    width: min(var(--game-history-width), 100vw);
+    background: var(--app-surface);
+    box-shadow: 0 0 40px var(--app-overlay-shadow);
+    transform: translateX(100%);
+    transition: transform var(--app-drawer-transition);
+}
+
+.game-history-panel.show {
+    transform: none;
 }
 
 .game-history-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    min-height: 3.5rem;
-    padding: 0.75rem 1rem;
-    border-top: 2px solid var(--tblr-blue);
-    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color);
+    gap: 0.6rem;
+    padding: 1rem 1rem 0.75rem;
+}
+
+/* The status gives way to the close button when the header lacks room */
+.game-history-status {
+    min-width: 0;
+}
+
+.game-history-close {
+    flex-shrink: 0;
+}
+
+.game-history-header .game-history-count {
+    padding: 0 0.45rem;
+    font: 500 0.75rem/1.25rem var(--app-font-text);
+    letter-spacing: 0;
+    color: var(--app-blue-text);
+    background: rgba(var(--app-blue-rgb), 0.18);
+    border: 0;
+    border-radius: 1rem;
 }
 
 .game-history-open {
     position: fixed;
-    top: 5.5rem;
-    right: 0;
-    z-index: 1029;
-    display: none;
-    gap: 0.4rem;
-    /* Opaque: the button lies over the page, which must not show through */
-    --tblr-btn-bg: var(--tblr-bg-surface);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1031;
+    transition: right var(--app-drawer-transition);
 }
 
-.game-history-close {
-    display: none;
+/* Keep the button at the left of the opened history, like the notes one */
+.game-history-panel.show ~ .game-history-open {
+    right: calc(min(var(--game-history-width), 100vw - 3.5rem) + 0.5rem);
 }
 
-/* Wide screen: the page leaves the margin to the history, the game stays centered beside it */
-@media (min-width: 1500px) {
-    .page-with-history {
-        padding-right: var(--game-history-width);
-    }
-
-    /* The utility classes of the buttons are !important */
-    .game-top-actions-beside-history {
-        right: var(--game-history-width) !important;
-    }
-}
-
-/* Narrower screen: the history becomes a drawer opened on demand, over the page */
-@media (max-width: 1499.98px) {
-    .game-history-panel {
-        box-shadow: -0.5rem 0 1.5rem rgba(0, 0, 0, 0.4);
-        transform: translateX(100%);
-        transition: transform 0.2s ease-out;
-    }
-
-    .game-history-panel.show {
-        transform: none;
-    }
-
-    .game-history-open {
-        display: inline-flex;
-    }
-
-    .game-history-close {
-        display: inline-flex;
-    }
+/* Leave the right end of the floating buttons to the history one: its width (2.5rem) and the gap (0.5rem); the utility classes of the buttons are !important */
+.game-top-actions-beside-history {
+    right: 3rem !important;
 }
 
 .game-history-list {
@@ -1478,51 +1489,88 @@ li.sidebar-category > span {
     overscroll-behavior: contain;
     list-style: none;
     margin: 0;
-    padding: 0.25rem 0;
+    padding: 0 0.5rem 1rem;
 }
 
 .game-history-item {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    border-bottom: var(--tblr-border-width) solid var(--tblr-border-color-translucent);
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: var(--app-radius-sm);
 }
 
-.game-history-item:last-child {
-    border-bottom: 0;
+.game-history-item:hover {
+    background: var(--app-hover-bg);
 }
 
+/* Elapsed time, the real time below it */
 .game-history-time {
     display: flex;
     flex-direction: column;
     flex: 0 0 auto;
     min-width: 4.5rem;
-    line-height: 1.25;
+    font: 400 1rem/1.1 var(--app-font-hud);
 }
 
 .game-history-time small {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+}
+
+.game-history-time > span.text-secondary {
+    font-size: 0.85rem;
 }
 
 .game-history-icon {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
     flex: 0 0 auto;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: var(--tblr-border-radius);
+    padding: 0.35rem;
+    border-radius: 50%;
+}
+
+.game-history-icon svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.game-history-icon-reveal {
+    color: var(--app-text);
+    background: var(--app-surface-3);
+}
+
+.game-history-icon-conceal {
+    color: var(--app-text-muted);
+    background: var(--app-surface-3);
+}
+
+.game-history-icon-validate {
+    color: var(--app-green-text);
+    background: rgba(var(--app-green-rgb), 0.2);
+}
+
+.game-history-icon-invalidate {
+    color: var(--app-primary-text);
+    background: rgba(var(--app-primary-rgb), 0.16);
+}
+
+.game-history-icon-highlight {
+    color: var(--app-yellow);
+    background: rgba(var(--app-yellow-rgb), 0.16);
 }
 
 .game-history-text {
     min-width: 0;
+    font-size: 0.85rem;
     line-height: 1.35;
 }
 
 .game-history-highlight {
-    background: rgba(var(--tblr-warning-rgb), 0.08);
-    box-shadow: inset 3px 0 0 var(--tblr-warning);
+    background: rgba(var(--app-yellow-rgb), 0.06);
+}
+
+.game-history-highlight-title {
+    font-weight: 600;
+    color: var(--app-yellow);
 }
 
 .game-history-new {
@@ -1541,17 +1589,756 @@ li.sidebar-category > span {
 .game-history-launch {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    color: var(--tblr-secondary);
-    font-size: 0.75rem;
+    gap: 0.6rem;
+    padding: 0.6rem 0.5rem;
+    color: var(--app-primary-text);
+    font: 400 0.85rem var(--app-font-hud);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
 }
 
 .game-history-launch::before,
 .game-history-launch::after {
     content: '';
     flex: 1;
-    border-top: var(--tblr-border-width) dashed var(--tblr-border-color);
+    height: 1px;
+    background: rgba(var(--app-primary-rgb), 0.35);
+}
+
+/* ===================== */
+/* Game page             */
+/* ===================== */
+
+/* Palette of the game page only (referee and players), inherited by all its elements */
+.game-page {
+    /* Backgrounds and texts */
+    --app-bg: #0e0c0c;
+    --app-surface: #181515;
+    --app-surface-2: #242020;
+    --app-surface-3: #2f2a29;
+    --app-border: #2c2726;
+    --app-text: #f4eeea;
+    --app-text-muted: #9c918c;
+    --app-shade: rgb(0 0 0 / 0.28);
+    --app-hover-bg: rgb(255 255 255 / 0.07);
+    --app-overlay-shadow: rgb(0 0 0 / 0.5);
+
+    /* Orange of the HUD: main color */
+    --app-primary: #f8400c;
+    --app-primary-rgb: 248, 64, 12;
+    --app-primary-text: #ff7a4d;
+    --app-on-primary: #0e0c0c;
+
+    /* Green of the scans: validation */
+    --app-green: #56c832;
+    --app-green-rgb: 86, 200, 50;
+    --app-green-text: #a4e88a;
+
+    /* Blue of the HUD: information */
+    --app-blue: #3d5cff;
+    --app-blue-rgb: 61, 92, 255;
+    --app-blue-text: #9aaaff;
+
+    /* Yellow: highlights */
+    --app-yellow: #ffc21a;
+    --app-yellow-rgb: 255, 194, 26;
+
+    /* Dark red: reset only */
+    --app-danger: #480808;
+    --app-danger-hover: #5e0c0c;
+    --app-danger-text: #ffb0a8;
+    --app-danger-text-rgb: 255, 176, 168;
+
+    /* Bingo grid */
+    --bingo-coord-color: var(--app-text-muted);
+    --bingo-corner-color: var(--app-primary);
+    --bingo-square-bg: var(--app-surface-2);
+    --bingo-square-border: var(--app-surface-3);
+    --bingo-square-color: var(--app-text);
+    --bingo-square-hidden-color: var(--app-blue-text);
+    --bingo-square-validated-bg: #1f4a15;
+    --bingo-square-masked-bg: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.045) 0 5px, transparent 5px 10px), #121010;
+    --bingo-square-validated-masked-bg: repeating-linear-gradient(135deg, rgba(var(--app-green-rgb), 0.16) 0 5px, transparent 5px 10px), #0f220b;
+
+    --app-font-hud: "3270", "Share Tech Mono", ui-monospace, monospace;
+    --app-font-text: var(--tblr-font-sans-serif);
+    --app-radius: 6px;
+    --app-radius-sm: 4px;
+
+    /* Tabler, mapped on the palette */
+    --tblr-body-bg: var(--app-bg);
+    --tblr-body-color: var(--app-text);
+    --tblr-bg-surface: var(--app-surface);
+    --tblr-border-color: var(--app-border);
+    --tblr-secondary: var(--app-text-muted);
+    --tblr-primary: var(--app-primary);
+    --tblr-primary-rgb: var(--app-primary-rgb);
+    --tblr-primary-fg: var(--app-on-primary);
+    --tblr-primary-darken: var(--app-primary-text);
+    --tblr-warning: var(--app-yellow);
+    --tblr-warning-rgb: var(--app-yellow-rgb);
+
+    color: var(--app-text);
+    font-family: var(--app-font-text);
+    font-size: 0.9375rem;
+    background: radial-gradient(70rem 26rem at 50% 0, rgba(var(--app-primary-rgb), 0.09), transparent 70%) fixed, var(--app-bg);
+}
+
+/* Small labels and figures in 3270 */
+.hud-label {
+    font-family: var(--app-font-hud);
+    font-weight: 400;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.hud-label-blue {
+    color: var(--app-blue-text);
+}
+
+.hud-label-green {
+    color: var(--app-green-text);
+}
+
+.hud-num {
+    font-family: var(--app-font-hud);
+    font-size: 1.05em;
+    color: var(--app-text);
+}
+
+/* Coordinates of a square, in the steps and the history */
+.game-coord {
+    flex: none;
+    align-self: flex-start;
+    padding: 0 0.35rem;
+    font: 400 0.95rem/1.35 var(--app-font-hud);
+    color: var(--app-blue-text);
+    background: rgba(var(--app-blue-rgb), 0.16);
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+a.game-coord:hover {
+    color: var(--app-blue-text);
+    background: rgba(var(--app-blue-rgb), 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-page .status-dot-animated::before {
+        animation: none;
+    }
+}
+
+.game-page .status-green {
+    --tblr-status-color: var(--app-green);
+}
+
+/* Buttons: one solid button, the others outline or ghost */
+.game-page .btn {
+    --tblr-btn-font-size: 0.9rem;
+    --tblr-btn-font-weight: 500;
+    --tblr-btn-border-radius: var(--app-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.game-page .btn-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+}
+
+.game-page .btn-primary {
+    --tblr-btn-font-weight: 600;
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-border-color: transparent;
+    --tblr-btn-box-shadow: 0 0 18px rgba(var(--app-primary-rgb), 0.35);
+    --tblr-btn-gradient: none;
+}
+
+.game-page .btn-outline-primary {
+    --tblr-btn-color: var(--app-primary-text);
+    --tblr-btn-border-color: rgba(var(--app-primary-rgb), 0.5);
+    --tblr-btn-hover-color: var(--app-primary-text);
+    --tblr-btn-hover-bg: rgba(var(--app-primary-rgb), 0.12);
+    --tblr-btn-hover-border-color: rgba(var(--app-primary-rgb), 0.5);
+    --tblr-btn-active-color: var(--app-primary-text);
+    --tblr-btn-active-bg: rgba(var(--app-primary-rgb), 0.12);
+}
+
+.game-page .btn-outline-warning {
+    --tblr-btn-border-color: rgba(var(--app-yellow-rgb), 0.45);
+    --tblr-btn-hover-color: var(--app-yellow);
+    --tblr-btn-hover-bg: rgba(var(--app-yellow-rgb), 0.1);
+    --tblr-btn-hover-border-color: rgba(var(--app-yellow-rgb), 0.45);
+    --tblr-btn-active-color: var(--app-yellow);
+    --tblr-btn-active-bg: rgba(var(--app-yellow-rgb), 0.1);
+}
+
+.game-page .btn-outline-secondary {
+    --tblr-btn-color: var(--app-text);
+    --tblr-btn-border-color: var(--app-surface-3);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-hover-border-color: var(--app-surface-3);
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+    --tblr-btn-disabled-color: var(--app-text);
+    --tblr-btn-disabled-border-color: var(--app-surface-3);
+}
+
+.game-page .btn-ghost-secondary {
+    --tblr-btn-color: var(--app-text-muted);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+}
+
+/* Red: reset only */
+.game-page .btn-danger {
+    --tblr-btn-variant: var(--app-danger);
+    --tblr-btn-variant-fg: var(--app-danger-text);
+    --tblr-btn-variant-darken: var(--app-danger-hover);
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-border-color: transparent;
+    --tblr-btn-box-shadow: none;
+    --tblr-btn-gradient: none;
+}
+
+/* Floating buttons: home, notes and history */
+.game-page .btn-overlay {
+    --tblr-btn-color: var(--app-text);
+    --tblr-btn-bg: var(--app-surface-2);
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-surface-3);
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-surface-3);
+    --tblr-btn-box-shadow: none;
+}
+
+/* Modals: surface of the page, title in 3270, thin status line on top */
+.game-page .modal {
+    --tblr-modal-bg: var(--app-surface);
+    --tblr-modal-color: var(--app-text);
+    --tblr-modal-border-color: var(--app-surface-3);
+    --tblr-modal-border-radius: var(--app-radius);
+    --tblr-modal-inner-border-radius: var(--app-radius);
+    --tblr-modal-box-shadow: 0 1.5rem 4rem var(--app-overlay-shadow);
+    --tblr-modal-header-padding: 1.1rem 1.25rem;
+    --tblr-modal-header-border-color: var(--app-border);
+    --tblr-modal-padding: 1.25rem;
+    --tblr-modal-footer-bg: transparent;
+    --tblr-modal-footer-border-color: var(--app-border);
+}
+
+.game-page .modal-backdrop {
+    --tblr-backdrop-bg: var(--app-bg);
+    --tblr-backdrop-opacity: 0.7;
+}
+
+.game-page .modal-title {
+    font: 400 1.05rem/1.3 var(--app-font-hud);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.game-page .modal-body {
+    color: var(--app-text-muted);
+}
+
+.game-page .modal-status {
+    --tblr-danger-rgb: var(--app-danger-text-rgb);
+    border-radius: var(--app-radius) var(--app-radius) 0 0;
+}
+
+
+.game-page .card {
+    --tblr-card-border-width: 0;
+    --tblr-card-box-shadow: none;
+    --tblr-card-border-radius: var(--app-radius);
+    --tblr-card-inner-border-radius: var(--app-radius);
+    --tblr-card-bg: var(--app-surface);
+    --tblr-card-cap-bg: transparent;
+}
+
+.game-page .card-header {
+    padding: 1rem 1.25rem 0;
+}
+
+/* Layout */
+.game-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0 1.25rem;
+}
+
+/* Title */
+.game-title {
+    text-align: center;
+}
+
+.game-title h1 {
+    margin: 0;
+    font: 400 clamp(1.6rem, 5vw, 2.25rem)/1.1 var(--app-font-hud);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--app-primary);
+    text-shadow: 0 0 22px rgba(var(--app-primary-rgb), 0.45);
+}
+
+.game-title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.75rem;
+    margin-top: 0.4rem;
+}
+
+.game-title h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--app-text);
+}
+
+.game-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--app-text-muted);
+    background: var(--app-surface-3);
+    border-radius: 1rem;
+}
+
+.game-status-chip.is-live {
+    color: var(--app-green-text);
+    background: rgba(var(--app-green-rgb), 0.13);
+}
+
+/* Timer: the value stays centered, the icon, the pause badge and the actions sit beside it */
+.game-page .timer-card {
+    padding: 0.75rem 1.25rem;
+}
+
+.timer-panel {
+    /* Middle of the digits of the 3270 font, which sit above the middle of their line box */
+    --timer-digits-middle: 43.5%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Same room on both sides, for the icon on the left and the pause badge on the right */
+.timer-main {
+    grid-column: 2;
+    padding-inline: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.timer-panel > :not(.timer-main) {
+    grid-column: 3;
+    justify-self: end;
+}
+
+.timer-readout {
+    position: relative;
+}
+
+.timer-icon {
+    position: absolute;
+    top: var(--timer-digits-middle);
+    right: 100%;
+    margin-right: 1rem;
+    transform: translateY(-50%);
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--app-primary);
+    opacity: 0.85;
+}
+
+.timer-icon path {
+    stroke-width: 1.4;
+}
+
+.timer-label {
+    margin: 0;
+}
+
+.timer-value {
+    position: relative;
+    font: 400 clamp(2.75rem, 12vw, 4rem)/0.95 var(--app-font-hud);
+    color: var(--app-primary);
+    text-shadow: 0 0 26px rgba(var(--app-primary-rgb), 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.timer-pause-badge {
+    position: absolute;
+    top: var(--timer-digits-middle);
+    left: 100%;
+    margin-left: 0.75rem;
+    padding: 0.2rem 0.45rem;
+    transform: translateY(-50%);
+    font: 400 1rem/1 var(--app-font-hud);
+    letter-spacing: 0.08em;
+    color: var(--app-yellow);
+    text-shadow: 0 0 10px rgba(var(--app-yellow-rgb), 0.45);
+    background: rgba(var(--app-yellow-rgb), 0.1);
+    border: 1px solid rgba(var(--app-yellow-rgb), 0.5);
+    border-radius: var(--app-radius-sm);
+}
+
+/* Grid: the only block with the corners of the HUD */
+.game-page .bingo-frame {
+    --corner: var(--bingo-corner-color);
+    padding: 1.25rem 1.25rem 1.25rem 0.5rem;
+    background:
+        linear-gradient(var(--corner), var(--corner)) top left / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top left / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top right / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top right / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom left / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom left / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom right / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom right / 2px 18px no-repeat;
+}
+
+.game-page .bingo-grid {
+    grid-template-columns: 1.75rem repeat(5, minmax(0, 1fr));
+    grid-template-rows: auto;
+    gap: 0;
+}
+
+.game-page .bingo-row,
+.game-page .bingo-col {
+    min-height: 0;
+    font: 400 1.15rem var(--app-font-hud);
+    color: var(--bingo-coord-color);
+}
+
+.game-page .bingo-row {
+    padding-bottom: 0.3rem;
+}
+
+.game-page .bingo .bingo-square {
+    justify-content: flex-start;
+    min-height: 6.5rem;
+    color: var(--bingo-square-color);
+    background: var(--bingo-square-bg);
+    border: 1px solid var(--bingo-square-border);
+    overflow: hidden;
+}
+
+/* Hidden at the start, whether revealed since or not */
+.game-page .bingo .bingo-square-hidden {
+    color: var(--bingo-square-hidden-color);
+}
+
+/* Hidden from the players right now */
+.game-page .bingo .bingo-square-masked {
+    background: var(--bingo-square-masked-bg);
+}
+
+.game-page .bingo .bingo-square-validated {
+    background: var(--bingo-square-validated-bg);
+    box-shadow: inset 0 0 0 1px rgba(var(--app-green-rgb), 0.55);
+}
+
+.game-page .bingo .bingo-square-validated.bingo-square-masked {
+    background: var(--bingo-square-validated-masked-bg);
+}
+
+.bingo-square-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bingo-square-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.bingo-square-mask {
+    font: 400 1.4rem var(--app-font-hud);
+    letter-spacing: 0.2em;
+    opacity: 0.55;
+}
+
+.bingo-square-check {
+    align-self: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.55rem 0 -0.35rem;
+    color: var(--app-green);
+}
+
+.bingo-square-check path {
+    stroke-width: 2.5;
+}
+
+/* Buttons of a square, always visible in a strip at its top */
+.bingo-square-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 1px;
+}
+
+.game-page .bingo-square-btn {
+    --tblr-btn-padding-x: 0;
+    --tblr-btn-padding-y: 0;
+    --tblr-btn-border-width: 0;
+    --tblr-btn-border-radius: 0;
+    --tblr-btn-box-shadow: none;
+    --tblr-btn-color: var(--app-text-muted);
+    --tblr-btn-bg: var(--app-shade);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+    --tblr-btn-disabled-opacity: 1;
+    width: 100%;
+    height: 1.75rem;
+}
+
+.game-page .bingo-square-btn:disabled {
+    opacity: 1;
+}
+
+.bingo-square-btn svg {
+    opacity: 0.75;
+}
+
+.game-page .bingo-square-btn.is-revealed {
+    --tblr-btn-color: var(--app-text);
+}
+
+.game-page .bingo-square-btn.is-masked {
+    --tblr-btn-color: var(--app-blue-text);
+}
+
+.game-page .bingo-square-btn.is-validated {
+    --tblr-btn-color: var(--app-on-primary);
+    --tblr-btn-bg: var(--app-green);
+    --tblr-btn-hover-color: var(--app-on-primary);
+    --tblr-btn-hover-bg: var(--app-green-text);
+    --tblr-btn-active-color: var(--app-on-primary);
+    --tblr-btn-active-bg: var(--app-green-text);
+}
+
+.bingo-square-btn.is-revealed svg,
+.bingo-square-btn.is-masked svg,
+.bingo-square-btn.is-validated svg {
+    opacity: 1;
+}
+
+.bingo-square-btn.is-validated svg path {
+    stroke-width: 2.75;
+}
+
+/* Visible from the start: it cannot be hidden */
+.game-page .bingo-square-btn.is-revealed:disabled {
+    --tblr-btn-disabled-color: var(--app-text-muted);
+}
+
+.bingo-square-btn.is-revealed:disabled svg {
+    opacity: 0.45;
+}
+
+/* Actions of the game, between the timer and the grid: back on the left, main action in the middle, reset isolated on the right */
+.game-page .game-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+}
+
+.game-footer-date {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+}
+
+.game-footer-date svg {
+    align-self: center;
+    color: var(--app-blue-text);
+}
+
+.game-footer-actions {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem 1rem;
+}
+
+.game-footer-back {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.game-footer-main {
+    grid-column: 2;
+}
+
+.game-footer-reset {
+    grid-column: 3;
+    justify-self: end;
+}
+
+/* Steps: two columns at most, a category never split */
+.game-steps {
+    columns: 2;
+    column-gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game-steps > li {
+    break-inside: avoid;
+    margin-bottom: 1.1rem;
+}
+
+.game-steps-category {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    color: var(--app-primary-text);
+}
+
+.game-steps ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game-steps ul li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+}
+
+@media (max-width: 640px) {
+    .game-page .game-container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Room for the floating buttons, above and below */
+    .game-stack {
+        padding: 3.75rem 0 3.5rem;
+    }
+
+    .game-page .card-body {
+        padding: 1rem 0.75rem;
+    }
+
+    .timer-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .timer-main,
+    .timer-panel > :not(.timer-main) {
+        grid-column: 1;
+        justify-self: center;
+    }
+
+    .timer-main {
+        padding-inline: 3.25rem;
+    }
+
+    .timer-value {
+        font-size: 2.75rem;
+    }
+
+    .timer-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        margin-right: 0.5rem;
+    }
+
+    .timer-pause-badge {
+        margin-left: 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    .game-page .bingo-frame {
+        padding: 0.75rem 0.6rem 0.75rem 0.15rem;
+    }
+
+    .game-page .bingo-grid {
+        grid-template-columns: 1.1rem repeat(5, minmax(0, 1fr));
+    }
+
+    .game-page .bingo-row,
+    .game-page .bingo-col {
+        font-size: 1rem;
+    }
+
+    .game-page .bingo .bingo-square {
+        min-height: 5.5rem;
+    }
+
+    .bingo-square-label {
+        padding: 0.25rem 0.15rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .bingo-square-mask {
+        font-size: 1.1rem;
+    }
+
+    .game-page .bingo-square-btn {
+        height: 1.6rem;
+    }
+
+    .game-footer-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .game-footer-actions > * {
+        grid-column: auto;
+        justify-self: stretch;
+    }
+
+    .game-footer-main {
+        order: -1;
+    }
+
+    .game-steps {
+        columns: 1;
+    }
 }

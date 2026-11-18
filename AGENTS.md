@@ -29,6 +29,10 @@ just rector                   # Rector dry-run (rector-fix pour appliquer)
 - L'agent peut lancer `just up`, `just dev` et `just fixtures`. Avant `just dev`, vérifier qu'il ne tourne pas déjà : `docker compose ps` et `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/build/@vite/client` (un process `vite` ne suffit pas).
 - **Jamais de build d'assets** (`pnpm run build`, `just build-assets`, `vite build`) sauf demande explicite ou vérification de build de prod : le HMR de Vite gère les changements frontend.
 
+## Documentation
+
+- Toute modification du code met à jour, dans le même commit, les docs qu'elle concerne (`docs/`, `AGENTS.md`, `.claude/`) : une doc ne décrit jamais un comportement qui n'existe plus.
+
 ## Règles par sujet
 
 Avant de modifier un fichier, lire la ou les règles de `.claude/rules/` qui couvrent son chemin :
@@ -65,7 +69,7 @@ assets/controllers/ (component/ = UX), icons/, sounds/
 - CLI : `pnpm exec backlog …` (version épinglée dans `package.json`), jamais le `backlog` global, `pnpm dlx` ni `npx`.
 - `.backlog/` est versionné, sur `main` uniquement (`check_active_branches: false`) : ses changements sont commités avec le code de la tâche.
 - Statuts : à faire = `To Do`, en cours = `In Progress`, terminé = `Done`. Pas de statut « à vérifier » : une tâche qui attend une vérification manuelle reste `In Progress`, avec ce qu'il reste à vérifier.
-- Definition of Done (`config.yml`) : test de toute nouvelle classe `src/Service/`, `src/Controller/` ou `src/Repository/`, migration et fixtures pour tout changement d'entité, puis `just test`, `just sf lint:container`, `just phpstan`, `just cs`, `just rector`.
+- Definition of Done (`config.yml`) : test de toute nouvelle classe `src/Service/`, `src/Controller/` ou `src/Repository/`, migration et fixtures pour tout changement d'entité, mise à jour des docs concernées, puis `just test`, `just sf lint:container`, `just phpstan`, `just cs`, `just rector`.
 - Vérification visuelle sur https://lethalbingo.localhost obligatoire avant de terminer une tâche dont le changement est visible dans l'interface.
 - Langue des tâches : français.
 - Labels courants : `timer`, `gestion-parties`, `dashboard-arbitre`, `ui`, `regles-scoring`, `historique`, `contenu`, `rounds`, `preparation`, `comptes`, `traduction`.

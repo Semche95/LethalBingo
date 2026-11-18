@@ -9,31 +9,31 @@
 {# Separator between the actions done before the launch and the following ones #}
 {% set launchRow %}
     <li class="game-history-launch">
-        <span>Lancement de la partie · <span class="font-monospace">{{ game.startedAt|date('H:i:s') }}</span></span>
+        <span>Lancement · {{ game.startedAt|date('H:i:s') }}</span>
     </li>
 {% endset %}
 {% set actions = {
-    reveal: {label: 'dévoilée', color: 'bg-blue-lt', icon: 'tabler:eye'},
-    conceal: {label: 'masquée', color: 'bg-secondary-lt', icon: 'tabler:eye-closed'},
-    validate: {label: 'validée', color: 'bg-green-lt', icon: 'tabler:check'},
-    invalidate: {label: 'invalidée', color: 'bg-orange-lt', icon: 'mdi:close'},
+    reveal: {label: 'dévoilée', icon: 'tabler:eye'},
+    conceal: {label: 'masquée', icon: 'tabler:eye-closed'},
+    validate: {label: 'validée', icon: 'tabler:check'},
+    invalidate: {label: 'invalidée', icon: 'mdi:close'},
 } %}
 <div {{ attributes.defaults(stimulus_controller('game--game-history')) }}>
     <aside class="game-history-panel" aria-label="Historique de la partie" {{ stimulus_target('game--game-history', 'panel') }}>
         <div class="game-history-header">
-            <h3 class="card-title d-flex align-items-center gap-2 m-0 me-auto">
+            <h3 class="hud-label hud-label-blue d-flex align-items-center gap-2 m-0 me-auto">
                 Historique
-                <span class="badge bg-secondary-lt">{{ entries|length }}</span>
+                <span class="badge game-history-count">{{ entries|length }}</span>
             </h3>
-            <span class="d-inline-flex align-items-center gap-2 text-secondary small">
+            <span class="game-history-status d-inline-flex align-items-center gap-2 text-secondary small text-nowrap">
                 {% if game.finished %}
-                    Partie terminée
+                    <span class="text-truncate">Partie terminée</span>
                 {% elseif game.started %}
                     <span class="status-dot status-dot-animated status-green"></span>
-                    Partie en cours
+                    <span class="text-truncate">Partie en cours</span>
                 {% else %}
                     <span class="status-dot status-secondary"></span>
-                    Partie non démarrée
+                    <span class="text-truncate">Partie non démarrée</span>
                 {% endif %}
             </span>
             <button type="button"
@@ -60,16 +60,16 @@
                         data-history-id="{{ isHighlight ? 'highlight' : 'action' }}-{{ entry.id }}">
                         <div class="game-history-time" title="{{ date|date('d/m/Y à H:i:s') }}">
                             {% if loop.index0 < beforeLaunchCount %}
-                                <span class="text-secondary font-monospace">{{ date|date('H:i:s') }}</span>
+                                <span class="text-secondary">{{ date|date('H:i:s') }}</span>
                             {% else %}
-                                <span class="font-monospace">{{ macros.elapsed(date.timestamp - startedAt) }}</span>
-                                <small class="text-secondary font-monospace">{{ date|date('H:i:s') }}</small>
+                                <span>{{ macros.elapsed(date.timestamp - startedAt) }}</span>
+                                <small class="text-secondary">{{ date|date('H:i:s') }}</small>
                             {% endif %}
                         </div>
                         {% if isHighlight %}
-                            <span class="game-history-icon bg-yellow-lt">{{ ux_icon('mdi:bookmark-outline') }}</span>
+                            <span class="game-history-icon game-history-icon-highlight">{{ ux_icon('mdi:bookmark-outline') }}</span>
                             <div class="game-history-text">
-                                <div class="fw-bold text-warning">Temps fort</div>
+                                <div class="game-history-highlight-title">Temps fort</div>
                                 <div class="text-secondary small text-break">
                                     {% if entry.note %}{{ entry.note }}{% else %}<em>Sans note</em>{% endif %}
                                 </div>
@@ -77,9 +77,9 @@
                         {% else %}
                             {% set action = actions[entry.type.value] %}
                             {% set square = entry.bingoSquare %}
-                            <span class="game-history-icon {{ action.color }}">{{ ux_icon(action.icon) }}</span>
+                            <span class="game-history-icon game-history-icon-{{ entry.type.value }}">{{ ux_icon(action.icon) }}</span>
                             <div class="game-history-text">
-                                <div><span class="text-blue fw-bold">{{ square.coords }}</span> {{ action.label }}</div>
+                                <div><span class="game-coord">{{ square.coords }}</span> {{ action.label }}</div>
                                 <div class="text-secondary small text-truncate" title="{{ square.label }}">{{ square.label }}</div>
                             </div>
                         {% endif %}
@@ -92,10 +92,12 @@
         {% endif %}
     </aside>
     <button type="button"
-            class="btn btn-outline-primary game-history-open"
-            aria-label="Afficher l'historique"
-            data-action="game--game-history#open">
+            class="btn btn-icon btn-overlay game-history-open"
+            aria-label="Afficher/masquer l'historique"
+            aria-expanded="false"
+            title="Afficher l'historique"
+            {{ stimulus_target('game--game-history', 'toggle') }}
+            data-action="game--game-history#toggle">
         {{ ux_icon('mdi:history', {height: '20', width: '20'}) }}
-        Historique
     </button>
 </div>

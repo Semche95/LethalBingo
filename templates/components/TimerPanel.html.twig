@@ -1,15 +1,17 @@
-{# Layout of the timer block: icon, title and value, then the actions on the right. #}
+{# Layout of the timer block: title above, value always centered with the icon beside it, then the actions on the right. #}
 {% props title %}
-<div class="d-flex justify-content-center align-items-center">
-    <div class="me-3">
-        {{ ux_icon('mdi:timer-outline', {height: '48', width: '48'}) }}
-    </div>
-    <div class="text-center">
-        <h3 class="m-0">{{ title }}</h3>
-        <div {{ attributes.defaults({class: 'fs-1 fw-bold'}) }}>
-            {%- block value %}{% endblock -%}
+<div class="timer-panel">
+    <div class="timer-main">
+        <h3 class="hud-label hud-label-blue timer-label">{{ title }}</h3>
+        <div class="timer-readout">
+            {{ ux_icon('tabler:stopwatch', {class: 'timer-icon'}) }}
+            <div {{ attributes.defaults({class: 'timer-value'}) }}>
+                {%- block value %}{% endblock -%}
+            </div>
         </div>
-        {% block below %}{% endblock %}
+        <div class="timer-below">
+            {% block below %}{% endblock %}
+        </div>
     </div>
     {% block actions %}{% endblock %}
 </div>

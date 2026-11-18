@@ -87,12 +87,12 @@ export default class extends Controller<HTMLDivElement> {
 
     togglePanel(event: Event): void {
         if (event.currentTarget === this.toggleTarget) {
-            this.setPanelVisible(this.panelTarget.classList.contains('d-none'))
+            this.setPanelVisible(!this.panelTarget.classList.contains('show'))
         }
     }
 
     private setPanelVisible(visible: boolean): void {
-        this.panelTarget.classList.toggle('d-none', !visible)
+        this.panelTarget.classList.toggle('show', visible)
         this.toggleTarget.setAttribute('aria-expanded', String(visible))
         this.toggleTarget.setAttribute('title', visible ? 'Masquer les notes' : 'Afficher les notes')
         localStorage.setItem(this.panelStorageKey, visible ? 'visible' : 'hidden')
