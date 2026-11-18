@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\BingoSquare;
-use App\Entity\GameRound;
+use App\Entity\Game;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,21 +19,24 @@ class BingoSquareRepository extends ServiceEntityRepository
     }
 
     /**
-     * Squares of the round that have a category and are not validated, all
-     * categories at once (grouping by category is left to the caller).
+     * Squares of the round of the game that have a category and are not
+     * validated in this game, all categories at once (grouping by category is
+     * left to the caller). Another game on the same round validates its own
+     * squares.
      *
      * @return list<BingoSquare>
      */
-    public function findNotValidatedWithCategory(GameRound $round): array
+    public function findNotValidatedWithCategory(Game $game): array
     {
         $qb = $this->createQueryBuilder('s');
 
         return $qb
-            ->leftJoin('s.bingoSquareValidated', 'v')
+            ->leftJoin('s.bingoSquareValidated', 'v', Join::WITH, $qb->expr()->eq('v.game', ':game'))
             ->andWhere($qb->expr()->eq('s.round', ':round'))
             ->andWhere($qb->expr()->isNotNull('s.category'))
             ->andWhere($qb->expr()->isNull('v.id'))
-            ->setParameter('round', $round)
+            ->setParameter('game', $game)
+            ->setParameter('round', $game->getRound())
             ->orderBy('s.row', 'ASC')
             ->addOrderBy('s.col', 'ASC')
             ->getQuery()

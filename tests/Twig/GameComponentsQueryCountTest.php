@@ -8,6 +8,7 @@ use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
 use App\Tests\Controller\ControllerTestCase;
+use DateTimeImmutable;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 
 /**
@@ -87,6 +88,20 @@ class GameComponentsQueryCountTest extends ControllerTestCase
         self::assertNotContains('A3', $defaultSquares, 'A validated square is not a step anymore.');
         self::assertNotContains('B2', $defaultSquares, 'A validated square is not a step anymore.');
         self::assertNotContains('E5', $defaultSquares);
+    }
+
+    public function testGameStepsIgnoreTheSquaresValidatedInAnotherGameOfTheSameRound(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createPlayedGame();
+        $otherGame = $this->createGame($game->getRound())->setStartedAt(new DateTimeImmutable('-5 minutes'));
+        $this->validateSquare($otherGame, 4, 4);
+
+        $crawler = $this->createLiveComponent('GameSteps', ['game' => $game], $this->client)->render()->crawler();
+
+        $steps = $crawler->filter('.sidebar-category a')->each(static fn ($link): string => $link->text());
+        self::assertContains('D4', $steps, 'A square validated by another team is still a step of this game.');
+        self::assertNotContains('A3', $steps);
     }
 
     private function rerender(string $component, Game $game, string $event): void

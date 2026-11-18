@@ -51,6 +51,6 @@ final class GameSteps
      */
     public function getNotValidatedSquares(): array
     {
-        return $this->notValidatedSquares ??= $this->squareRepository->findNotValidatedWithCategory($this->game->getRound());
+        return $this->notValidatedSquares ??= $this->squareRepository->findNotValidatedWithCategory($this->game);
     }
 }
