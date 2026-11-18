@@ -1,10 +1,10 @@
 ---
 id: TASK-21
-title: Permettre le choix des règles propres à chaque partie
+title: Permettre le choix des règles propres à chaque round
 status: To Do
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-18T22:11:00Z'
+updated_date: '2026-11-18T22:50:00Z'
 labels:
   - regles-scoring
 dependencies:
@@ -19,7 +19,7 @@ ordinal: 25000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Toutes les parties ne se jouent pas avec les mêmes règles. Lors de la création ou de la modification d'une partie, l'arbitre doit pouvoir choisir, parmi les règles saisies dans le tableau de bord, celles qui s'appliquent à cette partie.
+Tous les rounds ne se jouent pas avec les mêmes règles. Lors de la création ou de la modification d'un round, l'arbitre doit pouvoir choisir, parmi les règles saisies dans le tableau de bord, celles qui s'appliquent à ce round.
 
 **Renvois**
 - TASK-20 : Permettre la saisie des règles dans le tableau de bord
@@ -29,9 +29,9 @@ Toutes les parties ne se jouent pas avec les mêmes règles. Lors de la créatio
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Le formulaire d'une partie propose les règles saisies dans le tableau de bord
-- [ ] #2 L'arbitre peut sélectionner plusieurs règles pour une partie
-- [ ] #3 Les règles sélectionnées sont enregistrées avec la partie et retrouvées à sa modification
+- [ ] #1 Le formulaire d'un round propose les règles saisies dans le tableau de bord
+- [ ] #2 L'arbitre peut sélectionner plusieurs règles pour un round
+- [ ] #3 Les règles sélectionnées sont enregistrées avec le round et retrouvées à sa modification
 <!-- AC:END -->
 
 ## Definition of Done
