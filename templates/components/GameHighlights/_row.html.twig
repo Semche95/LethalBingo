@@ -1,5 +1,7 @@
 {# One highlight of the list, rendered on the page and returned when a highlight is marked #}
 {% import 'macros.html.twig' as macros %}
+{# During the game, the time of day the referee can relate to; once it is over, the elapsed time since the start too #}
+{% set markedAt = highlight.markedAt|date('H:i:s') %}
 {% set elapsed = macros.elapsed(highlight.elapsedSeconds) %}
 <li class="game-highlight"
     {{ stimulus_target('game--game-highlights', 'row') }}
@@ -7,18 +9,22 @@
         data-note-url="{{ path('app_referee_game_highlight_note', {id: highlight.id}) }}"
         data-delete-url="{{ path('app_referee_game_highlight_delete', {id: highlight.id}) }}"
     {% endif %}>
-    <div class="game-highlight-line" data-game-highlight-view>
-        <span class="font-monospace">{{ elapsed }}</span>
+    {# Read-only, only texts of different fonts: aligned on their baseline #}
+    <div class="game-highlight-line{{ editable ? '' : ' align-items-baseline' }}" data-game-highlight-view>
+        <span class="font-monospace">{{ markedAt }}</span>
+        {% if not editable %}
+            <span class="font-monospace text-secondary" title="Depuis le lancement">{{ elapsed }}</span>
+        {% endif %}
         {% if editable %}
             <input type="text"
                    class="form-control form-control-sm"
                    value="{{ highlight.note }}"
                    placeholder="Note"
-                   aria-label="Note du temps fort {{ elapsed }}"
+                   aria-label="Note du temps fort de {{ markedAt }}"
                    data-action="input->game--game-highlights#saveNote">
             <button type="button"
                     class="btn btn-sm btn-icon btn-ghost-secondary game-highlight-delete"
-                    aria-label="Supprimer le temps fort {{ elapsed }}"
+                    aria-label="Supprimer le temps fort de {{ markedAt }}"
                     data-action="game--game-highlights#askDelete">
                 {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}
             </button>
@@ -28,7 +34,7 @@
     </div>
     {% if editable %}
         <div class="game-highlight-line d-none" data-game-highlight-confirm>
-            <span class="flex-fill">Supprimer {{ elapsed }}&nbsp;?</span>
+            <span class="flex-fill">Supprimer {{ markedAt }}&nbsp;?</span>
             <button type="button" class="btn btn-sm btn-ghost-secondary" data-action="game--game-highlights#cancelDelete">
                 Annuler
             </button>

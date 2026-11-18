@@ -24,9 +24,11 @@ class GameHighlightControllerTest extends ControllerTestCase
         $this->post('/referee/game/' . $game->getId() . '/highlight', $token);
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorExists('li.game-highlight input[aria-label^="Note du temps fort 00:12:"]');
         $highlights = $this->findHighlights($game);
         self::assertCount(1, $highlights);
+        $markedAt = $highlights[0]->getMarkedAt()->format('H:i:s');
+        self::assertSelectorExists('li.game-highlight input[aria-label="Note du temps fort de ' . $markedAt . '"]');
+        self::assertSelectorTextNotContains('li.game-highlight', '00:12:', 'The elapsed time is shown once the game is over only.');
         self::assertGreaterThanOrEqual(12 * 60, $highlights[0]->getElapsedSeconds());
         self::assertNull($highlights[0]->getNote());
     }
@@ -144,13 +146,15 @@ class GameHighlightControllerTest extends ControllerTestCase
     {
         $this->loginAsReferee();
         $game = $this->createGameInProgress();
-        $this->createHighlight($game, 'Retournement');
+        $highlight = $this->createHighlight($game, 'Retournement');
         $game->setFinishedAt(new DateTimeImmutable());
         $this->em->flush();
 
         $this->client->request('GET', '/game/' . $game->getSlug());
 
         self::assertSelectorTextContains('li.game-highlight', 'Retournement');
+        self::assertSelectorTextContains('li.game-highlight', $highlight->getMarkedAt()->format('H:i:s'));
+        self::assertSelectorTextContains('li.game-highlight', '00:12:', 'The elapsed time since the start is shown once the game is over.');
         self::assertSelectorNotExists('[data-action="game--game-highlights#mark"]');
         self::assertSelectorNotExists('li.game-highlight input');
         self::assertSelectorNotExists('.game-highlight-delete');

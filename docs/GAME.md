@@ -109,7 +109,7 @@ Moments marqués par l'arbitre pendant la partie (`GameHighlights`, `GameHighlig
 
 - marquage et liste dans les commandes du timer pendant la partie ; liste en lecture seule dans la carte des actions une fois la partie terminée ; rien avant le démarrage ;
 - marquables et modifiables seulement pendant la partie en cours, y compris en pause et une fois le décompte à zéro ;
-- durée d'un temps fort : `markedAt − startedAt`, pauses et temps passé à zéro compris ;
+- pendant la partie, la liste affiche l'heure du marquage (`markedAt`) ; une fois la partie terminée, l'heure et la durée depuis le lancement (`markedAt − startedAt`, pauses et temps passé à zéro compris) ;
 - chaque temps fort peut recevoir une note (sauvegarde automatique) et être supprimé, avec une confirmation dans la ligne elle-même ;
 - la liste est gérée par le client (`data-live-ignore`) : un re-render Live ne doit pas effacer un temps fort qui vient d'être ajouté. Live ne retirant jamais un élément marqué ainsi, le composant est placé dans un conteneur qui, lui, disparaît à la réinitialisation.
 
