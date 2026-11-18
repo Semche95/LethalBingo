@@ -1,7 +1,8 @@
 version: 2
 
-# Updates are grouped per ecosystem (one PR each) and merged by the
-# "Dependabot merge" CI job once the checks pass.
+# Updates are grouped per ecosystem (one PR each). The "Dependabot regenerate"
+# CI job pushes the files generated from the dependencies to the PR, then the
+# "Dependabot merge" job merges it once the checks pass.
 updates:
     - package-ecosystem: composer
       directory: /
