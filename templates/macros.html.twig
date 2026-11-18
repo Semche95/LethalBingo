@@ -22,6 +22,11 @@
     <p class="{{ centered ? 'text-center text-body-secondary py-5' : 'text-secondary' }}">{{ message }}</p>
 {% endmacro %}
 
+{# Coefficient of a scoring rule, with a true minus sign. #}
+{% macro coefficient(value) -%}
+    ×{{ value|replace({'-': '−'}) }}
+{%- endmacro %}
+
 {# Elapsed time as hh:mm:ss. #}
 {% macro elapsed(seconds) -%}
     {{ '%02d:%02d:%02d'|format(seconds // 3600, seconds // 60 % 60, seconds % 60) }}

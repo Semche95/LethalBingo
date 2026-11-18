@@ -27,7 +27,7 @@
                         {% for rule in rules %}
                             <tr>
                                 <td><span class="fw-medium">{{ rule.label }}</span></td>
-                                <td class="rules-coefficient-cell">×{{ rule.coefficient|replace({'-': '−'}) }}</td>
+                                <td class="rules-coefficient-cell">{{ macros.coefficient(rule.coefficient) }}</td>
                                 <td>
                                     {% if rule.computed %}
                                         <span class="badge bg-blue-lt">Calculée par l'application</span>
@@ -73,7 +73,7 @@
             tokenId: 'delete-rule',
         } %}
             {% block content %}
-                La règle « <strong>{{ rule.label }}</strong> » sera définitivement supprimée.
+                La règle « <strong>{{ rule.label }}</strong> » sera définitivement supprimée et retirée des rounds qui l'appliquent.
             {% endblock %}
         {% endcomponent %}
     {% endfor %}

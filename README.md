@@ -333,10 +333,11 @@ erDiagram
     Game ||--o{ GameSquareAction : "records"
     BingoSquare ||--o{ GameSquareAction : "acted on in"
     Game ||--o{ GameHighlight : "highlights"
+    GameRound }o--o{ Rule : "applies"
 ```
 
 - `User` holds the referee and admin accounts; it has no relationship with the game data
-- `Rule` holds the scoring rules, shared by all games: `computedMeasure` is set for a rule the application computes, `measure` for a free rule the referee fills in
+- `Rule` holds the scoring rules, shared by all games: `computedMeasure` is set for a rule the application computes, `measure` for a free rule the referee fills in; each round applies the rules the referee chooses in its form (`game_round_rule` join table), and a deleted rule leaves the rounds
 
 ## License
 

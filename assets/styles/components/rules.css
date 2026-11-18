@@ -18,3 +18,10 @@
     font-weight: 600;
     white-space: nowrap;
 }
+
+.rules-pill-coefficient {
+    margin-left: 0.375rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    opacity: 0.75;
+}

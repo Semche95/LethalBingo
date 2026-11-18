@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Dto;
 
+use App\Entity\Rule;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -22,6 +23,7 @@ class BingoDto
 
     /**
      * @param BingoSquareGrid $squares squares indexed by row then column
+     * @param list<Rule>      $rules   scoring rules applied to the round
      */
     public function __construct(
         #[Assert\NotNull(message: 'Veuillez saisir une saison.')]
@@ -31,6 +33,7 @@ class BingoDto
         #[Assert\Positive]
         public ?int $round = null,
         public array $squares = [],
+        public array $rules = [],
     ) {
     }
 

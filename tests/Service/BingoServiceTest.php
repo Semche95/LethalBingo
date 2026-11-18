@@ -7,6 +7,7 @@ namespace App\Tests\Service;
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\GameRound;
+use App\Entity\Rule;
 use App\Repository\GameRoundRepository;
 use App\Service\BingoService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -93,6 +94,16 @@ class BingoServiceTest extends TestCase
         $this->assertSame(1, $dto->squares[1][1]['category']);
         $this->assertSame('Test', $dto->squares[1][1]['label']);
         $this->assertSame(1, $dto->squares[1][1]['visible']);
+    }
+
+    public function testEntityToFormDtoAddsTheRulesOfTheRound(): void
+    {
+        $rule = new Rule()->setMeasure('Measure');
+        $round = new GameRound()->setSeason(2)->setNumber(3)->addRule($rule);
+
+        $dto = $this->createBingoService()->entityToFormDto($round);
+
+        $this->assertSame([$rule], $dto->rules);
     }
 
     public function testEntityToDtoEncodesInvisibleAsZero(): void

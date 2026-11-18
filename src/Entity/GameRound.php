@@ -38,10 +38,21 @@ class GameRound implements Stringable
     #[ORM\Column]
     private int $season = 1;
 
+    /**
+     * Scoring rules that apply to the games of this round; a deleted rule
+     * leaves the rounds.
+     *
+     * @var Collection<int, Rule>
+     */
+    #[ORM\ManyToMany(targetEntity: Rule::class)]
+    #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
+    private Collection $rules;
+
     public function __construct()
     {
         $this->bingoSquares = new ArrayCollection();
         $this->games = new ArrayCollection();
+        $this->rules = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -121,6 +132,30 @@ class GameRound implements Stringable
     public function setSeason(int $season): static
     {
         $this->season = $season;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Rule>
+     */
+    public function getRules(): Collection
+    {
+        return $this->rules;
+    }
+
+    public function addRule(Rule $rule): static
+    {
+        if (!$this->rules->contains($rule)) {
+            $this->rules->add($rule);
+        }
+
+        return $this;
+    }
+
+    public function removeRule(Rule $rule): static
+    {
+        $this->rules->removeElement($rule);
 
         return $this;
     }

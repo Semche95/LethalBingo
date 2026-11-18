@@ -6,8 +6,10 @@ namespace App\Tests\Controller\Referee;
 
 use App\Entity\BingoSquareCategory;
 use App\Entity\GameRound;
+use App\Entity\Rule;
 use App\Tests\Controller\ControllerTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 
 class BingoControllerTest extends ControllerTestCase
 {
@@ -75,8 +77,8 @@ class BingoControllerTest extends ControllerTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorCount(GameRound::EXPECTED_SQUARES, '#bingo-form select');
-        // user, round with its squares, categories shared by the 25 selectors, games blocking the deletion
-        $this->assertQueryCountAtMost(4);
+        // user, round with its squares, its rules, the rules to choose from, categories shared by the 25 selectors, games blocking the deletion
+        $this->assertQueryCountAtMost(6);
     }
 
     public function testEditsABingo(): void
@@ -93,6 +95,44 @@ class BingoControllerTest extends ControllerTestCase
         self::assertSame(5, $reloaded->getNumber());
         self::assertCount(GameRound::EXPECTED_SQUARES, $reloaded->getBingoSquares());
         self::assertContains('Renamed square', $reloaded->getBingoSquares()->map(static fn ($square) => $square->getLabel())->toArray());
+    }
+
+    public function testEditPageChecksTheRulesOfTheRound(): void
+    {
+        $appliedRule = $this->createFreeRule('Applied measure');
+        $otherRule = $this->createFreeRule('Other measure');
+        $round = $this->createRound(12, 4);
+        $round->addRule($appliedRule);
+        $this->em->flush();
+
+        $this->client->request('GET', '/referee/bingo/edit/' . $round->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists(sprintf('input[name="bingo_form[rules][]"][value="%d"]:checked', $appliedRule->getId()));
+        self::assertSelectorNotExists(sprintf('input[name="bingo_form[rules][]"][value="%d"]:checked', $otherRule->getId()));
+    }
+
+    public function testSavesTheRulesChosenForTheRound(): void
+    {
+        $removedRule = $this->createFreeRule('Removed measure');
+        $addedRule = $this->createFreeRule('Added measure');
+        $round = $this->createRound(12, 4, complete: true);
+        $round->addRule($removedRule);
+        $this->em->flush();
+
+        $crawler = $this->client->request('GET', '/referee/bingo/edit/' . $round->getId());
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $checkboxes = $form['bingo_form[rules]'];
+        self::assertIsArray($checkboxes);
+        foreach ($checkboxes as $checkbox) {
+            self::assertInstanceOf(ChoiceFormField::class, $checkbox);
+            $checkbox->availableOptionValues() === [(string) $addedRule->getId()] ? $checkbox->tick() : $checkbox->untick();
+        }
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/referee/bingo/edit/' . $round->getId());
+        $reloaded = $this->reload(GameRound::class, $round->getId());
+        self::assertSame([$addedRule->getId()], $reloaded->getRules()->map(static fn (Rule $rule): ?int => $rule->getId())->getValues());
     }
 
     public function testAddsTheNextRoundOfASeason(): void

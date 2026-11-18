@@ -15,6 +15,14 @@ use Doctrine\Persistence\ObjectManager;
  */
 class RuleFixtures extends Fixture
 {
+    public const int RULE_COUNT = 6;
+
+    // Rules numbered from 1 in the order below: computed rules, then free rules.
+    public static function reference(int $number): string
+    {
+        return 'rule_' . $number;
+    }
+
     public function load(ObjectManager $manager): void
     {
         $computedRules = [
@@ -22,10 +30,13 @@ class RuleFixtures extends Fixture
             [ComputedMeasure::FourSquareLines, 100],
             [ComputedMeasure::FiveSquareLines, 200],
         ];
+        $number = 0;
         foreach ($computedRules as [$computedMeasure, $coefficient]) {
-            $manager->persist(new Rule()
+            $rule = new Rule()
                 ->setComputedMeasure($computedMeasure)
-                ->setCoefficient($coefficient));
+                ->setCoefficient($coefficient);
+            $manager->persist($rule);
+            $this->addReference(self::reference(++$number), $rule);
         }
 
         $freeRules = [
@@ -34,9 +45,11 @@ class RuleFixtures extends Fixture
             ['Argent maximum ($) en 3 shifts', 1],
         ];
         foreach ($freeRules as [$measure, $coefficient]) {
-            $manager->persist(new Rule()
+            $rule = new Rule()
                 ->setMeasure($measure)
-                ->setCoefficient($coefficient));
+                ->setCoefficient($coefficient);
+            $manager->persist($rule);
+            $this->addReference(self::reference(++$number), $rule);
         }
 
         $manager->flush();

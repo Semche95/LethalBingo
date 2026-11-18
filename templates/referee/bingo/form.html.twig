@@ -5,6 +5,26 @@
 {% block form_label_class -%}
 {%- endblock form_label_class %}
 
+{# Rules as toggleable pills rather than a list of checkboxes. #}
+{% block _bingo_form_rules_widget %}
+    <div class="form-selectgroup form-selectgroup-pills">
+        {% for name, child in form %}
+            {{ form_widget(child, {rule: form.vars.choices[name].data}) }}
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block _bingo_form_rules_entry_widget %}
+    {% import 'macros.html.twig' as macros %}
+    <label class="form-selectgroup-item">
+        <input type="checkbox" class="form-selectgroup-input" {{ block('widget_attributes') }} value="{{ value }}"{% if checked %} checked{% endif %}>
+        <span class="form-selectgroup-label">
+            {{ label }}
+            <span class="rules-pill-coefficient">{{ macros.coefficient(rule.coefficient) }}</span>
+        </span>
+    </label>
+{% endblock %}
+
 {% block content %}
     {{ parent() }}
     <div class="card" {{ stimulus_controller('referee--bingo-form') }}>
@@ -43,6 +63,12 @@
                     {{ form_widget(form.season) }}
                     {{ form_errors(form.season) }}
                 </div>
+            </div>
+            <div class="mb-4">
+                {{ form_label(form.rules) }}
+                {{ form_help(form.rules) }}
+                {{ form_widget(form.rules) }}
+                {{ form_errors(form.rules) }}
             </div>
             {{ component('BingoCard', {
                 'editMode': true,

@@ -54,6 +54,15 @@ readonly class BingoService
         return new BingoDto($gameRound->getSeason(), $gameRound->getNumber(), $squares);
     }
 
+    // The round as edited in the referee form: its squares and its rules.
+    public function entityToFormDto(GameRound $gameRound): BingoDto
+    {
+        $bingoDto = $this->entityToDto($gameRound);
+        $bingoDto->rules = array_values($gameRound->getRules()->toArray());
+
+        return $bingoDto;
+    }
+
     /**
      * Squares of the game's round as a player sees them: until the game is
      * over, the label and category of every square that is neither visible nor
@@ -92,6 +101,7 @@ readonly class BingoService
         $this->em->persist($gameRound);
 
         $this->fillCollection($bingoDto, $gameRound);
+        $this->fillRules($bingoDto, $gameRound);
         $this->em->flush();
 
         return $gameRound;
@@ -105,6 +115,7 @@ readonly class BingoService
         $this->em->persist($gameRound);
 
         $this->fillCollection($bingoDto, $gameRound);
+        $this->fillRules($bingoDto, $gameRound);
         $this->em->flush();
     }
 
@@ -134,6 +145,18 @@ readonly class BingoService
             if (!isset($existing[$i])) {
                 $this->createEmptyRound($season, $i);
             }
+        }
+    }
+
+    private function fillRules(BingoDto $bingoDto, GameRound $gameRound): void
+    {
+        foreach ($gameRound->getRules() as $rule) {
+            if (!in_array($rule, $bingoDto->rules, true)) {
+                $gameRound->removeRule($rule);
+            }
+        }
+        foreach ($bingoDto->rules as $rule) {
+            $gameRound->addRule($rule);
         }
     }
 

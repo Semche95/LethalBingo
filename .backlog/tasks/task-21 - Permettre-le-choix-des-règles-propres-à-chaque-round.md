@@ -1,10 +1,10 @@
 ---
 id: TASK-21
 title: Permettre le choix des règles propres à chaque round
-status: To Do
+status: Done
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-18T22:50:00Z'
+updated_date: '2026-11-18T23:18:00Z'
 labels:
   - regles-scoring
 dependencies:
@@ -29,19 +29,40 @@ Tous les rounds ne se jouent pas avec les mêmes règles. Lors de la création o
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Le formulaire d'un round propose les règles saisies dans le tableau de bord
-- [ ] #2 L'arbitre peut sélectionner plusieurs règles pour un round
-- [ ] #3 Les règles sélectionnées sont enregistrées avec le round et retrouvées à sa modification
+- [x] #1 Le formulaire d'un round propose les règles saisies dans le tableau de bord
+- [x] #2 L'arbitre peut sélectionner plusieurs règles pour un round
+- [x] #3 Les règles sélectionnées sont enregistrées avec le round et retrouvées à sa modification
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test
-- [ ] #2 Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour
-- [ ] #3 Les docs concernées par le changement (`docs/`, `AGENTS.md`, `.claude/`) sont mises à jour
-- [ ] #4 `just test` passe
-- [ ] #5 `just sf lint:container` passe
-- [ ] #6 `just phpstan` passe
-- [ ] #7 `just cs` passe
-- [ ] #8 `just rector` passe
+- [x] #1 Toute nouvelle classe de `src/Service/`, `src/Controller/` ou `src/Repository/` est accompagnée de son test
+- [x] #2 Tout changement d'entité est accompagné de sa migration et des fixtures mises à jour
+- [x] #3 Les docs concernées par le changement (`docs/`, `AGENTS.md`, `.claude/`) sont mises à jour
+- [x] #4 `just test` passe
+- [x] #5 `just sf lint:container` passe
+- [x] #6 `just phpstan` passe
+- [x] #7 `just cs` passe
+- [x] #8 `just rector` passe
 <!-- DOD:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Relation plusieurs-à-plusieurs GameRound → Rule, migration et fixtures
+2. Champ de cases à cocher dans le formulaire du bingo, synchronisé par BingoService
+3. Suppression d'une règle : retirée des rounds (ON DELETE CASCADE)
+4. Tests, README, vérification visuelle
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Relation unidirectionnelle `GameRound::$rules` (table `game_round_rule`, `ON DELETE CASCADE` côté règle : une règle supprimée quitte les rounds, choix de l'utilisateur ; la modale de suppression le dit).
+`BingoDto::$rules`, champ `rules` (EntityType multiple, cases à cocher, ordre de `findAllOrdered()`, facultatif) dans `BingoFormType`.
+`BingoService::entityToFormDto()` ajoute les règles au DTO pour le seul formulaire (pas de requête de plus sur les pages de partie) ; `create`/`update` synchronisent la sélection.
+Fixtures : chaque round applique les règles calculées et une règle libre de plus que le précédent.
+Vérifié sur https://lethalbingo.localhost : sélection modifiée, enregistrée et retrouvée.
+
+Règles affichées en pastilles Tabler (`form-selectgroup-pills`) avec leur coefficient ; format du coefficient partagé avec l'onglet Règles par la macro `coefficient`.
+<!-- SECTION:NOTES:END -->

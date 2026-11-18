@@ -80,7 +80,7 @@ class BingoController extends AbstractController
         BingoService $bingo,
         #[MapEntity(expr: 'repository.findOneWithSquares(id)')] GameRound $gameRound,
     ): Response {
-        return $this->handleForm($request, $bingo, $bingo->entityToDto($gameRound), $gameRound);
+        return $this->handleForm($request, $bingo, $bingo->entityToFormDto($gameRound), $gameRound);
     }
 
     // Shared by add ($gameRound null) and edit.

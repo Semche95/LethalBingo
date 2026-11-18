@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller\Referee;
 
 use App\Entity\ComputedMeasure;
+use App\Entity\GameRound;
 use App\Entity\Rule;
 use App\Tests\Controller\ControllerTestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -145,6 +146,20 @@ class RuleControllerTest extends ControllerTestCase
         self::assertNull($this->reload(Rule::class, $ruleId));
         $this->client->followRedirect();
         self::assertFlash('success', 'Règle supprimée');
+    }
+
+    public function testDeletingARuleRemovesItFromTheRounds(): void
+    {
+        $rule = $this->createFreeRule();
+        $round = $this->createRound(12, 4);
+        $round->addRule($rule);
+        $this->em->flush();
+        $token = $this->fetchToken('/referee/rule', '#delete-rule-modal-' . $rule->getId());
+
+        $this->client->request('POST', '/referee/rule/delete/' . $rule->getId(), ['token' => $token]);
+
+        self::assertResponseRedirects('/referee/rule');
+        self::assertCount(0, $this->reload(GameRound::class, $round->getId())->getRules());
     }
 
     public function testRefusesToDeleteAComputedRule(): void
