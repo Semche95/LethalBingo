@@ -54,7 +54,7 @@ Avant de modifier un fichier, lire la ou les règles de `.claude/rules/` qui cou
 src/Controller/ (Referee/ = espace arbitre), DataFixtures/, Dto/, Entity/, Form/,
     Repository/, Service/, Twig/Components/ (Live Components), Validator/
 templates/components/, layouts/ (base, main, referee), referee/, game/, security/
-assets/controllers/ (component/ = UX), icons/, sounds/
+assets/controllers/ (component/ = UX), styles/ (importés par app.css), icons/, sounds/
 ```
 
 ## Git

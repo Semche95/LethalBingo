@@ -1,0 +1,160 @@
+/* ===================== */
+/* Game Grid             */
+/* ===================== */
+
+.season-toggle-btn {
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    color: inherit;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+    transition: background-color 0.15s;
+}
+
+.season-toggle-btn:hover {
+    background-color: var(--app-header-bg);
+}
+
+.season-toggle-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.season-toggle-btn[aria-expanded="true"] .season-toggle-icon {
+    transform: rotate(90deg);
+}
+
+.season-toggle-label {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.game-grid {
+    table-layout: fixed;
+    width: 100%;
+    --tblr-table-hover-bg: transparent;
+    --tblr-table-accent-bg: transparent;
+    border: none !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.game-grid th,
+.game-grid td {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.game-grid thead th {
+    text-align: left;
+    padding: 12px 10px;
+    background: #1c2432;
+    color: #d6d9de;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.game-grid thead th.game-grid-round-header {
+    background: transparent;
+    width: 80px;
+}
+
+.game-grid thead th.game-grid-team-header {
+    border-left: 3px solid var(--team-color, transparent) !important;
+    text-align: center;
+}
+
+.game-grid tbody tr:nth-child(odd) td {
+    background: var(--tblr-body-bg);
+}
+
+.game-grid tbody tr:nth-child(even) td {
+    background: #1a2130;
+}
+
+.game-grid tbody tr:nth-child(odd) td.game-grid-cell--clickable:hover,
+.game-grid tbody tr:nth-child(even) td.game-grid-cell--clickable:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.game-grid tbody td {
+    padding: 10px;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.game-grid tbody td:first-child {
+    color: #8b93a1;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.game-grid tbody tr {
+    cursor: default !important;
+}
+
+.game-grid-cell {
+    text-align: center;
+}
+
+.game-grid-cell--clickable {
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.game-grid-cell--clickable:focus-visible {
+    outline: 2px solid var(--tblr-primary, #206bc4);
+    outline-offset: -2px;
+    z-index: 1;
+    position: relative;
+}
+
+.game-grid-cell .badge {
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.3em 0.6em;
+}
+
+.game-grid-cell .badge.bg-blue-lt {
+    background: #1e3a5f !important;
+    color: #7cb9f5 !important;
+}
+
+.game-grid-cell .badge.bg-secondary-lt {
+    background: transparent !important;
+    color: #8b93a1 !important;
+    border: 0.5px solid #384252;
+}
+
+.game-grid-cell .badge.bg-green-lt {
+    background: #1c3d2c !important;
+    color: #5fd68a !important;
+}
+
+.game-grid-cell .badge svg {
+    vertical-align: -0.125em;
+    margin-right: 0.15em;
+}
+
+.game-grid-pencil-icon {
+    opacity: 0;
+    transition: opacity 0.15s;
+    width: 22px;
+    height: 22px;
+    color: var(--tblr-muted-fg);
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+}
+
+.game-grid-cell--clickable:hover .game-grid-pencil-icon {
+    opacity: 1;
+}

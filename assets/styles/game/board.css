@@ -1,0 +1,164 @@
+/* Grid: the only block with the corners of the HUD */
+.game-page .bingo-frame {
+    --corner: var(--bingo-corner-color);
+    padding: 1.25rem 1.25rem 1.25rem 0.5rem;
+    background:
+        linear-gradient(var(--corner), var(--corner)) top left / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top left / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top right / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) top right / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom left / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom left / 2px 18px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom right / 18px 2px no-repeat,
+        linear-gradient(var(--corner), var(--corner)) bottom right / 2px 18px no-repeat;
+}
+
+.game-page .bingo-grid {
+    grid-template-columns: 1.75rem repeat(5, minmax(0, 1fr));
+    grid-template-rows: auto;
+    gap: 0;
+}
+
+.game-page .bingo-row,
+.game-page .bingo-col {
+    min-height: 0;
+    font: 400 1.15rem var(--app-font-hud);
+    color: var(--bingo-coord-color);
+}
+
+.game-page .bingo-row {
+    padding-bottom: 0.3rem;
+}
+
+.game-page .bingo .bingo-square {
+    justify-content: flex-start;
+    min-height: 6.5rem;
+    color: var(--bingo-square-color);
+    background: var(--bingo-square-bg);
+    border: 1px solid var(--bingo-square-border);
+    overflow: hidden;
+}
+
+/* Hidden at the start, whether revealed since or not */
+.game-page .bingo .bingo-square-hidden {
+    color: var(--bingo-square-hidden-color);
+}
+
+/* Hidden from the players right now */
+.game-page .bingo .bingo-square-masked {
+    background: var(--bingo-square-masked-bg);
+}
+
+.game-page .bingo .bingo-square-validated {
+    background: var(--bingo-square-validated-bg);
+    box-shadow: inset 0 0 0 1px rgba(var(--app-green-rgb), 0.55);
+}
+
+.game-page .bingo .bingo-square-validated.bingo-square-masked {
+    background: var(--bingo-square-validated-masked-bg);
+}
+
+.bingo-square-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.bingo-square-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.bingo-square-mask {
+    font: 400 1.4rem var(--app-font-hud);
+    letter-spacing: 0.2em;
+    opacity: 0.55;
+}
+
+.bingo-square-check {
+    align-self: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.55rem 0 -0.35rem;
+    color: var(--app-green);
+}
+
+.bingo-square-check path {
+    stroke-width: 2.5;
+}
+
+/* Buttons of a square, always visible in a strip at its top */
+.bingo-square-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 1px;
+}
+
+.game-page .bingo-square-btn {
+    --tblr-btn-padding-x: 0;
+    --tblr-btn-padding-y: 0;
+    --tblr-btn-border-width: 0;
+    --tblr-btn-border-radius: 0;
+    --tblr-btn-box-shadow: none;
+    --tblr-btn-color: var(--app-text-muted);
+    --tblr-btn-bg: var(--app-shade);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+    --tblr-btn-disabled-opacity: 1;
+    width: 100%;
+    height: 1.75rem;
+}
+
+.game-page .bingo-square-btn:disabled {
+    opacity: 1;
+}
+
+.bingo-square-btn svg {
+    opacity: 0.75;
+}
+
+.game-page .bingo-square-btn.is-revealed {
+    --tblr-btn-color: var(--app-text);
+}
+
+.game-page .bingo-square-btn.is-masked {
+    --tblr-btn-color: var(--app-blue-text);
+}
+
+.game-page .bingo-square-btn.is-validated {
+    --tblr-btn-color: var(--app-on-primary);
+    --tblr-btn-bg: var(--app-green);
+    --tblr-btn-hover-color: var(--app-on-primary);
+    --tblr-btn-hover-bg: var(--app-green-text);
+    --tblr-btn-active-color: var(--app-on-primary);
+    --tblr-btn-active-bg: var(--app-green-text);
+}
+
+.bingo-square-btn.is-revealed svg,
+.bingo-square-btn.is-masked svg,
+.bingo-square-btn.is-validated svg {
+    opacity: 1;
+}
+
+.bingo-square-btn.is-validated svg path {
+    stroke-width: 2.75;
+}
+
+/* Visible from the start: it cannot be hidden */
+.game-page .bingo-square-btn.is-revealed:disabled {
+    --tblr-btn-disabled-color: var(--app-text-muted);
+}
+
+.bingo-square-btn.is-revealed:disabled svg {
+    opacity: 0.45;
+}

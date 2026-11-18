@@ -1,0 +1,63 @@
+/* Notes toggle button fixed at top left of page */
+:root {
+    --notes-width: 20rem;
+    /* Opening and closing of the side panels: notes and history */
+    --app-drawer-transition: 0.2s ease-out;
+}
+
+.notes-toggle-btn {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    transition: left var(--app-drawer-transition);
+}
+
+/* Move toggle button to the right of the sidebar when sidebar is visible */
+.notes-sidebar.show ~ .notes-toggle-btn {
+    left: calc(min(var(--notes-width), 100vw - 3.5rem) + 0.5rem);
+}
+
+/* Notes sidebar styles */
+.notes-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(var(--notes-width), 100vw);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: var(--app-surface);
+    box-shadow: 0 0 40px var(--app-overlay-shadow);
+    overflow-y: auto;
+    /* Hidden once closed, so that the notes leave the keyboard navigation */
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform var(--app-drawer-transition), visibility var(--app-drawer-transition);
+}
+
+.notes-sidebar.show {
+    visibility: visible;
+    transform: none;
+}
+
+.notes-textarea,
+.notes-textarea:focus {
+    color: var(--app-text);
+    background: var(--app-bg);
+    border-color: var(--app-border);
+    border-radius: var(--app-radius-sm);
+    box-shadow: none;
+}
+
+.notes-textarea:focus {
+    border-color: var(--app-green);
+}
+
+/* Adjust main content when sidebar is visible */
+.notes-sidebar.show ~ .page {
+    margin-left: 300px;
+}

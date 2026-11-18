@@ -1,0 +1,119 @@
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(max(320px, calc((100% - 3 * 12px) / 4)), 1fr));
+    gap: 12px;
+}
+
+.team-card {
+    background: var(--tblr-bg-surface);
+    border: 0.5px solid var(--tblr-border-color);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow: hidden;
+}
+
+.team-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.team-card-name {
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.btn-ghost-danger {
+    color: #fff;
+    background: transparent;
+    border: 1px solid var(--tblr-border-color);
+}
+
+.btn-ghost-danger:hover,
+.btn-ghost-danger:focus {
+    color: var(--tblr-danger);
+    border-color: var(--tblr-danger);
+    background: rgba(255, 64, 64, 0.1);
+}
+
+.team-card-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+.member-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.2em 0.6em;
+    font-size: 0.8rem;
+    font-weight: 400;
+    border-radius: 999px;
+    background: rgba(134, 142, 150, 0.15);
+    color: var(--tblr-muted-fg);
+    max-width: 100%;
+    min-width: 0;
+}
+
+.member-pill-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.member-pill-captain {
+    background: rgba(210, 153, 34, 0.15);
+    color: var(--app-yellow);
+}
+
+.member-pill svg {
+    vertical-align: -0.125em;
+}
+
+.btn-captain {
+    background: transparent;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 6px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    color: var(--tblr-muted-fg);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.btn-captain:hover,
+.btn-captain-active {
+    background: var(--tblr-warning-bg-subtle);
+    color: var(--tblr-warning);
+    border-color: var(--tblr-warning);
+}
+
+.member-table td {
+    padding: 0.25rem 0;
+    border: none;
+}
+
+.member-table tr + tr {
+    border-top: none;
+}
+
+.team-search {
+    max-width: 300px;
+    min-width: 0;
+}

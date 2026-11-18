@@ -224,6 +224,8 @@ src/
 
 templates/                   # Twig templates (components/ for the Live Components)
 assets/
+├── app.css                  # Stylesheet entry point, imports only
+├── styles/                  # Styles, one file per topic (components/, pages/, bingo/, game/)
 ├── controllers/             # Stimulus controllers
 ├── tests/                   # Vitest tests
 └── icons/, img/, sounds/    # Icons, images, GIFs and timer sounds

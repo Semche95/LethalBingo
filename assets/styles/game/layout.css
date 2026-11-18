@@ -1,0 +1,131 @@
+/* Layout */
+.game-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0 1.25rem;
+}
+
+/* Title */
+.game-title {
+    text-align: center;
+}
+
+.game-title h1 {
+    margin: 0;
+    font: 400 clamp(1.6rem, 5vw, 2.25rem)/1.1 var(--app-font-hud);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--app-primary);
+    text-shadow: 0 0 22px rgba(var(--app-primary-rgb), 0.45);
+}
+
+.game-title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.75rem;
+    margin-top: 0.4rem;
+}
+
+.game-title h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--app-text);
+}
+
+.game-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--app-text-muted);
+    background: var(--app-surface-3);
+    border-radius: 1rem;
+}
+
+.game-status-chip.is-live {
+    color: var(--app-green-text);
+    background: rgba(var(--app-green-rgb), 0.13);
+}
+
+/* Timer: the value stays centered, the icon, the pause badge and the actions sit beside it */
+.game-page .timer-card {
+    padding: 0.75rem 1.25rem;
+}
+
+.timer-panel {
+    /* Middle of the digits of the 3270 font, which sit above the middle of their line box */
+    --timer-digits-middle: 43.5%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Same room on both sides, for the icon on the left and the pause badge on the right */
+.timer-main {
+    grid-column: 2;
+    padding-inline: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.timer-panel > :not(.timer-main) {
+    grid-column: 3;
+    justify-self: end;
+}
+
+.timer-readout {
+    position: relative;
+}
+
+.timer-icon {
+    position: absolute;
+    top: var(--timer-digits-middle);
+    right: 100%;
+    margin-right: 1rem;
+    transform: translateY(-50%);
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--app-primary);
+    opacity: 0.85;
+}
+
+.timer-icon path {
+    stroke-width: 1.4;
+}
+
+.timer-label {
+    margin: 0;
+}
+
+.timer-value {
+    position: relative;
+    font: 400 clamp(2.75rem, 12vw, 4rem)/0.95 var(--app-font-hud);
+    color: var(--app-primary);
+    text-shadow: 0 0 26px rgba(var(--app-primary-rgb), 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.timer-pause-badge {
+    position: absolute;
+    top: var(--timer-digits-middle);
+    left: 100%;
+    margin-left: 0.75rem;
+    padding: 0.2rem 0.45rem;
+    transform: translateY(-50%);
+    font: 400 1rem/1 var(--app-font-hud);
+    letter-spacing: 0.08em;
+    color: var(--app-yellow);
+    text-shadow: 0 0 10px rgba(var(--app-yellow-rgb), 0.45);
+    background: rgba(var(--app-yellow-rgb), 0.1);
+    border: 1px solid rgba(var(--app-yellow-rgb), 0.5);
+    border-radius: var(--app-radius-sm);
+}

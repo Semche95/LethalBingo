@@ -1,0 +1,92 @@
+@media (max-width: 640px) {
+    .game-page .game-container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Room for the floating buttons, above and below */
+    .game-stack {
+        padding: 3.75rem 0 3.5rem;
+    }
+
+    .game-page .card-body {
+        padding: 1rem 0.75rem;
+    }
+
+    .timer-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .timer-main,
+    .timer-panel > :not(.timer-main) {
+        grid-column: 1;
+        justify-self: center;
+    }
+
+    .timer-main {
+        padding-inline: 3.25rem;
+    }
+
+    .timer-value {
+        font-size: 2.75rem;
+    }
+
+    .timer-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+        margin-right: 0.5rem;
+    }
+
+    .timer-pause-badge {
+        margin-left: 0.4rem;
+        font-size: 0.75rem;
+    }
+
+    .game-page .bingo-frame {
+        padding: 0.75rem 0.6rem 0.75rem 0.15rem;
+    }
+
+    .game-page .bingo-grid {
+        grid-template-columns: 1.1rem repeat(5, minmax(0, 1fr));
+    }
+
+    .game-page .bingo-row,
+    .game-page .bingo-col {
+        font-size: 1rem;
+    }
+
+    .game-page .bingo .bingo-square {
+        min-height: 5.5rem;
+    }
+
+    .bingo-square-label {
+        padding: 0.25rem 0.15rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .bingo-square-mask {
+        font-size: 1.1rem;
+    }
+
+    .game-page .bingo-square-btn {
+        height: 1.6rem;
+    }
+
+    .game-footer-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .game-footer-actions > * {
+        grid-column: auto;
+        justify-self: stretch;
+    }
+
+    .game-footer-main {
+        order: -1;
+    }
+
+    .game-steps {
+        columns: 1;
+    }
+}

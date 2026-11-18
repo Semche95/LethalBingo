@@ -1,0 +1,78 @@
+/* Actions of the game, between the timer and the grid: back on the left, main action in the middle, reset isolated on the right */
+.game-page .game-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+}
+
+.game-footer-date {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+}
+
+.game-footer-date svg {
+    align-self: center;
+    color: var(--app-blue-text);
+}
+
+.game-footer-actions {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem 1rem;
+}
+
+.game-footer-back {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.game-footer-main {
+    grid-column: 2;
+}
+
+.game-footer-reset {
+    grid-column: 3;
+    justify-self: end;
+}
+
+/* Steps: two columns at most, a category never split */
+.game-steps {
+    columns: 2;
+    column-gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game-steps > li {
+    break-inside: avoid;
+    margin-bottom: 1.1rem;
+}
+
+.game-steps-category {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    color: var(--app-primary-text);
+}
+
+.game-steps ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game-steps ul li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+}

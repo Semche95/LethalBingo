@@ -1,0 +1,85 @@
+/* ===================== */
+/* Profile               */
+/* ===================== */
+
+.profile-avatar {
+    background: linear-gradient(135deg, var(--tblr-primary), var(--tblr-azure));
+    color: white;
+    box-shadow: var(--tblr-shadow-card);
+}
+
+.profile-name {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--tblr-heading-color);
+}
+
+/* ===================== */
+/* Login Page            */
+/* ===================== */
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 1rem;
+    padding: 2.5rem 2rem;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+}
+
+.login-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+    color: var(--tblr-muted-fg);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.login-field {
+    margin-bottom: 1.25rem;
+}
+
+.input-icon {
+    position: relative;
+}
+
+.input-icon .form-control {
+    padding-left: 2.5rem;
+}
+
+.input-icon-svg {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tblr-muted-fg);
+    pointer-events: none;
+}
+
+.login-remember {
+    margin-bottom: 1.5rem;
+}
+
+.login-btn {
+    justify-content: center;
+}

@@ -1,0 +1,268 @@
+/* ===================== */
+/* Game page             */
+/* ===================== */
+
+/* Palette of the game page only (referee and players), inherited by all its elements */
+.game-page {
+    /* Backgrounds and texts */
+    --app-bg: #0e0c0c;
+    --app-surface: #181515;
+    --app-surface-2: #242020;
+    --app-surface-3: #2f2a29;
+    --app-border: #2c2726;
+    --app-text: #f4eeea;
+    --app-text-muted: #9c918c;
+    --app-shade: rgb(0 0 0 / 0.28);
+    --app-hover-bg: rgb(255 255 255 / 0.07);
+    --app-overlay-shadow: rgb(0 0 0 / 0.5);
+
+    /* Orange of the HUD: main color */
+    --app-primary: #f8400c;
+    --app-primary-rgb: 248, 64, 12;
+    --app-primary-text: #ff7a4d;
+    --app-on-primary: #0e0c0c;
+
+    /* Green of the scans: validation */
+    --app-green: #56c832;
+    --app-green-rgb: 86, 200, 50;
+    --app-green-text: #a4e88a;
+
+    /* Blue of the HUD: information */
+    --app-blue: #3d5cff;
+    --app-blue-rgb: 61, 92, 255;
+    --app-blue-text: #9aaaff;
+
+    /* Yellow: highlights */
+    --app-yellow: #ffc21a;
+    --app-yellow-rgb: 255, 194, 26;
+
+    /* Dark red: reset only */
+    --app-danger: #480808;
+    --app-danger-hover: #5e0c0c;
+    --app-danger-text: #ffb0a8;
+    --app-danger-text-rgb: 255, 176, 168;
+
+    /* Bingo grid */
+    --bingo-coord-color: var(--app-text-muted);
+    --bingo-corner-color: var(--app-primary);
+    --bingo-square-bg: var(--app-surface-2);
+    --bingo-square-border: var(--app-surface-3);
+    --bingo-square-color: var(--app-text);
+    --bingo-square-hidden-color: var(--app-blue-text);
+    --bingo-square-validated-bg: #1f4a15;
+    --bingo-square-masked-bg: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.045) 0 5px, transparent 5px 10px), #121010;
+    --bingo-square-validated-masked-bg: repeating-linear-gradient(135deg, rgba(var(--app-green-rgb), 0.16) 0 5px, transparent 5px 10px), #0f220b;
+
+    --app-font-hud: "3270", "Share Tech Mono", ui-monospace, monospace;
+    --app-font-text: var(--tblr-font-sans-serif);
+    --app-radius: 6px;
+    --app-radius-sm: 4px;
+
+    /* Tabler, mapped on the palette */
+    --tblr-body-bg: var(--app-bg);
+    --tblr-body-color: var(--app-text);
+    --tblr-bg-surface: var(--app-surface);
+    --tblr-border-color: var(--app-border);
+    --tblr-secondary: var(--app-text-muted);
+    --tblr-primary: var(--app-primary);
+    --tblr-primary-rgb: var(--app-primary-rgb);
+    --tblr-primary-fg: var(--app-on-primary);
+    --tblr-primary-darken: var(--app-primary-text);
+    --tblr-warning: var(--app-yellow);
+    --tblr-warning-rgb: var(--app-yellow-rgb);
+
+    color: var(--app-text);
+    font-family: var(--app-font-text);
+    font-size: 0.9375rem;
+    background: radial-gradient(70rem 26rem at 50% 0, rgba(var(--app-primary-rgb), 0.09), transparent 70%) fixed, var(--app-bg);
+}
+
+/* Small labels and figures in 3270 */
+.hud-label {
+    font-family: var(--app-font-hud);
+    font-weight: 400;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.hud-label-blue {
+    color: var(--app-blue-text);
+}
+
+.hud-label-green {
+    color: var(--app-green-text);
+}
+
+.hud-num {
+    font-family: var(--app-font-hud);
+    font-size: 1.05em;
+    color: var(--app-text);
+}
+
+/* Coordinates of a square, in the steps and the history */
+.game-coord {
+    flex: none;
+    align-self: flex-start;
+    padding: 0 0.35rem;
+    font: 400 0.95rem/1.35 var(--app-font-hud);
+    color: var(--app-blue-text);
+    background: rgba(var(--app-blue-rgb), 0.16);
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+a.game-coord:hover {
+    color: var(--app-blue-text);
+    background: rgba(var(--app-blue-rgb), 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-page .status-dot-animated::before {
+        animation: none;
+    }
+}
+
+.game-page .status-green {
+    --tblr-status-color: var(--app-green);
+}
+
+/* Buttons: one solid button, the others outline or ghost */
+.game-page .btn {
+    --tblr-btn-font-size: 0.9rem;
+    --tblr-btn-font-weight: 500;
+    --tblr-btn-border-radius: var(--app-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.game-page .btn-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+}
+
+.game-page .btn-primary {
+    --tblr-btn-font-weight: 600;
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-border-color: transparent;
+    --tblr-btn-box-shadow: 0 0 18px rgba(var(--app-primary-rgb), 0.35);
+    --tblr-btn-gradient: none;
+}
+
+.game-page .btn-outline-primary {
+    --tblr-btn-color: var(--app-primary-text);
+    --tblr-btn-border-color: rgba(var(--app-primary-rgb), 0.5);
+    --tblr-btn-hover-color: var(--app-primary-text);
+    --tblr-btn-hover-bg: rgba(var(--app-primary-rgb), 0.12);
+    --tblr-btn-hover-border-color: rgba(var(--app-primary-rgb), 0.5);
+    --tblr-btn-active-color: var(--app-primary-text);
+    --tblr-btn-active-bg: rgba(var(--app-primary-rgb), 0.12);
+}
+
+.game-page .btn-outline-warning {
+    --tblr-btn-border-color: rgba(var(--app-yellow-rgb), 0.45);
+    --tblr-btn-hover-color: var(--app-yellow);
+    --tblr-btn-hover-bg: rgba(var(--app-yellow-rgb), 0.1);
+    --tblr-btn-hover-border-color: rgba(var(--app-yellow-rgb), 0.45);
+    --tblr-btn-active-color: var(--app-yellow);
+    --tblr-btn-active-bg: rgba(var(--app-yellow-rgb), 0.1);
+}
+
+.game-page .btn-outline-secondary {
+    --tblr-btn-color: var(--app-text);
+    --tblr-btn-border-color: var(--app-surface-3);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-hover-border-color: var(--app-surface-3);
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+    --tblr-btn-disabled-color: var(--app-text);
+    --tblr-btn-disabled-border-color: var(--app-surface-3);
+}
+
+.game-page .btn-ghost-secondary {
+    --tblr-btn-color: var(--app-text-muted);
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-hover-bg);
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-hover-bg);
+}
+
+/* Red: reset only */
+.game-page .btn-danger {
+    --tblr-btn-variant: var(--app-danger);
+    --tblr-btn-variant-fg: var(--app-danger-text);
+    --tblr-btn-variant-darken: var(--app-danger-hover);
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-border-color: transparent;
+    --tblr-btn-box-shadow: none;
+    --tblr-btn-gradient: none;
+}
+
+/* Floating buttons: home, notes and history */
+.game-page .btn-overlay {
+    --tblr-btn-color: var(--app-text);
+    --tblr-btn-bg: var(--app-surface-2);
+    --tblr-btn-border-color: transparent;
+    --tblr-btn-hover-color: var(--app-text);
+    --tblr-btn-hover-bg: var(--app-surface-3);
+    --tblr-btn-hover-border-color: transparent;
+    --tblr-btn-active-color: var(--app-text);
+    --tblr-btn-active-bg: var(--app-surface-3);
+    --tblr-btn-box-shadow: none;
+}
+
+/* Modals: surface of the page, title in 3270, thin status line on top */
+.game-page .modal {
+    --tblr-modal-bg: var(--app-surface);
+    --tblr-modal-color: var(--app-text);
+    --tblr-modal-border-color: var(--app-surface-3);
+    --tblr-modal-border-radius: var(--app-radius);
+    --tblr-modal-inner-border-radius: var(--app-radius);
+    --tblr-modal-box-shadow: 0 1.5rem 4rem var(--app-overlay-shadow);
+    --tblr-modal-header-padding: 1.1rem 1.25rem;
+    --tblr-modal-header-border-color: var(--app-border);
+    --tblr-modal-padding: 1.25rem;
+    --tblr-modal-footer-bg: transparent;
+    --tblr-modal-footer-border-color: var(--app-border);
+}
+
+.game-page .modal-backdrop {
+    --tblr-backdrop-bg: var(--app-bg);
+    --tblr-backdrop-opacity: 0.7;
+}
+
+.game-page .modal-title {
+    font: 400 1.05rem/1.3 var(--app-font-hud);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.game-page .modal-body {
+    color: var(--app-text-muted);
+}
+
+.game-page .modal-status {
+    --tblr-danger-rgb: var(--app-danger-text-rgb);
+    border-radius: var(--app-radius) var(--app-radius) 0 0;
+}
+
+
+.game-page .card {
+    --tblr-card-border-width: 0;
+    --tblr-card-box-shadow: none;
+    --tblr-card-border-radius: var(--app-radius);
+    --tblr-card-inner-border-radius: var(--app-radius);
+    --tblr-card-bg: var(--app-surface);
+    --tblr-card-cap-bg: transparent;
+}
+
+.game-page .card-header {
+    padding: 1rem 1.25rem 0;
+}

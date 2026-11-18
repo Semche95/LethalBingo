@@ -11,4 +11,4 @@ paths:
 - Icônes de suppression mineures : grises par défaut, rouges seulement au hover/focus.
 - Suppression impossible (règle métier, dépendances…) : bouton affiché mais désactivé, avec une tooltip qui explique pourquoi (jamais masqué ni cliquable pour finir sur une erreur).
 - Rouge réservé aux vrais points de non-retour, le moins possible par écran. S'appuyer sur les variants `solid` / `outline` existants.
-- Couleurs : réutiliser les variables `--app-*` et `--bingo-*` de `assets/app.css` (ou celles de Tabler `--tblr-*`), jamais de couleur en dur.
+- Couleurs : réutiliser les variables `--app-*` et `--bingo-*` de `assets/styles/base.css` (palette de la page de partie : `assets/styles/game/theme.css`) (ou celles de Tabler `--tblr-*`), jamais de couleur en dur.

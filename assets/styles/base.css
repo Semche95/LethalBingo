@@ -1,0 +1,142 @@
+/* IBM 3270, hosted with its license in assets/fonts */
+@font-face {
+    font-family: "3270";
+    src: url("../fonts/3270-Regular.woff2") format("woff2");
+    font-display: swap;
+}
+
+:root {
+    --bingo-square-blue: #57dbff;
+    --bingo-border-color: var(--tblr-dark);
+    --app-hover-bg: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
+    --app-header-bg: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.03));
+    --app-danger: #cc2929;
+    --app-blue: #339af0;
+    --app-blue-rgb: 51, 154, 240;
+    --app-green: #51cf66;
+    --app-green-rgb: 81, 207, 102;
+    --app-yellow: #fcc419;
+    --app-gradient-blue: linear-gradient(135deg, var(--app-blue), #1c7ed6);
+    --app-gradient-green: linear-gradient(135deg, var(--app-green), #2b8a3e);
+}
+
+[data-bs-theme="dark"] {
+    --bingo-border-color: var(--tblr-light);
+    --app-hover-bg: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
+    --app-header-bg: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.nav-link-title {
+    padding-left: 2px;
+}
+
+/* Main navbar: links fill full header height */
+.page > .navbar {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.page > .navbar .nav-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.page > .navbar .nav-link.active {
+    color: var(--tblr-body-color);
+}
+
+.form-control {
+    border-color: var(--tblr-gray-600);
+}
+
+.btn-primary-icon {
+    background: rgba(var(--app-blue-rgb), 0.1);
+    border-color: transparent;
+    color: var(--app-blue);
+    box-shadow: none;
+    padding: 8px 10px;
+}
+
+.btn-primary-icon:hover {
+    background: var(--tblr-primary);
+    border-color: var(--tblr-primary);
+    color: #fff;
+}
+
+.card:has(.table-responsive) {
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+[data-bs-theme="dark"] .card:has(.table-responsive) {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.form-check {
+    margin-bottom: 0;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.td-shrink {
+    width: 1px;
+    white-space: nowrap;
+}
+
+.tooltip {
+    font-size: 1.1rem;
+}
+
+.game-container {
+    max-width: 1140px;
+}
+
+.btn-link {
+    color: rgba(var(--tblr-link-color-rgb), var(--tblr-link-opacity, 1));
+}
+
+.btn-link:hover {
+    color: var(--tblr-link-hover-color-rgb);
+}
+
+.blink {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        background-color: #ff5400;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.page {
+    transition: margin-left 0.3s ease;
+}
+
+/* Allow vertical resizing for textareas */
+.resize-vertical {
+    resize: vertical;
+}

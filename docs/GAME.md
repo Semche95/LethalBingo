@@ -166,7 +166,7 @@ Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauc
 
 ### Design
 
-- Palette propre à la page, thème sombre uniquement, définie sur `body.game-page` (`assets/app.css`, section « Game page ») : orange du HUD pour l'action principale et le temps, vert pour la validation, bleu pour l'information, jaune pour les temps forts et la pause, rouge foncé réservé à la réinitialisation. Les variables Tabler (`--tblr-*`) y sont rebranchées. Aucune couleur en dur dans les règles.
+- Palette propre à la page, thème sombre uniquement, définie sur `body.game-page` (`assets/styles/game/theme.css`) : orange du HUD pour l'action principale et le temps, vert pour la validation, bleu pour l'information, jaune pour les temps forts et la pause, rouge foncé réservé à la réinitialisation. Les variables Tabler (`--tblr-*`) y sont rebranchées. Aucune couleur en dur dans les règles.
 - Police 3270 (`assets/fonts/`) pour les titres, libellés du HUD, chiffres et coordonnées ; police de Tabler pour le texte.
 - Un seul bouton plein à l'écran : l'action principale de la carte des actions. Les autres sont en contour ou discrets, Réinitialiser en rouge foncé.
 - Les modales de la page (arrêt, réinitialisation, `ConfirmModal`) reprennent la surface des cartes et un titre en 3270. Le bouton de confirmation de l'arrêt est orange, comme le bouton qui l'ouvre.

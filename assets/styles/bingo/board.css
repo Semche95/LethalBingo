@@ -1,0 +1,63 @@
+.bingo-grid {
+    display: grid;
+    grid-template-columns: auto repeat(5, 1fr);
+    grid-template-rows: auto repeat(5, 1fr);
+    gap: 0;
+}
+
+.bingo-grid > * {
+    min-width: 0;
+}
+
+.bingo-row {
+    min-height: 2rem;
+}
+
+.bingo-col {
+    flex: 0;
+}
+
+.bingo .bingo-square {
+    border: var(--tblr-border-width) var(--tblr-border-style) var(--bingo-border-color);
+    color: var(--tblr-white);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 5rem;
+}
+
+.bingo .bingo-square-hidden {
+    color: var(--bingo-square-blue);
+}
+
+.bingo .bingo-square-validated {
+    background: #5d9010;
+}
+
+.bingo-square-missing {
+    box-shadow: inset 0 0 0 3px var(--tblr-warning);
+}
+
+.missing-category select.form-control,
+.missing-label textarea.form-control {
+    border-color: var(--tblr-warning);
+}
+
+.bingo-square-duplicate {
+    box-shadow: inset 0 0 0 3px var(--app-danger);
+}
+
+.bingo-square-duplicate select.form-control,
+.bingo-square-duplicate textarea.form-control {
+    border-color: var(--app-danger);
+}
+
+#bingo-form .alert-danger {
+    background: rgba(204, 41, 41, 0.14);
+    border-color: rgba(204, 41, 41, 0.30);
+    color: var(--app-danger);
+}
+
+#bingo-form .bingo .bingo-square {
+    aspect-ratio: 3 / 2;
+}
