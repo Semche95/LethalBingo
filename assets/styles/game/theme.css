@@ -36,11 +36,13 @@
     --app-yellow: #ffc21a;
     --app-yellow-rgb: 255, 194, 26;
 
-    /* Dark red: reset only */
-    --app-danger: #480808;
-    --app-danger-hover: #5e0c0c;
-    --app-danger-text: #ffb0a8;
-    --app-danger-text-rgb: 255, 176, 168;
+    /* Crimson: reset only, distinct from the red of the other actions */
+    --app-danger: #c9184a;
+    --app-danger-rgb: 201, 24, 74;
+    --app-danger-hover: #a4133c;
+    --app-danger-text: #ff4d6d;
+    --app-danger-text-rgb: 255, 77, 109;
+    --app-on-danger: #fff;
 
     /* Bingo grid */
     --bingo-coord-color: var(--app-text-muted);
@@ -127,7 +129,7 @@ a.game-coord:hover {
     --tblr-status-color: var(--app-green);
 }
 
-/* Buttons: one solid button, the others outline or ghost */
+/* Buttons: solid for the main action, the others outline or ghost */
 .game-page .btn {
     --tblr-btn-font-size: 0.9rem;
     --tblr-btn-font-weight: 500;
@@ -193,10 +195,21 @@ a.game-coord:hover {
     --tblr-btn-active-bg: var(--app-hover-bg);
 }
 
-/* Red: reset only */
+/* Crimson: reset only, outline in the actions card, solid in its confirmation.
+   The other red buttons (removing time) keep the red of Tabler. */
+.game-page .game-footer-reset {
+    --tblr-btn-color: var(--app-danger-text);
+    --tblr-btn-border-color: rgba(var(--app-danger-text-rgb), 0.5);
+    --tblr-btn-hover-color: var(--app-danger-text);
+    --tblr-btn-hover-bg: rgba(var(--app-danger-rgb), 0.15);
+    --tblr-btn-hover-border-color: rgba(var(--app-danger-text-rgb), 0.5);
+    --tblr-btn-active-color: var(--app-danger-text);
+    --tblr-btn-active-bg: rgba(var(--app-danger-rgb), 0.15);
+}
+
 .game-page .btn-danger {
     --tblr-btn-variant: var(--app-danger);
-    --tblr-btn-variant-fg: var(--app-danger-text);
+    --tblr-btn-variant-fg: var(--app-on-danger);
     --tblr-btn-variant-darken: var(--app-danger-hover);
     --tblr-btn-border-color: transparent;
     --tblr-btn-hover-border-color: transparent;

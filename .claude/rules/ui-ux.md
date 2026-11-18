@@ -6,7 +6,7 @@ paths:
 
 # UI/UX : boutons et actions destructives
 
-- Un seul bouton plein par écran (action principale) ; les actions secondaires en outline/ghost.
+- Bouton plein réservé aux actions qui doivent sauter aux yeux (action principale, action destructive) ; les actions secondaires en outline/ghost. Pas de limite stricte par écran : c'est une question de hiérarchie visuelle, pas un compte.
 - Suppression irréversible : zone isolée (type « zone dangereuse ») + confirmation obligatoire (modal ou double confirmation).
 - Icônes de suppression mineures : grises par défaut, rouges seulement au hover/focus.
 - Suppression impossible (règle métier, dépendances…) : bouton affiché mais désactivé, avec une tooltip qui explique pourquoi (jamais masqué ni cliquable pour finir sur une erreur).
