@@ -89,7 +89,7 @@ class GameControllerTest extends ControllerTestCase
         $this->client->request('GET', '/game/' . $game->getSlug());
 
         self::assertResponseIsSuccessful();
-        // game with round and team, squares, revealed ids, validated ids
+        // game with round, rules and team, squares, revealed ids, validated ids
         $this->assertQueryCountAtMost(4);
     }
 
@@ -102,7 +102,7 @@ class GameControllerTest extends ControllerTestCase
         $this->client->request('GET', '/game/' . $game->getSlug());
 
         self::assertResponseIsSuccessful();
-        // user, game with round and team, squares, revealed ids, validated ids,
+        // user, game with round, rules and team, squares, revealed ids, validated ids,
         // categories and not validated squares of the steps, highlights,
         // square actions of the history
         $this->assertQueryCountAtMost(9);
@@ -158,6 +158,37 @@ class GameControllerTest extends ControllerTestCase
 
         self::assertResponseStatusCodeSame(403);
         self::assertNull($this->reload(Game::class, $game->getId())->getNotes());
+    }
+
+    public function testPlayerAndRefereeSeeTheRulesOfTheRound(): void
+    {
+        $round = $this->createRound(1, 1, complete: true)
+            ->addRule($this->createFreeRule('Loot sold', 2))
+            ->addRule($this->createFreeRule('Employee lost', -5));
+        $game = $this->createGame($round);
+
+        foreach ([false, true] as $asReferee) {
+            if ($asReferee) {
+                $this->loginAsReferee();
+            }
+
+            $crawler = $this->client->request('GET', '/game/' . $game->getSlug());
+
+            $rules = $crawler->filter('.game-rules > li')->each(
+                static fn ($rule): string => preg_replace('/\s+/', ' ', trim($rule->text())),
+            );
+            self::assertSame(['Loot sold ×2', 'Employee lost ×−5'], $rules);
+        }
+    }
+
+    public function testGameWithoutRulesShowsNoRulesReminder(): void
+    {
+        $game = $this->createGame();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertSelectorNotExists('.game-rules');
+        self::assertSelectorTextNotContains('body', 'Règles');
     }
 
     public function testAnonymousVisitorCannotSaveNotes(): void

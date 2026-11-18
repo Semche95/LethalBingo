@@ -25,3 +25,21 @@
     font-weight: 600;
     opacity: 0.75;
 }
+
+/* Reminder of the rules of the round on the game page */
+.game-rules {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.game-rules > li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+}
+
+.game-rules > li + li {
+    border-top: 1px solid var(--app-border);
+}

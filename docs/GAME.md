@@ -15,7 +15,7 @@ La page est la même pour tout le monde : les joueurs la suivent, l'arbitre la p
 
 ### Ce que voit chaque profil
 
-- **Joueur** (anonyme, ou connecté sans `ROLE_REFEREE`) : titre (bingo, équipe, statut), timer, grille, bouton Accueil. Aucune commande : les joueurs ne font que regarder.
+- **Joueur** (anonyme, ou connecté sans `ROLE_REFEREE`) : titre (bingo, équipe, statut), timer, grille, rappel des règles du round, bouton Accueil. Aucune commande : les joueurs ne font que regarder.
 - **Arbitre** (`ROLE_REFEREE`), en plus : panneau Notes, carte des actions de la partie (date, retour au tableau de bord, Démarrer / Arrêter / Réinitialiser, temps forts une fois la partie terminée), boutons de chaque case, carte Étapes, panneau Historique, commandes du timer.
 - **Administrateur** (`ROLE_ADMIN`) : comme l'arbitre, plus les boutons de debug du timer si `DEBUG_TIMER=true` (`docs/TIMER.md`, section 3).
 
@@ -155,7 +155,8 @@ Ordre des blocs, de haut en bas :
 2. timer (`docs/TIMER.md`) ; une fois la partie terminée, remplacé par « Durée de la partie » pour une partie sans limite de temps, absent sinon ;
 3. carte des actions de l'arbitre : date de démarrage ou d'arrêt, « Retour au tableau de bord » à gauche, action principale au centre (Démarrer, Arrêter ou liste des temps forts), Réinitialiser isolé à droite ;
 4. grille ;
-5. carte Étapes (arbitre).
+5. carte Règles : les règles de scoring du round de la partie, libellé et coefficient, absente si le round n'en applique aucune ; visible de tous ;
+6. carte Étapes (arbitre).
 
 Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauche du bouton Historique.
 

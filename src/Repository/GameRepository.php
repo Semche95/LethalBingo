@@ -17,16 +17,17 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Game shown on the play page, with its round, team and team members
-     * fetched in the same query.
+     * Game shown on the play page, with its round and its rules, its team and
+     * the team members fetched in the same query.
      */
     public function findOneForPlay(string $slug): ?Game
     {
         return $this->createQueryBuilder('g')
-            ->addSelect('r', 't', 'm')
+            ->addSelect('r', 't', 'm', 'ru')
             ->join('g.round', 'r')
             ->join('g.team', 't')
             ->leftJoin('t.members', 'm')
+            ->leftJoin('r.rules', 'ru')
             ->where('g.slug = :slug')
             ->setParameter('slug', $slug)
             ->getQuery()
