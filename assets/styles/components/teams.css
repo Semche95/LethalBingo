@@ -40,7 +40,7 @@
 .btn-ghost-danger:focus {
     color: var(--tblr-danger);
     border-color: var(--tblr-danger);
-    background: rgba(255, 64, 64, 0.1);
+    background: rgba(var(--tblr-danger-rgb), 0.1);
 }
 
 .team-card-members {

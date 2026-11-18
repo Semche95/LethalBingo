@@ -13,4 +13,5 @@ enum RefreshEvent: string
     case BingoCardTitle = 'bingoCardTitleRefresh';
     case GameHistory = 'gameHistoryRefresh';
     case TeamList = 'teamListRefresh';
+    case RuleList = 'ruleListRefresh';
 }

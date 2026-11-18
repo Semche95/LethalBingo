@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Rule;
@@ -16,28 +18,19 @@ class RuleRepository extends ServiceEntityRepository
         parent::__construct($registry, Rule::class);
     }
 
-    //    /**
-    //     * @return Rule[] Returns an array of Rule objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('r')
-    //            ->andWhere('r.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('r.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Rule
-    //    {
-    //        return $this->createQueryBuilder('r')
-    //            ->andWhere('r.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Computed rules first, then the free rules in their creation order.
+     *
+     * @return list<Rule>
+     */
+    public function findAllOrdered(): array
+    {
+        /* @var list<Rule> */
+        return $this->createQueryBuilder('r')
+            ->addSelect('CASE WHEN r.computedMeasure IS NULL THEN 1 ELSE 0 END AS HIDDEN freeRule')
+            ->orderBy('freeRule', 'ASC')
+            ->addOrderBy('r.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

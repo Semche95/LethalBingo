@@ -5,6 +5,7 @@
 @import "./styles/components/surface-cards.css";
 @import "./styles/bingo/board.css";
 @import "./styles/components/teams.css";
+@import "./styles/components/rules.css";
 @import "./styles/components/toasts.css";
 @import "./styles/components/tom-select.css";
 @import "./styles/game/notes.css";

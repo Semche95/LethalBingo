@@ -314,6 +314,12 @@ erDiagram
         int elapsedSeconds
         text note
     }
+    Rule {
+        int id PK
+        string computedMeasure UK
+        string measure
+        int coefficient
+    }
 
     Team ||--o{ TeamMember : "has members"
     Team ||--o{ Game : "plays"
@@ -330,6 +336,7 @@ erDiagram
 ```
 
 - `User` holds the referee and admin accounts; it has no relationship with the game data
+- `Rule` holds the scoring rules, shared by all games: `computedMeasure` is set for a rule the application computes, `measure` for a free rule the referee fills in
 
 ## License
 

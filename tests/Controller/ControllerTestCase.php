@@ -10,6 +10,7 @@ use App\Entity\BingoSquareRevealed;
 use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\Rule;
 use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Entity\User;
@@ -87,6 +88,13 @@ abstract class ControllerTestCase extends WebTestCase
             ->addMember(new TeamMember()->setName('Captain')->setCaptain(true));
 
         return $this->save($team);
+    }
+
+    protected function createFreeRule(string $measure = 'Free measure', int $coefficient = 10): Rule
+    {
+        return $this->save(new Rule()
+            ->setMeasure($measure)
+            ->setCoefficient($coefficient));
     }
 
     protected function createRound(int $season, int $number, bool $complete = false): GameRound

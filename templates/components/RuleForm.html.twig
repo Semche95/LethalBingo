@@ -1,0 +1,44 @@
+<div {{ attributes }}>
+    {{ form_start(form, {
+        attr: {
+            'data-model': 'on(change)|*',
+            'data-action': 'live#action:prevent',
+            'data-live-action-param': 'save'
+        }
+    }) }}
+    {{ form_errors(form) }}
+    <div class="card-body">
+        <div class="mb-3 row">
+            {% if form.measure is defined %}
+                {{ form_label(form.measure, null, {label_attr: {class: 'col-sm-3 col-form-label'}}) }}
+                <div class="col-sm-9">
+                    {{ form_widget(form.measure, {attr: {placeholder: 'Ex. Jours passés d\'affilée', autofocus: true}}) }}
+                    {{ form_errors(form.measure) }}
+                    <small class="form-hint">Ce que vous compterez pendant la partie, par exemple des jours ou de l'argent.</small>
+                </div>
+            {% else %}
+                <div class="col-sm-3 col-form-label">Mesure</div>
+                <div class="col-sm-9">
+                    <div class="form-control-plaintext fw-medium">{{ rule.label }}</div>
+                    <small class="form-hint">Calculée par l'application à partir de la grille de la partie.</small>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-0 row">
+            {{ form_label(form.coefficient, null, {label_attr: {class: 'col-sm-3 col-form-label'}}) }}
+            <div class="col-sm-9">
+                <div class="input-group rules-coefficient">
+                    <span class="input-group-text">×</span>
+                    {{ form_widget(form.coefficient, {attr: {autofocus: form.measure is not defined}}) }}
+                </div>
+                {{ form_errors(form.coefficient) }}
+                <small class="form-hint">Points par unité de la mesure, par exemple 100 points par jour passé d'affilée. Un nombre négatif retire des points.</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer mt-3">
+        <twig:FormFooterActions />
+    </div>
+    {{ form_end(form) }}
+</div>

@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: 2026-10-09 21:10
-updated_date: '2026-11-04T14:37:00Z'
+updated_date: '2026-11-18T22:11:00Z'
 labels:
   - gestion-parties
   - dashboard-arbitre
@@ -26,10 +26,12 @@ Règles retenues :
 - un arbitre appartient à un seul groupe ;
 - une partie, son équipe et son bingo appartiennent toujours au même groupe ;
 - seul l'administrateur, qui gère techniquement l'application, crée les groupes et y affecte les arbitres ;
-- l'administrateur voit le contenu de tous les groupes.
+- l'administrateur voit le contenu de tous les groupes ;
+- les règles de scoring, calculées comprises, appartiennent aussi au groupe : chaque groupe a ses propres règles et coefficients.
 
 **Renvois**
 - TASK-38 : Ajouter une page d'administration des comptes
+- TASK-20 : Permettre la saisie des règles dans le tableau de bord
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

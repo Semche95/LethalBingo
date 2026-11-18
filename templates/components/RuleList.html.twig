@@ -1,0 +1,80 @@
+{% import 'macros.html.twig' as macros %}
+{% set rules = this.rules %}
+<div {{ attributes }}>
+    {% component PageHeader with {title: 'Règles de scoring', spacing: 3} %}
+        {% block actions %}
+            <twig:ModalLoaderLink :href="path('app_referee_rule_add')" title="Nouvelle règle" class="btn btn-primary flex-shrink-0">
+                {{ ux_icon('tabler:plus', {height: '18', width: '18'}) }}&nbsp;Nouvelle règle
+            </twig:ModalLoaderLink>
+        {% endblock %}
+    {% endcomponent %}
+
+    <div class="card">
+        {% if rules is empty %}
+            {{ macros.empty_state('Aucune règle de scoring pour le moment.') }}
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>Mesure</th>
+                            <th>Coefficient</th>
+                            <th>Valeur</th>
+                            <th class="w-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                            <tr>
+                                <td><span class="fw-medium">{{ rule.label }}</span></td>
+                                <td class="rules-coefficient-cell">×{{ rule.coefficient|replace({'-': '−'}) }}</td>
+                                <td>
+                                    {% if rule.computed %}
+                                        <span class="badge bg-blue-lt">Calculée par l'application</span>
+                                    {% else %}
+                                        <span class="badge bg-yellow-lt">Saisie par l'arbitre</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="rules-actions">
+                                        <twig:ModalLoaderLink :href="path('app_referee_rule_edit', {id: rule.id})" title="Modifier la règle" class="btn btn-sm btn-primary-icon">
+                                            {{ ux_icon('tabler:pencil', {height: '18', width: '18'}) }}
+                                        </twig:ModalLoaderLink>
+                                        {% if rule.computed %}
+                                            {# A disabled button emits no mouse event: the wrapper carries the tooltip. #}
+                                            <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" data-bs-title="Règle calculée par l'application : seul son coefficient se modifie">
+                                                <button type="button" class="btn btn-sm btn-delete-icon" disabled>
+                                                    {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}
+                                                </button>
+                                            </span>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm btn-delete-icon" title="Supprimer la règle"
+                                                    data-bs-toggle="modal" data-bs-target="#delete-rule-modal-{{ rule.id }}">
+                                                {{ ux_icon('tabler:trash', {height: '18', width: '18'}) }}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    {% for rule in rules|filter(rule => not rule.computed) %}
+        {% component ConfirmModal with {
+            id: 'delete-rule-modal-' ~ rule.id,
+            title: 'Supprimer la règle',
+            confirmLabel: 'Supprimer',
+            confirmIcon: 'trash',
+            action: path('app_referee_rule_delete', {id: rule.id}),
+            tokenId: 'delete-rule',
+        } %}
+            {% block content %}
+                La règle « <strong>{{ rule.label }}</strong> » sera définitivement supprimée.
+            {% endblock %}
+        {% endcomponent %}
+    {% endfor %}
+</div>

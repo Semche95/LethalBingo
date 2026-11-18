@@ -1,0 +1,20 @@
+/* Scoring rules */
+.rules-actions {
+    display: flex;
+    gap: 0.375rem;
+    justify-content: flex-end;
+}
+
+.rules-actions .btn:disabled {
+    opacity: 0.35;
+}
+
+.rules-coefficient {
+    width: 10rem;
+}
+
+.rules-coefficient-cell {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+}

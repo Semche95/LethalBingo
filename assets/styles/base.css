@@ -66,6 +66,26 @@
     color: #fff;
 }
 
+/* Minor delete icon: grey, red only on hover or focus */
+.btn-delete-icon {
+    color: var(--tblr-secondary);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    padding: 8px 10px;
+}
+
+.btn-delete-icon:disabled {
+    background: transparent;
+    border-color: transparent;
+}
+
+.btn-delete-icon:hover,
+.btn-delete-icon:focus-visible {
+    color: var(--tblr-danger);
+    background: rgba(var(--tblr-danger-rgb), 0.1);
+}
+
 .card:has(.table-responsive) {
     border-radius: 0.75rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);

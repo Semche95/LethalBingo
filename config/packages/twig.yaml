@@ -8,6 +8,7 @@ twig:
             - { route: app_referee_game, icon: device-gamepad-2, label: Parties }
             - { route: app_referee_bingo, icon: grid-3x3, label: Bingos }
             - { route: app_referee_team, icon: users-group, label: Équipes }
+            - { route: app_referee_rule, icon: list-check, label: Règles }
 
 when@test:
     twig:
