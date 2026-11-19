@@ -80,6 +80,12 @@ class GameScoreServiceTest extends TestCase
         yield 'row of 4 from the first square' => [[[3, 1], [3, 2], [3, 3], [3, 4]], 1, 0];
         yield 'row of 4 up to the last square' => [[[3, 2], [3, 3], [3, 4], [3, 5]], 1, 0];
         yield 'diagonal of 4' => [[[2, 2], [3, 3], [4, 4], [5, 5]], 1, 0];
+        yield 'short diagonal A2-D5' => [[[1, 2], [2, 3], [3, 4], [4, 5]], 1, 0];
+        yield 'short diagonal B1-E4' => [[[2, 1], [3, 2], [4, 3], [5, 4]], 1, 0];
+        yield 'short anti-diagonal A4-D1' => [[[1, 4], [2, 3], [3, 2], [4, 1]], 1, 0];
+        yield 'short anti-diagonal B5-E2' => [[[2, 5], [3, 4], [4, 3], [5, 2]], 1, 0];
+        yield 'short diagonal of 3' => [[[1, 2], [2, 3], [3, 4]], 0, 0];
+        yield 'short diagonal of 3 up to its last square' => [[[2, 3], [3, 4], [4, 5]], 0, 0];
         yield '4 squares not contiguous' => [[[1, 1], [1, 2], [1, 4], [1, 5]], 0, 0];
         yield 'row of 3' => [[[1, 1], [1, 2], [1, 3]], 0, 0];
         yield 'full row and column of 4 crossing it' => [[[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 1], [3, 1], [4, 1]], 1, 1];

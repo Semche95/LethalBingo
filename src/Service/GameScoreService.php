@@ -134,8 +134,8 @@ readonly class GameScoreService
 
     /**
      * Lines of 4 and of 5 validated squares among the rows, the columns and
-     * the two diagonals. A line of 4 is made of 4 contiguous squares; a full
-     * line only counts as a line of 5.
+     * all the diagonals. A line of 4 is made of 4 contiguous squares; a full
+     * line of 5 squares only counts as a line of 5.
      *
      * @param array<int, array<int, true>> $validated
      *
@@ -147,7 +147,11 @@ readonly class GameScoreService
         $five = 0;
         foreach ($this->lines() as $line) {
             $cells = array_map(static fn (array $cell): bool => isset($validated[$cell[0]][$cell[1]]), $line);
-            if (!in_array(false, $cells, true)) {
+            $full = !in_array(false, $cells, true);
+            if (count($cells) < GameRound::MAX_ROWS) {
+                // A diagonal of 4 squares is a line of 4 only when full.
+                $four += (int) $full;
+            } elseif ($full) {
                 ++$five;
             } elseif (!in_array(false, array_slice($cells, 0, 4), true) || !in_array(false, array_slice($cells, 1), true)) {
                 ++$four;
@@ -158,7 +162,9 @@ readonly class GameScoreService
     }
 
     /**
-     * The 12 lines of the square grid, each as its squares [row, col] in order.
+     * The 16 lines of the square grid, each as its squares [row, col] in
+     * order: the rows, the columns, the 2 diagonals of 5 squares and the 4
+     * diagonals of 4 squares next to them.
      *
      * @return list<list<array{int, int}>>
      */
@@ -173,6 +179,12 @@ readonly class GameScoreService
         }
         $lines[] = array_map(static fn (int $i): array => [$i, $i], $positions);
         $lines[] = array_map(static fn (int $i): array => [$i, $size + 1 - $i], $positions);
+
+        $shortPositions = range(1, $size - 1);
+        $lines[] = array_map(static fn (int $i): array => [$i, $i + 1], $shortPositions);
+        $lines[] = array_map(static fn (int $i): array => [$i + 1, $i], $shortPositions);
+        $lines[] = array_map(static fn (int $i): array => [$i, $size - $i], $shortPositions);
+        $lines[] = array_map(static fn (int $i): array => [$i + 1, $size + 1 - $i], $shortPositions);
 
         return $lines;
     }

@@ -14,7 +14,7 @@ Chaque règle du round d'une partie rapporte **valeur × coefficient** points ; 
 Calculée sur les cases validées de la partie :
 
 - **Cases validées** : nombre de cases validées.
-- **Lignes de 4 cases validées** et **Lignes de 5 cases validées** : parmi les 12 lignes de la grille (5 lignes, 5 colonnes, 2 diagonales). Une ligne de 4 est faite de 4 cases contiguës validées (positions 1 à 4 ou 2 à 5). Une ligne complète compte seulement comme ligne de 5, jamais aussi comme ligne de 4.
+- **Lignes de 4 cases validées** et **Lignes de 5 cases validées** : parmi les 16 lignes de la grille (5 lignes, 5 colonnes, 2 diagonales de 5 cases, 4 diagonales de 4 cases : A2-D5, B1-E4, A4-D1, B5-E2). Une ligne de 4 est faite de 4 cases contiguës validées (positions 1 à 4 ou 2 à 5, ou toute une diagonale de 4 cases). Une ligne complète compte seulement comme ligne de 5, jamais aussi comme ligne de 4.
 
 ## Valeur d'une règle libre
 
