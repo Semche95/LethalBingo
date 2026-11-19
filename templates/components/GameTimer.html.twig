@@ -17,16 +17,14 @@
             <span data-game--game-timer-target="pauseBadge" class="timer-pause-badge d-none">PAUSE</span>
         </twig:block>
         <twig:block name="below">
-            {% if not outerScope.this.game.stopwatch %}
-                <button type="button"
-                        class="btn btn-outline-warning btn-sm mt-2 d-none"
-                        data-game--game-timer-target="soundButton"
-                        data-action="game--game-timer#enableSound"
-                        data-live-ignore>
-                    {{ ux_icon('mdi:volume-off') }}
-                    Activer le son des alertes
-                </button>
-            {% endif %}
+            <button type="button"
+                    class="btn btn-outline-warning btn-sm mt-2 d-none"
+                    data-game--game-timer-target="soundButton"
+                    data-action="game--game-timer#enableSound"
+                    data-live-ignore>
+                {{ ux_icon('mdi:volume-off') }}
+                Activer le son des alertes
+            </button>
         </twig:block>
         <twig:block name="actions">
             {% if is_granted('ROLE_REFEREE') and outerScope.this.game.inProgress %}

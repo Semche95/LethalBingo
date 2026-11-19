@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { FakeAudioContext } from './fake_audio_context'
-import { SERVER_TIME, START_SEC, spyOnSounds, connectWithAnchor, useTimerControllerApp } from './game_timer_controller_setup'
+import { TimerSound } from '../controllers/game/game_timer_sound'
+import { SERVER_TIME, START_SEC, spyOnSounds, buildElement, connectController, connectWithAnchor, useTimerControllerApp } from './game_timer_controller_setup'
 
 describe('game_timer_controller sounds', () => {
     useTimerControllerApp()
@@ -131,6 +132,78 @@ describe('game_timer_controller sounds', () => {
             await flushPromises()
 
             expect(pendingSounds()[0]).toEqual(['notification', 62])
+        })
+    })
+
+    describe('start sound', () => {
+        // Lets the MutationObserver run the value change callbacks.
+        async function flushPromises() {
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve()
+            }
+        }
+
+        async function launch(controller: any, startedAt: number, serverTime: number = startedAt) {
+            controller.element.setAttribute('data-game--game-timer-server-time-value', String(serverTime))
+            controller.element.setAttribute('data-game--game-timer-game-started-at-value', String(startedAt))
+            await flushPromises()
+        }
+
+        beforeEach(() => {
+            FakeAudioContext.initialState = 'running'
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ arrayBuffer: async () => url })))
+        })
+
+        afterEach(() => {
+            vi.unstubAllGlobals()
+        })
+
+        it.each(['countdown', 'stopwatch'] as const)('plays the start sound when the %s is launched on an open page', async (timerMode) => {
+            const controller = await connectWithAnchor({ timerMode, gameStartedAt: null })
+            const playCount = spyOnSounds(controller)
+
+            await launch(controller, SERVER_TIME)
+
+            expect(playCount('start')).toBe(1)
+        })
+
+        it('plays the start sound while the page is hidden', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: null })
+            const playCount = spyOnSounds(controller)
+            Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true })
+
+            await launch(controller, SERVER_TIME)
+
+            expect(playCount('start')).toBe(1)
+        })
+
+        it('stays silent when the page opens on a launched game', async () => {
+            const el = buildElement({ gameStartedAt: SERVER_TIME, serverTime: SERVER_TIME })
+            const play = vi.spyOn(TimerSound.prototype, 'play')
+
+            await connectController(el)
+            await flushPromises()
+
+            expect(play).not.toHaveBeenCalledWith('start')
+        })
+
+        it('stays silent when the launch is discovered late, after a sleep', async () => {
+            const controller = await connectWithAnchor({ gameStartedAt: null })
+            const playCount = spyOnSounds(controller)
+
+            await launch(controller, SERVER_TIME - 300, SERVER_TIME)
+
+            expect(playCount('start')).toBe(0)
+        })
+
+        it('plays nothing while the browser blocks sound', async () => {
+            FakeAudioContext.initialState = 'suspended'
+            const controller = await connectWithAnchor({ gameStartedAt: null })
+
+            await launch(controller, SERVER_TIME)
+            await flushPromises()
+
+            expect(FakeAudioContext.instances[0].played).toEqual([])
         })
     })
 })

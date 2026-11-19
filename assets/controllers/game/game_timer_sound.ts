@@ -1,4 +1,4 @@
-export type TimerSoundName = 'notification' | 'end'
+export type TimerSoundName = 'start' | 'notification' | 'end'
 
 export interface ScheduledSound {
     name: TimerSoundName

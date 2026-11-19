@@ -172,11 +172,21 @@ Cette détection compare le temps restant actuel à sa valeur lors de la derniè
 
 Le seul état à conserver entre deux évaluations est la valeur du temps restant observée lors de l'évaluation précédente, rien de plus. Aucun ensemble de seuils « déjà signalés » ni aucun indicateur booléen par seuil ne doit être mémorisé séparément de cette valeur : un tel état, une fois marqué, risque de ne jamais être remis à zéro correctement pour toutes les voies de mutation possibles, ce qui empêche un seuil franchi une première fois de redéclencher le son lors d'un franchissement ultérieur légitime, même après une longue série de mutations entre les deux. La comparaison de la valeur actuelle à la seule valeur précédente, mise à jour à chaque évaluation sans exception, suffit à couvrir tous les cas sans avoir besoin d'un état supplémentaire.
 
+### Son de départ
+
+Au lancement de la partie, un son de départ (`start.mp3`, une seconde : deux bips graves puis un aigu) prévient les joueurs que le temps commence à s'écouler, en décompte comme en compteur (section 8). Il n'est joué que si la page voit le lancement en direct, c'est-à-dire quand `startedAt` passe de vide à une date sur une page déjà ouverte (`gameStartedAtValueChanged()`) :
+
+- **jamais au chargement de la page** : une page ouverte ou rechargée sur une partie déjà lancée reste silencieuse ;
+- **jamais en retard** : le son n'est joué que si le lancement date de moins de 2 secondes, d'après la meilleure heure serveur connue (la plus haute entre le `serverTime` du rendu et l'estimation de la section 1). Une page qui découvre le lancement après coup, par exemple au rechargement de l'état après une veille, reste silencieuse ;
+- **même page cachée** : contrairement aux seuils, aucun son programmé à l'avance ne peut le doubler.
+
+Il suit le même blocage que les autres sons : tant que le son est bloqué, il est perdu.
+
 ### Lecture du son
 
 Les navigateurs bloquent tout son tant que la personne n'a pas interagi avec la page (clic, touche). Les sons passent donc par l'API Web Audio (`TimerSound`, `game_timer_sound.ts`), qui indique si le son est encore bloqué, contrairement à une balise `<audio>` dont l'échec n'apparaît qu'au moment de jouer, trop tard. Tant que le son est bloqué, le timer affiche un bouton secondaire « Activer le son des alertes » (`btn-outline-warning`, marqué `data-live-ignore` pour que les re-renders Live ne le fassent pas réapparaître). N'importe quel clic ou appui de touche sur la page débloque le son et masque le bouton. Une alerte déclenchée pendant que le son est bloqué est perdue, elle n'est pas rejouée plus tard.
 
-**Son manquant.** Un fichier son introuvable ou illisible (`interval.mp3` pour les seuils, `end.mp3` pour la fin) doit déclencher une erreur, jamais être ignoré en silence. Le son n'est pas critique : cette erreur n'interrompt ni le timer ni la partie, le décompte, la couleur et les autres sons continuent de fonctionner.
+**Son manquant.** Un fichier son introuvable ou illisible (`start.mp3` pour le lancement, `interval.mp3` pour les seuils, `end.mp3` pour la fin) doit déclencher une erreur, jamais être ignoré en silence. Le son n'est pas critique : cette erreur n'interrompt ni le timer ni la partie, le décompte, la couleur et les autres sons continuent de fonctionner.
 
 **Page cachée.** Le navigateur suspend la boucle d'affichage (`requestAnimationFrame`) quand la page n'est pas visible (onglet en arrière-plan, fenêtre réduite). Dès que la page passe en arrière-plan (`visibilitychange`), les sons des seuils à venir sont donc **programmés à l'avance sur l'horloge audio** (`TimerSound.schedule()`), qui continue de tourner page cachée, contrairement aux minuteurs et à la boucle d'affichage. `listUpcomingAlerts()` (`game_timer_thresholds.ts`) calcule le délai de chaque seuil à partir du temps restant non arrondi (`calculateExactRemainingSeconds()`), au moment exact où l'affichage passe sous le seuil, comme `evaluateThresholds()`. La programmation est refaite à chaque changement du décompte pendant que la page est cachée (pause, reprise, ajout ou retrait d'une durée, broadcast Mercure, recalage serveur) et annulée si la partie est en pause ou terminée. Pendant ce temps, la boucle d'affichage ne joue aucun son, pour éviter les doublons. Au retour sur la page, la programmation est annulée et la référence de détection resynchronisée sans son : un seuil franchi pendant l'absence a déjà sonné à l'heure et ne rejoue pas en retard. Vérifié en simulant une page cachée (écart entre le bip et le passage de seuil : 1 ms sous Chromium, 10 ms sous Firefox) ; le vrai cas (jeu en plein écran, fenêtre réduite) reste à confirmer à la main, voir section 6.
 
@@ -232,6 +242,7 @@ La détection du son (section 5) doit être testée par des séquences de mutati
 - Couleur des seuils : fonction pure du temps restant actuel (aucun état ni minuteur), affichée quand le temps restant est dans les 5 secondes qui suivent un seuil (10min, 5min, 3min) ; dès 60 secondes, bascule en danger continu sans flash séparé, y compris à zéro ; jamais sur la durée totale de la partie ; aucune couleur avant le lancement, en pause ni une fois la partie arrêtée.
 - Son des seuils : événement ponctuel déclenché uniquement par le décompte naturel, jamais par un ajustement manuel de l'arbitre (ajout ou retrait d'une durée, réglage direct) même s'il traverse un seuil ; la référence de comparaison, elle, se resynchronise à chaque évaluation quelle qu'en soit l'origine, y compris les ajustements manuels, pour rester fiable sur les franchissements naturels suivants. Un son de fin distinct se déclenche une fois au passage à zéro (uniquement par décompte naturel, même règle). Une action de l'arbitre n'est comparée qu'une fois, avant et après.
 - Spécification des seuils : chaque multiple de 10 minutes restantes → warning ; 5/3min → danger (flash 5s) ; 1min → bascule directe en danger continu (section 5).
+- Son de départ au lancement, en décompte comme en compteur, seulement sur une page qui voit le lancement en direct (ni au chargement, ni plus de 2 s après le lancement).
 - Sons via Web Audio : bouton « Activer le son des alertes » tant que le navigateur bloque le son, débloqué par n'importe quelle interaction avec la page. Page cachée : sons programmés à l'avance sur l'horloge audio, pas de bip en retard au retour (section 5).
 - Toute correction sur ce composant se valide en navigateur réel. Safari reste à tester.
 - Partie sans limite de temps : compteur du temps écoulé, pauses déduites, avec ses propres champs (`pausedAt`, `pausedDurationSeconds`), sans alerte, son ni ajustement (section 8).
@@ -259,6 +270,6 @@ Actions (`GameTimerService`) :
 - **Ajout / retrait d'une durée et réglage direct** : sans effet, et non affichés.
 - **Arrêt** : `finishedAt = maintenant`. `isTimeUp()` vaut toujours `false`, la pause n'est jamais refusée.
 
-Affichage : libellé « Temps écoulé », ni couleur de seuil, ni son, ni bouton d'activation du son. La pause, la reprise et les temps forts (section 3) restent identiques.
+Affichage : libellé « Temps écoulé », ni couleur de seuil, ni son de seuil ou de fin. Le son de départ et le bouton d'activation du son (section 5) sont les mêmes que pour le décompte. La pause, la reprise et les temps forts (section 3) restent identiques.
 
 Une fois la partie arrêtée, le bloc du timer est remplacé par « Durée de la partie », le temps écoulé figé à l'arrêt (ou au début de la pause en cours à l'arrêt), calculé par `GameTimerService::elapsedSeconds()` avec la même formule. Une partie à décompte n'affiche pas de durée.

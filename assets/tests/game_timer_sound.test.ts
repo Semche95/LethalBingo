@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { TimerSound } from '../controllers/game/game_timer_sound'
 import { FakeAudioContext, installFakeAudioContext } from './fake_audio_context'
 
-const URLS = { notification: '/sounds/interval.mp3', end: '/sounds/end.mp3' }
+const URLS = { start: '/sounds/start.mp3', notification: '/sounds/interval.mp3', end: '/sounds/end.mp3' }
 
 async function flushPromises() {
     for (let i = 0; i < 10; i++) {

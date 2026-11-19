@@ -17,6 +17,10 @@ import { watchWakeUps } from '../../wake_up'
 import { TimerSound, type TimerSoundName } from './game_timer_sound'
 import { computeAlertColor, createThresholdState, evaluateThresholds, listUpcomingAlerts } from './game_timer_thresholds'
 
+// Beyond this delay after the launch, the start sound would announce a
+// departure that is already over.
+const START_SOUND_MAX_DELAY_SECONDS = 2
+
 /* stimulusFetch: 'lazy' */
 export default class extends Controller<HTMLDivElement> {
     static override values = {
@@ -102,6 +106,7 @@ export default class extends Controller<HTMLDivElement> {
 
     override connect() {
         this.sound = new TimerSound({
+            start: new URL('/assets/sounds/start.mp3', import.meta.url).href,
             notification: new URL('/assets/sounds/interval.mp3', import.meta.url).href,
             end: new URL('/assets/sounds/end.mp3', import.meta.url).href,
         })
@@ -144,8 +149,12 @@ export default class extends Controller<HTMLDivElement> {
         this.onGameStateChanged()
     }
 
-    gameStartedAtValueChanged() {
+    gameStartedAtValueChanged(startedAt: number | null, previousStartedAt: number | null) {
         this.onGameStateChanged()
+
+        if (startedAt && !previousStartedAt) {
+            this.playStartSound(startedAt)
+        }
     }
 
     gameFinishedAtValueChanged() {
@@ -344,6 +353,17 @@ export default class extends Controller<HTMLDivElement> {
         }
 
         this.sound?.play(name)
+    }
+
+    // Only on a launch seen live: the initial values are read before connect()
+    // creates the sound, so a page load stays silent, and a launch discovered
+    // late (wake-up from sleep) is never announced (docs/TIMER.md section 5).
+    // Played even while the page is hidden: no scheduled sound can double it.
+    private playStartSound(startedAt: number) {
+        const now = Math.max(this.serverTimeValue, this.getCurrentServerTime() / 1000)
+        if (now - startedAt < START_SOUND_MAX_DELAY_SECONDS) {
+            this.sound?.play('start')
+        }
     }
 
     // The browser stops the display loop while the page is hidden (other tab,
