@@ -42,6 +42,8 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 $gameRound = $this->getReference('game_round_1_' . $round, GameRound::class);
 
                 $game = new Game();
+                // Same format as Game::generateSlug(), but stable across fixture loads.
+                $game->setSlug($faker->regexify('[A-Za-z0-9]{12}'));
                 $game->setTeam($team);
                 $game->setRound($gameRound);
                 // Some games have no time limit: their timer counts the elapsed time.
