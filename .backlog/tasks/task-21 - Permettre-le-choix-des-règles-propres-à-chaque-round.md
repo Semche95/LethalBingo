@@ -10,7 +10,7 @@ labels:
 dependencies:
   - TASK-20
 documentation:
-  - .backlog/docs/doc-1 - Règles-de-scoring-à-définir.md
+  - .backlog/docs/doc-1 - Barème-des-règles-de-scoring.md
 priority: medium
 type: feature
 ordinal: 25000

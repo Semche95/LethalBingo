@@ -37,6 +37,13 @@
     grid-column: 2;
 }
 
+/* Highlights and points of a finished game, side by side */
+.game-footer-results {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+}
+
 .game-footer-reset {
     grid-column: 3;
     justify-self: end;

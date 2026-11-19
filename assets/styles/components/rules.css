@@ -43,3 +43,71 @@
 .game-rules > li + li {
     border-top: 1px solid var(--app-border);
 }
+
+/* Points of a game, in the modal of the game page */
+.game-points {
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+.game-points th,
+.game-points td {
+    padding: 0.5rem 0;
+    vertical-align: middle;
+}
+
+.game-points thead th {
+    color: var(--app-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.game-points td:first-child {
+    width: 100%;
+}
+
+.game-points th + th,
+.game-points td + td {
+    padding-left: 1.5rem;
+    text-align: end;
+    white-space: nowrap;
+}
+
+.game-points tbody tr,
+.game-points tfoot tr {
+    border-top: 1px solid var(--app-border);
+}
+
+.game-points-input {
+    width: 6rem;
+    margin-left: auto;
+    text-align: end;
+}
+
+.game-points-value {
+    font-weight: 600;
+}
+
+.game-points-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+@media (max-width: 575.98px) {
+    /* The 6rem margin of the modals would also apply to the sides */
+    .game-points-modal {
+        --tblr-modal-margin: 1rem;
+    }
+
+    .game-points th + th,
+    .game-points td + td {
+        padding-left: 0.75rem;
+    }
+
+    .game-points-input {
+        width: 4rem;
+    }
+}

@@ -9,6 +9,7 @@ use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\Rule;
 use App\Repository\GameRoundRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -148,15 +149,29 @@ readonly class BingoService
         }
     }
 
+    // A rule removed from the round loses its values in the games of the round.
     private function fillRules(BingoDto $bingoDto, GameRound $gameRound): void
     {
         foreach ($gameRound->getRules() as $rule) {
             if (!in_array($rule, $bingoDto->rules, true)) {
                 $gameRound->removeRule($rule);
+                $this->removeRuleValues($gameRound, $rule);
             }
         }
         foreach ($bingoDto->rules as $rule) {
             $gameRound->addRule($rule);
+        }
+    }
+
+    private function removeRuleValues(GameRound $gameRound, Rule $rule): void
+    {
+        foreach ($gameRound->getGames() as $game) {
+            foreach ($game->getRuleValues() as $ruleValue) {
+                if ($ruleValue->getRule() === $rule) {
+                    $game->getRuleValues()->removeElement($ruleValue);
+                    $this->em->remove($ruleValue);
+                }
+            }
         }
     }
 

@@ -9,7 +9,7 @@ labels:
   - regles-scoring
 dependencies: []
 documentation:
-  - .backlog/docs/doc-1 - Règles-de-scoring-à-définir.md
+  - .backlog/docs/doc-1 - Barème-des-règles-de-scoring.md
 priority: medium
 type: feature
 ordinal: 24000
@@ -18,7 +18,7 @@ ordinal: 24000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Les règles de scoring ne sont aujourd'hui recensées que dans le document « Règles de scoring à définir » : l'application ne les connaît pas. Les arbitres doivent pouvoir saisir et maintenir la liste des règles de scoring dans un onglet « Règles » de leur espace, pour ensuite choisir celles qui s'appliquent à chaque partie.
+Les règles de scoring ne sont aujourd'hui recensées que dans le document « Barème des règles de scoring » : l'application ne les connaît pas. Les arbitres doivent pouvoir saisir et maintenir la liste des règles de scoring dans un onglet « Règles » de leur espace, pour ensuite choisir celles qui s'appliquent à chaque partie.
 
 Chaque règle se compose d'une mesure et d'un coefficient, le nombre de points par unité de la mesure, négatif autorisé. Le score d'une partie vaudra la somme des valeurs des mesures multipliées par leur coefficient.
 

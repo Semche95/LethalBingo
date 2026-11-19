@@ -96,6 +96,11 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* Action bar of a card: Tabler's default padding is too tall */
+.card-footer {
+    padding: 0.75rem;
+}
+
 .form-check {
     margin-bottom: 0;
 }

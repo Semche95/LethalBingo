@@ -43,7 +43,7 @@ Le statut est affiché sous le titre : « Non démarrée », « En cours » (poi
 
 - **Démarrer** (`GameFrame::startGame` → `GameTimerService::start`) : sans confirmation, seulement si la partie n'est pas démarrée.
 - **Arrêter** (`stopGame`) : confirmation par la modale `stop-game-modal`, seulement si la partie est en cours. Seul `finishedAt` change (règles de date : `docs/TIMER.md`, section 3).
-- **Réinitialiser** (`resetGame` → `GameService::reset`) : confirmation par la modale `reset-game-modal` (action irréversible), dès que la partie est démarrée, terminée comprise. Dans une transaction : timer remis à zéro, suppression des cases dévoilées et validées, de l'historique des actions et des temps forts.
+- **Réinitialiser** (`resetGame` → `GameService::reset`) : confirmation par la modale `reset-game-modal` (action irréversible), dès que la partie est démarrée, terminée comprise. Dans une transaction : timer remis à zéro, suppression des cases dévoilées et validées, de l'historique des actions, des temps forts et des valeurs des règles libres.
 - **Les notes de l'arbitre (panneau Notes, à gauche) ne sont jamais supprimées**, ni par la réinitialisation ni par aucune autre action de la partie : elles appartiennent à l'arbitre, pas au déroulement de la partie (section 4).
 
 Une action qui ne correspond pas à l'état de la partie ne fait rien (démarrer une partie démarrée, arrêter une partie non démarrée…).
@@ -92,7 +92,7 @@ Règles serveur (`GameSquareService`) : dévoiler et masquer sont refusés une f
 
 ### Étapes
 
-Carte « Étapes » sous la grille (`GameSteps`) : pour chaque catégorie, les cases pas encore validées **dans cette partie**, triées par ligne puis colonne (`BingoSquareRepository::findNotValidatedWithCategory()`). Plusieurs équipes peuvent jouer le même bingo : une case validée par une autre équipe reste une étape de cette partie. Un clic sur les coordonnées remonte en haut de la page et fait clignoter la case dans la grille (`game--game-frame#scrollToSquare`, classe `blink`).
+Carte « Étapes » sous la grille (`GameSteps`), tant que la partie n'est pas terminée : pour chaque catégorie, les cases pas encore validées **dans cette partie**, triées par ligne puis colonne (`BingoSquareRepository::findNotValidatedWithCategory()`). Plusieurs équipes peuvent jouer le même bingo : une case validée par une autre équipe reste une étape de cette partie. Un clic sur les coordonnées remonte en haut de la page et fait clignoter la case dans la grille (`game--game-frame#scrollToSquare`, classe `blink`).
 
 ### Historique
 
@@ -112,6 +112,16 @@ Moments marqués par l'arbitre pendant la partie (`GameHighlights`, `GameHighlig
 - pendant la partie, la liste affiche l'heure du marquage (`markedAt`) ; une fois la partie terminée, l'heure et la durée depuis le lancement (`markedAt − startedAt`, pauses et temps passé à zéro compris) ;
 - chaque temps fort peut recevoir une note (sauvegarde automatique) et être supprimé, avec une confirmation dans la ligne elle-même ;
 - la liste est gérée par le client (`data-live-ignore`) : un re-render Live ne doit pas effacer un temps fort qui vient d'être ajouté. Live ne retirant jamais un élément marqué ainsi, le composant est placé dans un conteneur qui, lui, disparaît à la réinitialisation.
+
+### Points
+
+Une fois la partie terminée, le bouton plein « Points », action principale de la carte des actions à côté de la liste des temps forts, ouvre la modale `game-points-modal` (`GamePoints`, `GameScoreService`). Réservé à l'arbitre, absent si le round n'applique aucune règle :
+
+- une ligne par règle du round, dans l'ordre de l'onglet Règles (règles calculées puis règles libres, par identifiant) : valeur, coefficient et points (valeur × coefficient), puis le total ; barème détaillé dans doc-1 ;
+- règles calculées, sur les cases validées : nombre de cases validées, lignes de 4 et lignes de 5 parmi les 12 lignes de la grille (5 lignes, 5 colonnes, 2 diagonales). Une ligne de 4 est faite de 4 cases contiguës validées (positions 1 à 4 ou 2 à 5) ; une ligne complète ne compte que comme ligne de 5 ;
+- règles libres : valeur saisie par l'arbitre une fois la partie arrêtée (champ par règle, bouton « Enregistrer les valeurs », action `GamePoints::saveRuleValues`), 0 tant qu'elle n'est pas saisie. Les points et le total suivent la valeur tapée avant même l'enregistrement, qui ferme la modale et confirme par un toast « Valeurs enregistrées » (événement `points:saved`, `game_frame_controller.ts`). Le serveur refuse la saisie avant l'arrêt et ignore toute règle qui n'est pas une règle libre du round (`GameRuleValue`, une valeur par partie et règle) ;
+- les points sont recalculés à chaque affichage : un coefficient modifié s'applique aussi aux parties déjà jouées ;
+- retirer une règle d'un round supprime ses valeurs dans les parties de ce round (`BingoService::update`) ; la réinitialisation les supprime toutes (section 2).
 
 ### Notes
 
@@ -153,10 +163,10 @@ Ordre des blocs, de haut en bas :
 
 1. titre : nom du bingo, puis équipe et statut sur la même ligne ;
 2. timer (`docs/TIMER.md`) ; une fois la partie terminée, remplacé par « Durée de la partie » pour une partie sans limite de temps, absent sinon ;
-3. carte des actions de l'arbitre : date de démarrage ou d'arrêt, « Retour au tableau de bord » à gauche, action principale au centre (Démarrer, Arrêter ou liste des temps forts), Réinitialiser isolé à droite ;
+3. carte des actions de l'arbitre : date de démarrage ou d'arrêt, « Retour au tableau de bord » à gauche, action principale au centre (Démarrer, Arrêter, ou liste des temps forts et bouton Points), Réinitialiser isolé à droite ;
 4. grille ;
-5. carte Règles : les règles de scoring du round de la partie, libellé et coefficient, absente si le round n'en applique aucune ; visible de tous ;
-6. carte Étapes (arbitre).
+5. carte Étapes (arbitre, absente une fois la partie terminée), avant les règles car plus utile à l'arbitre pendant la partie ;
+6. carte Règles : les règles de scoring du round de la partie, libellé et coefficient, absente si le round n'en applique aucune ; visible de tous.
 
 Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauche du bouton Historique.
 
@@ -182,8 +192,8 @@ Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauc
 ## 8. Tests
 
 - `tests/Controller/GameControllerTest.php` : page publique, filtrage des libellés avant, pendant et après la partie (cases visibles d'office et dévoilées dès avant le démarrage), 404, notes.
-- `tests/Service/GameServiceTest.php`, `GameSquareServiceTest.php`, `GameSquareServiceRulesTest.php`, `GameSquareServiceSquareActionsTest.php`, `BingoServiceTest.php` : cycle de vie, règles des cases par état, verrou, motif visible.
-- `tests/Twig/GameHistoryTest.php`, `GameFrameTest.php`, `GameComponentsQueryCountTest.php` : historique, durée de partie, nombre de requêtes, étapes (y compris avec une autre partie sur le même bingo).
+- `tests/Service/GameServiceTest.php`, `GameSquareServiceTest.php`, `GameSquareServiceRulesTest.php`, `GameSquareServiceSquareActionsTest.php`, `BingoServiceTest.php`, `GameScoreServiceTest.php` : cycle de vie, règles des cases par état, verrou, motif visible, calcul des points et saisie des règles libres.
+- `tests/Twig/GameHistoryTest.php`, `GameFrameTest.php`, `GamePointsTest.php`, `GameComponentsQueryCountTest.php` : historique, durée de partie, bouton et modale des points, saisie des règles libres, nombre de requêtes, étapes (y compris avec une autre partie sur le même bingo).
 - `tests/Controller/Referee/GameHighlightControllerTest.php` : temps forts.
 - `assets/tests/game_frame_controller.test.ts` : relais Mercure et reconnexions.
 
@@ -197,6 +207,7 @@ Non couverts : le refus des actions Live de `GameFrame` et `BingoCard` à un non
 - Avant le démarrage comme pendant la partie, les joueurs voient les 7 cases visibles d'office et celles dévoilées par l'arbitre ; après l'arrêt, tout.
 - Seul l'arrêt par l'arbitre termine la partie et dévoile tout ; le décompte à zéro ne termine rien.
 - Une case validée mais encore masquée ne trahit jamais sa validation aux joueurs.
-- Réinitialiser efface cases, historique et temps forts, jamais les notes de l'arbitre.
+- Réinitialiser efface cases, historique, temps forts et valeurs des règles libres, jamais les notes de l'arbitre.
+- Les points (valeur × coefficient par règle) sont recalculés à chaque affichage ; l'arbitre les ouvre à côté des temps forts une fois la partie terminée.
 - Mercure ne transporte que des noms d'événements, jamais de données de partie.
 - Temps toujours centré, un seul bouton plein, palette sombre de la page sans couleur en dur, lisible à 375 px ; en Full HD, timer et grille entière tiennent ensemble dans 990 px de haut côté joueurs.

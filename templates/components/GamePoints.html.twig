@@ -1,0 +1,51 @@
+{% import 'macros.html.twig' as macros %}
+{% set score = computed.score %}
+{% set editable = game.finished and game.round.rules|filter(rule => not rule.computed) is not empty %}
+<div {{ attributes }}>
+    <table class="game-points">
+        <thead>
+            <tr>
+                <th>Règle</th>
+                <th>Valeur</th>
+                <th>Coefficient</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ruleScore in score.rules %}
+                {% set rule = ruleScore.rule %}
+                <tr>
+                    <td>{{ rule.label }}</td>
+                    <td class="hud-num">
+                        {% if editable and not rule.computed %}
+                            <input type="number" step="1" class="form-control form-control-sm game-points-input"
+                                   aria-label="Valeur : {{ rule.label }}"
+                                   data-model="ruleValues[{{ rule.id }}]"
+                                   value="{{ ruleValues[rule.id] ?? 0 }}">
+                        {% else %}
+                            {{ ruleScore.value }}
+                        {% endif %}
+                    </td>
+                    <td class="rules-coefficient-cell">{{ macros.coefficient(rule.coefficient) }}</td>
+                    <td class="game-points-value hud-num">{{ macros.signed(ruleScore.points) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total</th>
+                <th class="game-points-value hud-num">{{ macros.signed(score.total) }}</th>
+            </tr>
+        </tfoot>
+    </table>
+    {% if editable %}
+        <div class="game-points-actions">
+            <button type="button" class="btn btn-primary"
+                    data-action="live#action"
+                    data-live-action-param="saveRuleValues">
+                {{ ux_icon('tabler:device-floppy') }}
+                Enregistrer les valeurs
+            </button>
+        </div>
+    {% endif %}
+</div>

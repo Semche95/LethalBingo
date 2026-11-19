@@ -10,6 +10,7 @@ use App\Entity\BingoSquareValidated;
 use App\Entity\Game;
 use App\Entity\GameHighlight;
 use App\Entity\GameRound;
+use App\Entity\GameRuleValue;
 use App\Entity\GameSquareAction;
 use App\Entity\SquareActionType;
 use App\Entity\Team;
@@ -67,6 +68,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                             )
                         );
                         $game->setFinishedAt($finishedAt);
+                        $this->enterRuleValues($manager, $faker, $game);
                     }
                 }
 
@@ -104,6 +106,18 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
 
         foreach ($faker->randomElements($playable, 3) as [$square, $playableFrom]) {
             $this->playActions($manager, $faker, $game, $square, $playableFrom, $to, SquareActionType::Validate, SquareActionType::Invalidate, new BingoSquareValidated());
+        }
+    }
+
+    /**
+     * Enters a value for each free rule of the round of a finished game.
+     */
+    private function enterRuleValues(ObjectManager $manager, Generator $faker, Game $game): void
+    {
+        foreach ($game->getRound()->getRules() as $rule) {
+            if (!$rule->isComputed()) {
+                $manager->persist(new GameRuleValue($game, $rule)->setValue($faker->numberBetween(0, 10)));
+            }
         }
     }
 

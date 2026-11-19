@@ -73,7 +73,7 @@ assets/controllers/ (component/ = UX), styles/ (importés par app.css), icons/, 
 - Vérification visuelle sur https://lethalbingo.localhost obligatoire avant de terminer une tâche dont le changement est visible dans l'interface.
 - Langue des tâches : français.
 - Labels courants : `timer`, `gestion-parties`, `dashboard-arbitre`, `ui`, `regles-scoring`, `historique`, `contenu`, `rounds`, `preparation`, `comptes`, `traduction`.
-- Document transverse existant : règles de scoring à définir (doc-1).
+- Document transverse existant : barème des règles de scoring (doc-1).
 
 ## Domaine
 

@@ -40,11 +40,13 @@ class GameRound implements Stringable
 
     /**
      * Scoring rules that apply to the games of this round; a deleted rule
-     * leaves the rounds.
+     * leaves the rounds. Ordered as in the rules tab: the computed rules,
+     * created by the migration, have the lowest ids.
      *
      * @var Collection<int, Rule>
      */
     #[ORM\ManyToMany(targetEntity: Rule::class)]
+    #[ORM\OrderBy(['id' => 'ASC'])]
     #[ORM\InverseJoinColumn(onDelete: 'CASCADE')]
     private Collection $rules;
 

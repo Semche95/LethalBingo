@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Service;
 
+use App\Dto\BingoDto;
 use App\Entity\BingoSquare;
 use App\Entity\BingoSquareCategory;
+use App\Entity\Game;
 use App\Entity\GameRound;
+use App\Entity\GameRuleValue;
 use App\Entity\Rule;
 use App\Repository\GameRoundRepository;
 use App\Service\BingoService;
@@ -144,5 +147,28 @@ class BingoServiceTest extends TestCase
 
         $this->assertSame(2, $result->getSeason());
         $this->assertSame(5, $result->getNumber());
+    }
+
+    public function testUpdateRemovesTheValuesOfTheRulesRemovedFromTheRound(): void
+    {
+        $keptRule = new Rule()->setMeasure('Kept');
+        $removedRule = new Rule()->setMeasure('Removed');
+        $round = new GameRound()->setSeason(1)->setNumber(1)->addRule($keptRule)->addRule($removedRule);
+        $game = new Game()->setRound($round);
+        $round->addGame($game);
+        $keptValue = new GameRuleValue($game, $keptRule);
+        $removedValue = new GameRuleValue($game, $removedRule);
+        $game->getRuleValues()->add($keptValue);
+        $game->getRuleValues()->add($removedValue);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('remove')->with($removedValue);
+
+        $bingoDto = new BingoDto(1, 1);
+        $bingoDto->rules = [$keptRule];
+        $this->createBingoService(em: $em)->update($bingoDto, $round);
+
+        $this->assertSame([$keptRule], array_values($round->getRules()->toArray()));
+        $this->assertSame([$keptValue], array_values($game->getRuleValues()->toArray()));
     }
 }

@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
-import { initTooltips } from '../../utils'
+import { hideModal, initTooltips, showToast } from '../../utils'
 import { ActionEvent } from '@hotwired/stimulus/dist/types/core/action_event'
 import { Component, getComponent } from '@symfony/ux-live-component'
 import { watchWakeUps } from '../../wake_up'
@@ -66,6 +66,12 @@ export default class extends Controller<HTMLDivElement> {
 
     private refreshGame() {
         this.component?.emit('gameFrameRefresh', {})
+    }
+
+    // The saved values close the points modal, with a toast to confirm them.
+    onPointsSaved(event: CustomEvent<{ flash: { type: string; message: string } }>) {
+        hideModal('game-points-modal')
+        showToast(event.detail.flash.message, event.detail.flash.type)
     }
 
     // TODO
