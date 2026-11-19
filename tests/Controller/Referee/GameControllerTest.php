@@ -44,6 +44,27 @@ class GameControllerTest extends ControllerTestCase
         self::assertNull($this->em->getRepository(Game::class)->findOneBy(['team' => $team]));
     }
 
+    public function testRefusesARoundTheTeamAlreadyPlayed(): void
+    {
+        $game = $this->createGame();
+        $gameCount = $this->em->getRepository(Game::class)->count();
+
+        $this->submitGameForm('/referee/game/add', $game->getTeam()->getId(), $game->getRound()->getId());
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('.invalid-feedback', 'Cette équipe a déjà une partie sur ce bingo.');
+        self::assertSame($gameCount, $this->em->getRepository(Game::class)->count());
+    }
+
+    public function testEditKeepsTheRoundOfTheGame(): void
+    {
+        $game = $this->createGame();
+
+        $this->submitGameForm('/referee/game/edit/' . $game->getId(), $game->getTeam()->getId(), $game->getRound()->getId());
+
+        self::assertResponseRedirects('/referee/game/edit/' . $game->getId());
+    }
+
     public function testRejectsAnEmptyForm(): void
     {
         $gameCount = $this->em->getRepository(Game::class)->count();

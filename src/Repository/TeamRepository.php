@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Game;
 use App\Entity\Team;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -45,6 +46,28 @@ class TeamRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery()->getScalarResult();
+    }
+
+    /**
+     * Rounds each team already has a game on, indexed by team id and
+     * aggregated as JSON, leaving out the $except game so that its own round
+     * stays available when it is edited.
+     *
+     * @return array<int, array{team_id: int, round_ids: string}>
+     */
+    public function findPlayedRoundIdsIndexedById(?Game $except = null): array
+    {
+        $qb = $this->createQueryBuilder('t', 't.id')
+            ->select('t.id AS team_id', 'JSON_AGG(IDENTITY(g.round)) AS round_ids')
+            ->join('t.games', 'g')
+            ->groupBy('t.id');
+
+        if ($except?->getId() !== null) {
+            $qb->where('g.id != :except')
+                ->setParameter('except', $except->getId());
+        }
+
+        return $qb->getQuery()->getArrayResult();
     }
 
     /**

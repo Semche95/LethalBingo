@@ -34,6 +34,10 @@ class GameFormType extends AbstractType
                 'class' => Team::class,
                 'label' => 'Équipe',
                 ...self::SELECT_OPTIONS,
+                'attr' => [
+                    ...self::SELECT_OPTIONS['attr'],
+                    'data-action' => 'referee--game-form#disablePlayedRounds',
+                ],
             ])
             ->add('round', EntityType::class, [
                 'class' => GameRound::class,

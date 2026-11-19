@@ -37,7 +37,7 @@ readonly class GameService
 
     public function entityToDto(Game $game): GameDto
     {
-        return new GameDto($game->getTeam(), $game->getRound(), !$game->isStopwatch())
+        return new GameDto($game->getTeam(), $game->getRound(), !$game->isStopwatch(), game: $game)
             ->setCountdownDurationSeconds($game->getCountdownDurationSeconds());
     }
 

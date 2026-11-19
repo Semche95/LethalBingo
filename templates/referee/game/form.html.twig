@@ -28,7 +28,7 @@
         {% endblock %}
     {% endcomponent %}
 
-    <div class="row g-4" {{ stimulus_controller('referee--game-form') }} data-action="team:added@document->referee--game-form#onTeamAdded team:updated@document->referee--game-form#onTeamAdded">
+    <div class="row g-4" {{ stimulus_controller('referee--game-form', {playedRoundIdsByTeam: playedRoundIdsByTeam|map(team => team.round_ids|json_decode)}) }} data-action="team:added@document->referee--game-form#onTeamAdded team:updated@document->referee--game-form#onTeamAdded">
         <div class="col-lg-7">
             <div class="card">
                 {{ macros.card_header('Paramètres', 'adjustments', 'Le bingo joué, l\'équipe qui y participe et le timer.') }}
@@ -44,7 +44,7 @@
                         <twig:Alert type="info" icon="lock">La partie est en cours&nbsp;: le bingo, l'équipe et le timer ne peuvent plus être modifiés.</twig:Alert>
                     {% endif %}
 
-                    <div class="mb-3">
+                    <div class="mb-3" {{ stimulus_target('referee--game-form', 'round') }}>
                         {{ form_label(form.round) }}
                         {{ form_widget(form.round) }}
                         {{ form_errors(form.round) }}

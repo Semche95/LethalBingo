@@ -7,12 +7,14 @@ namespace App\Dto;
 use App\Entity\Game;
 use App\Entity\GameRound;
 use App\Entity\Team;
+use App\Validator\UniqueTeamRound;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * A game as edited in the referee form: team and round are null until chosen.
  */
+#[UniqueTeamRound]
 class GameDto
 {
     public const int MAX_COUNTDOWN_HOURS = 99;
@@ -33,6 +35,8 @@ class GameDto
         // Default: Game::DEFAULT_COUNTDOWN_DURATION_SECONDS, in hours and minutes.
         public ?int $countdownHours = (Game::DEFAULT_COUNTDOWN_DURATION_SECONDS - Game::DEFAULT_COUNTDOWN_DURATION_SECONDS % 3600) / 3600,
         public ?int $countdownMinutes = Game::DEFAULT_COUNTDOWN_DURATION_SECONDS % 3600 / 60,
+        // Game being edited, null on creation: it does not conflict with itself.
+        public ?Game $game = null,
     ) {
     }
 

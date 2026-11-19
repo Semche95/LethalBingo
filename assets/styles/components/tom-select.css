@@ -18,8 +18,10 @@
     display: none;
 }
 
-/* Solid dropdown background */
-.ts-dropdown {
+/* Solid dropdown background. Scoped to the wrapper to win over
+   tom-select.bootstrap5.css, injected after app.css by the lazy autocomplete
+   controller, whose var(--bs-body-bg) is undefined with Tabler. */
+.ts-wrapper .ts-dropdown {
     background: var(--tblr-body-bg);
     border: 1px solid var(--tblr-border-color);
 }

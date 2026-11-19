@@ -7,6 +7,7 @@ namespace App\Controller\Referee;
 use App\Dto\GameDto;
 use App\Entity\Game;
 use App\Form\GameFormType;
+use App\Repository\TeamRepository;
 use App\Service\CsrfGuard;
 use App\Service\GameService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,19 +30,19 @@ class GameController extends AbstractController
     }
 
     #[Route('/add', name: 'app_referee_game_add')]
-    public function add(Request $request, GameService $gameService): Response
+    public function add(Request $request, GameService $gameService, TeamRepository $teamRepository): Response
     {
-        return $this->handleForm($request, $gameService, new GameDto(), null);
+        return $this->handleForm($request, $gameService, $teamRepository, new GameDto(), null);
     }
 
     #[Route('/edit/{id}', name: 'app_referee_game_edit', requirements: ['id' => '\d+'])]
-    public function edit(Request $request, GameService $gameService, Game $game): Response
+    public function edit(Request $request, GameService $gameService, TeamRepository $teamRepository, Game $game): Response
     {
-        return $this->handleForm($request, $gameService, $gameService->entityToDto($game), $game);
+        return $this->handleForm($request, $gameService, $teamRepository, $gameService->entityToDto($game), $game);
     }
 
     // Shared by add ($game null) and edit: a started game can no longer be changed.
-    private function handleForm(Request $request, GameService $gameService, GameDto $gameDto, ?Game $game): Response
+    private function handleForm(Request $request, GameService $gameService, TeamRepository $teamRepository, GameDto $gameDto, ?Game $game): Response
     {
         $readOnly = $game?->isReadOnly() ?? false;
         $form = $this->createForm(GameFormType::class, $gameDto, ['disabled' => $readOnly]);
@@ -65,6 +66,7 @@ class GameController extends AbstractController
             'game' => $game,
             'form' => $form,
             'mode' => $game === null ? 'add' : 'edit',
+            'playedRoundIdsByTeam' => $teamRepository->findPlayedRoundIdsIndexedById($game),
         ]);
     }
 

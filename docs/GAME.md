@@ -12,6 +12,7 @@ La page est la même pour tout le monde : les joueurs la suivent, l'arbitre la p
 - La page est publique : aucun compte n'est demandé. Les joueurs n'ont pas de compte, ils suivent leur partie par son lien unique.
 - Le slug est tiré au hasard à la création de la partie (`Game::generateSlug()`). L'arbitre peut le régénérer depuis le formulaire de la partie (« Nouveau lien ») : l'ancien lien cesse alors de fonctionner.
 - Aucun pseudo de compte n'est affiché aux joueurs : rien de ce qu'ils voient ne dépend du `username`.
+- Une équipe ne joue chaque round qu'une fois : dans le formulaire de la partie, les rounds déjà joués par l'équipe choisie sont grisés (le round de la partie modifiée reste proposé), et la contrainte `UniqueTeamRound` sur `GameDto` refuse un doublon à l'enregistrement.
 
 ### Ce que voit chaque profil
 

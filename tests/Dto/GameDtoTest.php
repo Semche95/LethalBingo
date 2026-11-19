@@ -8,8 +8,11 @@ use App\Dto\GameDto;
 use App\Entity\BingoSquare;
 use App\Entity\GameRound;
 use App\Entity\Team;
+use App\Repository\GameRepository;
+use App\Validator\UniqueTeamRoundValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\ConstraintValidatorFactory;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -21,6 +24,9 @@ class GameDtoTest extends TestCase
     {
         $this->validator = Validation::createValidatorBuilder()
             ->enableAttributeMapping()
+            ->setConstraintValidatorFactory(new ConstraintValidatorFactory([
+                UniqueTeamRoundValidator::class => new UniqueTeamRoundValidator($this->createStub(GameRepository::class)),
+            ]))
             ->getValidator();
     }
 
