@@ -1,12 +1,12 @@
 ---
 id: TASK-28
 title: >-
-  Empêcher une équipe de démarrer un round tant qu'elle n'a pas terminé le round
+  Avertir l'arbitre quand une équipe démarre un round sans avoir terminé le
   précédent
 status: To Do
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-18T22:11:00Z'
+updated_date: '2026-11-20T22:24:00Z'
 labels:
   - rounds
 dependencies: []
@@ -18,15 +18,15 @@ ordinal: 32000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Chaque équipe doit jouer tous les rounds dans l'ordre, mais rien n'empêche aujourd'hui de démarrer une partie d'un round alors que l'équipe n'a pas terminé le round précédent. Le démarrage doit être bloqué dans ce cas. L'avancement des autres équipes n'entre pas en compte : une équipe peut être au round 4 pendant qu'une autre est au round 1.
+Chaque équipe doit jouer tous les rounds dans l'ordre, mais rien ne signale aujourd'hui qu'une partie va démarrer alors que l'équipe n'a pas terminé sa partie du round précédent. L'arbitre doit en être averti au moment du démarrage, sans être bloqué : il peut quand même démarrer la partie. L'avancement des autres équipes n'entre pas en compte : une équipe peut être au round 4 pendant qu'une autre est au round 1.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Une partie ne peut pas démarrer tant que son équipe n'a pas terminé sa partie du round précédent
-- [ ] #2 L'avancement des autres équipes n'empêche jamais le démarrage d'une partie
-- [ ] #3 L'arbitre voit pourquoi le démarrage est refusé
-- [ ] #4 Le premier round peut toujours démarrer
+- [ ] #1 Au démarrage d'une partie dont l'équipe n'a pas terminé sa partie du round précédent, l'arbitre voit un avertissement qui explique pourquoi
+- [ ] #2 Malgré l'avertissement, l'arbitre peut démarrer la partie
+- [ ] #3 L'avancement des autres équipes ne déclenche jamais d'avertissement
+- [ ] #4 Le premier round ne déclenche jamais d'avertissement
 <!-- AC:END -->
 
 ## Definition of Done

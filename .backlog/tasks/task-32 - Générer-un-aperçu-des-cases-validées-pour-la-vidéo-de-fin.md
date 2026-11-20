@@ -4,7 +4,7 @@ title: Générer un aperçu des cases validées pour la vidéo de fin
 status: To Do
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-18T22:11:00Z'
+updated_date: '2026-11-20T22:24:00Z'
 labels:
   - contenu
 dependencies: []
@@ -17,6 +17,8 @@ ordinal: 36000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Une vidéo est montée à la fin de l'événement et doit montrer le résultat de chaque partie. L'application doit générer un aperçu de la grille d'une partie terminée qui met en évidence les cases validées, prêt à être intégré au montage.
+
+Le design de l'aperçu est validé par l'utilisateur avant toute implémentation.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
