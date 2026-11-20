@@ -6,6 +6,7 @@ namespace App\Tests\Service;
 
 use App\Entity\Game;
 use App\Entity\TimerMode;
+use App\Repository\GameRepository;
 use App\Service\GameService;
 use App\Service\GameTimerService;
 use DateTimeImmutable;
@@ -25,7 +26,7 @@ class GameTimerServiceTest extends TestCase
     {
         $em = $this->createStub(EntityManagerInterface::class);
         $hub = $this->createStub(HubInterface::class);
-        $gameService = new GameService($em, $hub);
+        $gameService = new GameService($em, $hub, $this->createStub(GameRepository::class));
 
         $this->timerService = new GameTimerService($gameService);
     }

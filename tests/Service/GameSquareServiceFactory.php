@@ -7,6 +7,7 @@ namespace App\Tests\Service;
 use App\Repository\BingoSquareRepository;
 use App\Repository\BingoSquareRevealedRepository;
 use App\Repository\BingoSquareValidatedRepository;
+use App\Repository\GameRepository;
 use App\Service\GameService;
 use App\Service\GameSquareService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,7 +38,7 @@ trait GameSquareServiceFactory
             $squareRepository ?? $this->createStub(BingoSquareRepository::class),
             $revealedRepository ?? $this->createStub(BingoSquareRevealedRepository::class),
             $validatedRepository ?? $this->createStub(BingoSquareValidatedRepository::class),
-            new GameService($em, $hub ?? $this->createStub(HubInterface::class)),
+            new GameService($em, $hub ?? $this->createStub(HubInterface::class), $this->createStub(GameRepository::class)),
             $lockFactory ?? new LockFactory(new InMemoryStore()),
         );
     }

@@ -26,6 +26,7 @@ L'endpoint des Live Components est public : masquer un bouton ne suffit jamais. 
 
 - `#[IsGranted('ROLE_REFEREE')]` sur `GameFrame::startGame`, `stopGame`, `resetGame`, sur `BingoCard::reveal`, `conceal`, `validate`, `invalidate`, et sur les actions du timer ;
 - `GameHistory::__invoke` est réservé à l'arbitre : un joueur qui demande l'historique n'obtient rien ;
+- l'avertissement du round précédent non terminé (`GameFrame::getPreviousRoundStatus`) n'est calculé que pour l'arbitre ; il ne bloque jamais `startGame` côté serveur ;
 - `GameController::saveNotes` et `GameHighlightController` sont réservés à l'arbitre.
 
 ---
@@ -42,7 +43,8 @@ Le statut est affiché sous le titre : « Non démarrée », « En cours » (poi
 
 ### Actions de l'arbitre
 
-- **Démarrer** (`GameFrame::startGame` → `GameTimerService::start`) : sans confirmation, seulement si la partie n'est pas démarrée.
+- **Démarrer** (`GameFrame::startGame` → `GameTimerService::start`) : seulement si la partie n'est pas démarrée. Sans confirmation, sauf si l'équipe n'a pas terminé le round précédent : le bouton ouvre alors la modale `start-game-modal`, qui en donne la raison et permet de démarrer quand même.
+- **Round précédent non terminé** (`GameService::previousRoundStatus`, `PreviousRoundStatus`) : le round précédent est celui de la même saison dont le numéro vaut celui de la partie moins 1 (`GameRepository::findPreviousRoundGames`). L'arbitre est averti si aucune partie de l'équipe pour ce round n'est terminée : aucune partie créée, partie non démarrée (ou réinitialisée), partie en cours. Le round 1 d'une saison n'avertit jamais, l'avancement des autres équipes n'entre pas en compte. Ce n'est qu'un avertissement : il n'empêche jamais le démarrage. Calculé seulement pour l'arbitre avant le démarrage, jamais pour les joueurs.
 - **Arrêter** (`stopGame`) : confirmation par la modale `stop-game-modal`, seulement si la partie est en cours. Seul `finishedAt` change (règles de date : `docs/TIMER.md`, section 3).
 - **Réinitialiser** (`resetGame` → `GameService::reset`) : confirmation par la modale `reset-game-modal` (action irréversible), dès que la partie est démarrée, terminée comprise. Dans une transaction : timer remis à zéro, suppression des cases dévoilées et validées, de l'historique des actions, des temps forts et des valeurs des règles libres.
 - **Les notes de l'arbitre (panneau Notes, à gauche) ne sont jamais supprimées**, ni par la réinitialisation ni par aucune autre action de la partie : elles appartiennent à l'arbitre, pas au déroulement de la partie (section 4).
@@ -181,7 +183,7 @@ Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauc
 - Palette propre à la page, thème sombre uniquement, définie sur `body.game-page` (`assets/styles/game/theme.css`) : orange du HUD pour l'action principale et le temps, vert pour la validation, bleu pour l'information, jaune pour les temps forts et la pause, cramoisi réservé à la réinitialisation, distinct du rouge de Tabler gardé par Retirer du temps. Les variables Tabler (`--tblr-*`) y sont rebranchées. Aucune couleur en dur dans les règles.
 - Police 3270 (`assets/fonts/`) pour les titres, libellés du HUD, chiffres et coordonnées ; police de Tabler pour le texte.
 - Bouton plein : l'action principale de la carte des actions. Les autres sont en contour ou discrets, Réinitialiser en contour cramoisi (plein dans sa modale de confirmation).
-- Les modales de la page (arrêt, réinitialisation, `ConfirmModal`) reprennent la surface des cartes et un titre en 3270. Le bouton de confirmation de l'arrêt est orange, comme le bouton qui l'ouvre.
+- Les modales de la page (démarrage, arrêt, réinitialisation, `ConfirmModal`) reprennent la surface des cartes et un titre en 3270. Les boutons de confirmation du démarrage et de l'arrêt sont orange, comme les boutons qui les ouvrent.
 - Largeur maximale de 1140 px. **Lisible à 375 px, sans défilement horizontal.** Les marges laissent la place aux boutons flottants sur téléphone, sans plus.
 
 ### Hauteur sur un écran Full HD
@@ -193,8 +195,9 @@ Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauc
 ## 8. Tests
 
 - `tests/Controller/GameControllerTest.php` : page publique, filtrage des libellés avant, pendant et après la partie (cases visibles d'office et dévoilées dès avant le démarrage), 404, notes.
-- `tests/Service/GameServiceTest.php`, `GameSquareServiceTest.php`, `GameSquareServiceRulesTest.php`, `GameSquareServiceSquareActionsTest.php`, `BingoServiceTest.php`, `GameScoreServiceTest.php` : cycle de vie, règles des cases par état, verrou, motif visible, calcul des points et saisie des règles libres.
-- `tests/Twig/GameHistoryTest.php`, `GameFrameTest.php`, `GamePointsTest.php`, `GameComponentsQueryCountTest.php` : historique, durée de partie, bouton et modale des points, saisie des règles libres, nombre de requêtes, étapes (y compris avec une autre partie sur le même bingo).
+- `tests/Service/GameServiceTest.php`, `GameSquareServiceTest.php`, `GameSquareServiceRulesTest.php`, `GameSquareServiceSquareActionsTest.php`, `BingoServiceTest.php`, `GameScoreServiceTest.php` : cycle de vie, avertissement du round précédent, règles des cases par état, verrou, motif visible, calcul des points et saisie des règles libres.
+- `tests/Twig/GameHistoryTest.php`, `GameFrameTest.php`, `GamePointsTest.php`, `GameComponentsQueryCountTest.php` : historique, durée de partie, bouton et modale des points, saisie des règles libres, avertissement du round précédent non terminé, nombre de requêtes, étapes (y compris avec une autre partie sur le même bingo).
+- `tests/Repository/GameRepositoryTest.php` : parties de l'équipe pour le round précédent.
 - `tests/Controller/Referee/GameHighlightControllerTest.php` : temps forts.
 - `assets/tests/game_frame_controller.test.ts` : relais Mercure et reconnexions.
 

@@ -13,10 +13,12 @@ use App\Entity\GameHighlight;
 use App\Entity\GameRound;
 use App\Entity\GameRuleValue;
 use App\Entity\GameSquareAction;
+use App\Entity\PreviousRoundStatus;
 use App\Entity\Rule;
 use App\Entity\SquareActionType;
 use App\Entity\Team;
 use App\Entity\TimerMode;
+use App\Repository\GameRepository;
 use App\Service\GameService;
 use App\Service\RefreshEvent;
 use DateTimeImmutable;
@@ -29,12 +31,88 @@ class GameServiceTest extends TestCase
     /**
      * Builds the service, replacing every collaborator not given by a stub.
      */
-    private function createGameService(?EntityManagerInterface $em = null, ?HubInterface $hub = null): GameService
-    {
+    private function createGameService(
+        ?EntityManagerInterface $em = null,
+        ?HubInterface $hub = null,
+        ?GameRepository $gameRepository = null,
+    ): GameService {
         return new GameService(
             $em ?? $this->createStub(EntityManagerInterface::class),
             $hub ?? $this->createStub(HubInterface::class),
+            $gameRepository ?? $this->createStub(GameRepository::class),
         );
+    }
+
+    /**
+     * Status of a game of round 2 whose team played the given games in round 1.
+     *
+     * @param list<Game> $previousGames
+     */
+    private function previousRoundStatus(array $previousGames, int $number = 2): ?PreviousRoundStatus
+    {
+        $gameRepository = $this->createStub(GameRepository::class);
+        $gameRepository->method('findPreviousRoundGames')->willReturn($previousGames);
+
+        $game = new Game()->setRound(new GameRound()->setSeason(1)->setNumber($number));
+
+        return $this->createGameService(gameRepository: $gameRepository)->previousRoundStatus($game);
+    }
+
+    public function testTheFirstRoundOfASeasonNeverWarnsNorQueries(): void
+    {
+        $gameRepository = $this->createMock(GameRepository::class);
+        $gameRepository->expects($this->never())->method('findPreviousRoundGames');
+
+        foreach ([1, 2] as $season) {
+            $game = new Game()->setRound(new GameRound()->setSeason($season)->setNumber(1));
+            self::assertNull($this->createGameService(gameRepository: $gameRepository)->previousRoundStatus($game));
+        }
+    }
+
+    public function testAFinishedPreviousGameDoesNotWarn(): void
+    {
+        $finished = new Game()
+            ->resetTimer(new DateTimeImmutable('-1 hour'))
+            ->setFinishedAt(new DateTimeImmutable('-10 minutes'));
+
+        self::assertNull($this->previousRoundStatus([$finished]));
+    }
+
+    public function testNoPreviousGameWarns(): void
+    {
+        self::assertSame(PreviousRoundStatus::NoGame, $this->previousRoundStatus([]));
+    }
+
+    public function testANotStartedOrResetPreviousGameWarns(): void
+    {
+        $reset = new Game()->resetTimer(new DateTimeImmutable('-1 hour'));
+        $reset->resetTimer(null);
+
+        self::assertSame(PreviousRoundStatus::NotStarted, $this->previousRoundStatus([new Game()]));
+        self::assertSame(PreviousRoundStatus::NotStarted, $this->previousRoundStatus([$reset]));
+    }
+
+    public function testAPreviousGameInProgressWarns(): void
+    {
+        $paused = new Game()
+            ->resetTimer(new DateTimeImmutable('-1 hour'))
+            ->setIsPaused(true)
+            ->setPausedAt(new DateTimeImmutable('-5 minutes'));
+        $atZero = new Game()->resetTimer(new DateTimeImmutable('-1 hour'), new DateTimeImmutable('-5 minutes'));
+
+        self::assertSame(PreviousRoundStatus::InProgress, $this->previousRoundStatus([$paused]));
+        self::assertSame(PreviousRoundStatus::InProgress, $this->previousRoundStatus([$atZero]));
+    }
+
+    public function testOneFinishedGameAmongSeveralForThePreviousRoundDoesNotWarn(): void
+    {
+        $inProgress = new Game()->resetTimer(new DateTimeImmutable('-1 hour'));
+        $finished = new Game()
+            ->resetTimer(new DateTimeImmutable('-2 hours'))
+            ->setFinishedAt(new DateTimeImmutable('-1 hour'));
+
+        self::assertNull($this->previousRoundStatus([$inProgress, $finished]));
+        self::assertSame(PreviousRoundStatus::InProgress, $this->previousRoundStatus([new Game(), $inProgress]));
     }
 
     public function testRefreshGameFramePublishesMercureUpdate(): void

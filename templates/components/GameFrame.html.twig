@@ -42,11 +42,17 @@
                                     Retour au tableau de bord
                                 </a>
                                 {% if not this.game.started %}
+                                    {# Only a warning: the referee can still start from the modal #}
                                     <button
                                             type="button"
                                             class="btn btn-primary game-footer-main"
-                                            data-action="live#action"
-                                            data-live-action-param="startGame"
+                                            {% if computed.previousRoundStatus %}
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#start-game-modal"
+                                            {% else %}
+                                                data-action="live#action"
+                                                data-live-action-param="startGame"
+                                            {% endif %}
                                     >
                                         Démarrer la partie
                                     </button>
@@ -137,6 +143,30 @@
                 {% block modal_classes %}modal-lg modal-dialog-centered{% endblock %}
                 {% block modal_title %}Points{% endblock %}
                 {% block modal_body %}<twig:GamePoints :game="game" />{% endblock %}
+            {% endcomponent %}
+        {% endif %}
+
+        {% set previousRoundStatus = computed.previousRoundStatus %}
+        {% if previousRoundStatus %}
+            {% set previousRoundReasons = {
+                no_game: 'aucune partie n\'a été créée pour ce round',
+                not_started: 'sa partie n\'a pas encore été démarrée',
+                in_progress: 'sa partie est encore en cours',
+            } %}
+            {% set game = this.game %}
+            {% component ConfirmModal with {
+                id: 'start-game-modal',
+                title: 'Round précédent non terminé',
+                confirmLabel: 'Démarrer la partie',
+                confirmIcon: 'player-play',
+                status: 'primary',
+                liveAction: 'startGame',
+            } %}
+                {% block content %}
+                    L'équipe <strong>{{ game.team.name }}</strong> n'a pas terminé le round
+                    <span class="hud-num">{{ game.round.number - 1 }}</span>&nbsp;:
+                    {{ previousRoundReasons[previousRoundStatus.value] }}. Démarrer la partie quand même&nbsp;?
+                {% endblock %}
             {% endcomponent %}
         {% endif %}
 

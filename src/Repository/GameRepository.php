@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Game;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -77,6 +78,29 @@ class GameRepository extends ServiceEntityRepository
             ->addOrderBy('t.name', 'ASC')
             ->getQuery()
             ->getScalarResult();
+    }
+
+    /**
+     * Games of the same team for the round just before the round of the game,
+     * in the same season. A list: the schema does not make (season, number)
+     * unique.
+     *
+     * @return list<Game>
+     */
+    public function findPreviousRoundGames(Game $game): array
+    {
+        $round = $game->getRound();
+
+        return $this->createQueryBuilder('g')
+            ->join('g.round', 'r')
+            ->where('g.team = :team')
+            ->andWhere('r.season = :season')
+            ->andWhere('r.number = :number')
+            ->setParameter('team', $game->getTeam())
+            ->setParameter('season', $round->getSeason(), Types::INTEGER)
+            ->setParameter('number', $round->getNumber() - 1, Types::INTEGER)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

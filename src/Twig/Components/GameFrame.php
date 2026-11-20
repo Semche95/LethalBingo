@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig\Components;
 
 use App\Entity\Game;
+use App\Entity\PreviousRoundStatus;
 use App\Service\GameService;
 use App\Service\GameTimerService;
 use App\Service\RefreshEvent;
@@ -41,6 +42,19 @@ final class GameFrame extends AbstractController
         }
 
         return $this->gameTimerService->elapsedSeconds($this->game);
+    }
+
+    /**
+     * Warning shown to the referee before the start when the team has not
+     * finished its game of the previous round; never computed for the players.
+     */
+    public function getPreviousRoundStatus(): ?PreviousRoundStatus
+    {
+        if ($this->game->isStarted() || !$this->isGranted('ROLE_REFEREE')) {
+            return null;
+        }
+
+        return $this->gameService->previousRoundStatus($this->game);
     }
 
     #[LiveListener(RefreshEvent::GameFrame->value)]

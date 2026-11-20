@@ -6,7 +6,9 @@ namespace App\Service;
 
 use App\Dto\GameDto;
 use App\Entity\Game;
+use App\Entity\PreviousRoundStatus;
 use App\Entity\TimerMode;
+use App\Repository\GameRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mercure\HubInterface;
@@ -17,6 +19,7 @@ readonly class GameService
     public function __construct(
         private EntityManagerInterface $em,
         private HubInterface $hub,
+        private GameRepository $gameRepository,
     ) {
     }
 
@@ -71,6 +74,36 @@ readonly class GameService
         if ($gameDto->hasCountdown) {
             $game->setCountdownDurationSeconds($gameDto->getCountdownDurationSeconds());
         }
+    }
+
+    /**
+     * Why the team has not finished its game of the previous round of the
+     * season; null when it has, or for the first round. Only a warning: it
+     * never prevents the start (docs/GAME.md section 2).
+     */
+    public function previousRoundStatus(Game $game): ?PreviousRoundStatus
+    {
+        if ($game->getRound()->getNumber() <= 1) {
+            return null;
+        }
+
+        $previousGames = $this->gameRepository->findPreviousRoundGames($game);
+        if ($previousGames === []) {
+            return PreviousRoundStatus::NoGame;
+        }
+
+        $status = PreviousRoundStatus::NotStarted;
+        foreach ($previousGames as $previousGame) {
+            if ($previousGame->isFinished()) {
+                return null;
+            }
+
+            if ($previousGame->isStarted()) {
+                $status = PreviousRoundStatus::InProgress;
+            }
+        }
+
+        return $status;
     }
 
     public function start(Game $game, DateTimeImmutable $startedAt, ?DateTimeImmutable $countdownZeroAt): void

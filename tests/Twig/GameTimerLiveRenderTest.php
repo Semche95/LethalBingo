@@ -7,6 +7,7 @@ namespace App\Tests\Twig;
 use App\Entity\Game;
 use App\Entity\GameRound;
 use App\Entity\Team;
+use App\Repository\GameRepository;
 use App\Service\GameService;
 use App\Service\GameTimerService;
 use App\Twig\Components\GameTimer;
@@ -96,7 +97,7 @@ class GameTimerLiveRenderTest extends KernelTestCase
     {
         $em = $this->createStub(EntityManagerInterface::class);
         $hub = $this->createStub(HubInterface::class);
-        $gameService = new GameService($em, $hub);
+        $gameService = new GameService($em, $hub, $this->createStub(GameRepository::class));
         $timerService = new GameTimerService($gameService);
         $component = new GameTimer($timerService, $em);
 

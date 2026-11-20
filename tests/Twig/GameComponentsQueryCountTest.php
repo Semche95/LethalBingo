@@ -9,6 +9,7 @@ use App\Entity\BingoSquareCategory;
 use App\Entity\Game;
 use App\Tests\Controller\ControllerTestCase;
 use DateTimeImmutable;
+use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 
 /**
@@ -59,6 +60,34 @@ class GameComponentsQueryCountTest extends ControllerTestCase
         $this->rerender('GameHistory', $game, 'gameHistoryRefresh');
 
         // user, game, actions with their square, highlights
+        $this->assertQueryCountAtMost(4);
+    }
+
+    public function testRefereeGameFrameBeforeTheStartLooksUpThePreviousRoundInOneQuery(): void
+    {
+        $this->loginAsReferee();
+        $game = $this->createGame($this->createRound(931, 2, complete: true));
+        $this->countNextRequestQueries();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(1, $this->previousRoundLookups());
+        // user, game, previous round games, revealed ids, squares, validated ids,
+        // not validated squares, categories, actions, highlights
+        $this->assertQueryCountAtMost(10);
+    }
+
+    public function testPlayerGameFrameNeverLooksUpThePreviousRound(): void
+    {
+        $game = $this->createGame($this->createRound(932, 2, complete: true));
+        $this->countNextRequestQueries();
+
+        $this->client->request('GET', '/game/' . $game->getSlug());
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(0, $this->previousRoundLookups());
+        // game, revealed ids, squares, validated ids
         $this->assertQueryCountAtMost(4);
     }
 
@@ -113,5 +142,18 @@ class GameComponentsQueryCountTest extends ControllerTestCase
         $liveComponent->emit($event);
 
         self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * Queries of the last request that look up a round by its number, as
+     * GameRepository::findPreviousRoundGames() does.
+     */
+    private function previousRoundLookups(): int
+    {
+        $collector = $this->client->getProfile()?->getCollector('db');
+        self::assertInstanceOf(DoctrineDataCollector::class, $collector);
+        $queries = array_column($collector->getQueries()['default'] ?? [], 'sql');
+
+        return \count(preg_grep('/\\.number = \\?/', $queries) ?: []);
     }
 }
