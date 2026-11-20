@@ -4,12 +4,12 @@ title: Archiver toutes les informations liées à une partie terminée
 status: To Do
 assignee: []
 created_date: '2026-11-05T19:56:00Z'
-updated_date: '2026-11-18T22:11:00Z'
+updated_date: '2026-11-20T21:57:00Z'
 labels:
   - historique
   - gestion-parties
 dependencies: []
-priority: medium
+priority: low
 type: feature
 ordinal: 47000
 ---
