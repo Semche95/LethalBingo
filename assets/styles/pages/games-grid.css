@@ -96,6 +96,8 @@
 .game-grid thead th.game-grid-team-header {
     border-left: 3px solid var(--team-color, transparent) !important;
     text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .game-grid tbody tr:nth-child(odd) td {
