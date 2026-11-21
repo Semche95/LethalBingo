@@ -66,7 +66,7 @@ describe('game_timer_controller sounds', () => {
 
         beforeEach(() => {
             FakeAudioContext.initialState = 'running'
-            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ arrayBuffer: async () => url })))
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, arrayBuffer: async () => url })))
         })
 
         afterEach(() => {
@@ -151,7 +151,7 @@ describe('game_timer_controller sounds', () => {
 
         beforeEach(() => {
             FakeAudioContext.initialState = 'running'
-            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ arrayBuffer: async () => url })))
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, arrayBuffer: async () => url })))
         })
 
         afterEach(() => {
@@ -204,6 +204,46 @@ describe('game_timer_controller sounds', () => {
             await flushPromises()
 
             expect(FakeAudioContext.instances[0].played).toEqual([])
+        })
+    })
+
+    describe('missing sound', () => {
+        async function flushPromises() {
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve()
+            }
+        }
+
+        beforeEach(() => {
+            FakeAudioContext.initialState = 'running'
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => url.includes('end.mp3')
+                ? { ok: false, status: 404, arrayBuffer: async () => 'Not Found' }
+                : { ok: true, arrayBuffer: async () => url }))
+        })
+
+        afterEach(() => {
+            vi.unstubAllGlobals()
+        })
+
+        it('reports it in the console only, while the countdown, its colour and the other sounds go on', async () => {
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+            const toasts = document.createElement('div')
+            toasts.className = 'toast-container'
+            document.body.appendChild(toasts)
+
+            // 00:05:01 remaining: the display drops below 05:00 in 2 s.
+            const controller = await connectWithAnchor({ gameStartedAt: SERVER_TIME - 3299 })
+            await flushPromises()
+            await vi.advanceTimersByTimeAsync(2_000)
+            await flushPromises()
+
+            expect(consoleError).toHaveBeenCalledTimes(1)
+            expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('end.mp3'), expect.any(Error))
+            expect(toasts.children).toHaveLength(0)
+            expect(controller.timerDisplayTarget.textContent).toBe('00:04:59')
+            expect(controller.timerDisplayTarget.className).not.toBe('')
+            expect(FakeAudioContext.instances[0].played).toEqual([{ decodedFrom: expect.stringContaining('interval.mp3') }])
+            consoleError.mockRestore()
         })
     })
 })

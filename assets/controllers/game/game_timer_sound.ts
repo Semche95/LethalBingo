@@ -95,9 +95,14 @@ export class TimerSound {
     private async load(url: string): Promise<AudioBuffer | null> {
         try {
             const response = await fetch(url)
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`)
+            }
             return await this.context.decodeAudioData(await response.arrayBuffer())
-        } catch {
-            // Missing sound: the timer keeps working silently.
+        } catch (error) {
+            // Missing sound: reported for the developers only, the timer and
+            // the other sounds keep working.
+            console.error(`Timer sound missing or unreadable: ${url}`, error)
             return null
         }
     }

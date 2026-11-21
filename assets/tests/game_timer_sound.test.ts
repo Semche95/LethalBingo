@@ -13,7 +13,7 @@ async function flushPromises() {
 describe('TimerSound', () => {
     beforeEach(() => {
         installFakeAudioContext()
-        vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ arrayBuffer: async () => url })))
+        vi.stubGlobal('fetch', vi.fn(async (url: string) => ({ ok: true, arrayBuffer: async () => url })))
     })
 
     afterEach(() => {
@@ -43,14 +43,80 @@ describe('TimerSound', () => {
         expect(FakeAudioContext.instances[0].played).toEqual([{ decodedFrom: URLS.end }])
     })
 
-    it('keeps working silently when a sound cannot be loaded', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
-        const sound = new TimerSound(URLS)
-        sound.unlock()
-        await flushPromises()
+    describe('missing sound', () => {
+        let consoleError: ReturnType<typeof vi.spyOn>
 
-        await expect(sound.play('notification')).resolves.toBeUndefined()
-        expect(FakeAudioContext.instances[0].played).toEqual([])
+        beforeEach(() => {
+            consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        })
+
+        afterEach(() => {
+            consoleError.mockRestore()
+        })
+
+        function stubFetchFailingOn(failingUrl: string, failure: () => Promise<unknown>) {
+            vi.stubGlobal('fetch', vi.fn(async (url: string) => url === failingUrl
+                ? failure()
+                : { ok: true, arrayBuffer: async () => url }))
+        }
+
+        it.each([
+            ['unreachable', async () => { throw new Error('offline') }],
+            ['not found', async () => ({ ok: false, status: 404, arrayBuffer: async () => 'Not Found' })],
+        ])('reports a sound that is %s in the console, once', async (_, failure) => {
+            stubFetchFailingOn(URLS.notification, failure)
+
+            new TimerSound(URLS)
+            await flushPromises()
+
+            expect(consoleError).toHaveBeenCalledTimes(1)
+            expect(consoleError).toHaveBeenCalledWith(expect.stringContaining(URLS.notification), expect.any(Error))
+        })
+
+        it('does not decode a sound the server did not find', async () => {
+            stubFetchFailingOn(URLS.notification, async () => ({ ok: false, status: 404, arrayBuffer: async () => 'Not Found' }))
+
+            new TimerSound(URLS)
+            await flushPromises()
+
+            expect(FakeAudioContext.instances[0].decodeAudioData).not.toHaveBeenCalledWith('Not Found')
+        })
+
+        it('reports an unreadable sound in the console', async () => {
+            new TimerSound(URLS)
+            // Decoding only starts once the download resolves, after this line.
+            FakeAudioContext.instances[0].decodeAudioData.mockImplementation(async (data: unknown) => {
+                if (data === URLS.end) {
+                    throw new Error('EncodingError')
+                }
+                return { decodedFrom: data } as never
+            })
+            await flushPromises()
+
+            expect(consoleError).toHaveBeenCalledTimes(1)
+            expect(consoleError).toHaveBeenCalledWith(expect.stringContaining(URLS.end), expect.any(Error))
+        })
+
+        it('keeps playing and scheduling the other sounds', async () => {
+            stubFetchFailingOn(URLS.notification, async () => { throw new Error('offline') })
+            const sound = new TimerSound(URLS)
+            const context = FakeAudioContext.instances[0]
+            sound.unlock()
+            await flushPromises()
+
+            await expect(sound.play('notification')).resolves.toBeUndefined()
+            await sound.play('end')
+            await sound.schedule([{ name: 'notification', inSeconds: 1 }, { name: 'start', inSeconds: 2 }])
+
+            expect(context.played).toEqual([{ decodedFrom: URLS.end }, { decodedFrom: URLS.start }])
+        })
+
+        it('reports nothing when every sound loads', async () => {
+            new TimerSound(URLS)
+            await flushPromises()
+
+            expect(consoleError).not.toHaveBeenCalled()
+        })
     })
 
     it('stops notifying lock changes once unsubscribed', async () => {
