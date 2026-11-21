@@ -2,10 +2,10 @@
 
 {% block title %}{{ block('error_title') }} | {{ parent() }}{% endblock %}
 
-{% block body_classes %}d-flex flex-column min-vh-100 justify-content-center align-items-center{% endblock %}
+{% block body_classes %}d-flex flex-column min-vh-100 align-items-center{% endblock %}
 
 {% block body %}
-    <div class="container text-center">
+    <div class="container text-center my-auto py-4">
         <div class="empty">
             <div class="empty-header">{{ status_code }}</div>
             <p class="empty-title">{% block error_title %}{{ status_text }}{% endblock %}</p>
