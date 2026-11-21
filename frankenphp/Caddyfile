@@ -71,6 +71,10 @@
 		-X-Powered-By
 	}
 
+	# public/theme-init.js keeps the same name across versions: revalidated on every page load
+	@themeInit path /theme-init.js
+	header @themeInit Cache-Control "no-cache"
+
 	# Development only (compose.override.yaml): proxy to the Vite dev server
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 

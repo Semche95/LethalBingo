@@ -1,0 +1,24 @@
+/* Theme switcher: the button shows the icon of the current preference */
+.theme-switcher-icon {
+    display: none;
+}
+
+:root:not([data-theme-preference]) .theme-switcher-icon-dark,
+[data-theme-preference="light"] .theme-switcher-icon-light,
+[data-theme-preference="dark"] .theme-switcher-icon-dark,
+[data-theme-preference="auto"] .theme-switcher-icon-auto {
+    display: inline-flex;
+}
+
+.theme-switcher .dropdown-item {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switcher-check {
+    visibility: hidden;
+}
+
+.theme-switcher [aria-checked="true"] .theme-switcher-check {
+    visibility: visible;
+}

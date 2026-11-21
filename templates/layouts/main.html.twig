@@ -11,6 +11,7 @@
                     </a>
                 </h1>
                 <div class="navbar-nav flex-row order-md-last align-self-center">
+                    <twig:ThemeSwitcher class="nav-item" buttonClass="nav-link btn btn-link" />
                     {% if is_granted('IS_AUTHENTICATED') %}
                         <div class="nav-item {{ macros.active_class('app_user_profile') }}">
                             <a href="{{ path('app_user_profile') }}" class="nav-link d-flex lh-1" title="Profil">

@@ -1,0 +1,30 @@
+{# Light, dark or system theme. The icon of the button follows data-theme-preference on <html> in CSS,
+   right from the first paint; public/theme-init.js applies and stores the choice. #}
+{% props buttonClass = 'btn', iconSize = 18 %}
+{% set choices = [
+    {preference: 'light', label: 'Clair', icon: 'tabler:sun'},
+    {preference: 'dark', label: 'Sombre', icon: 'tabler:moon'},
+    {preference: 'auto', label: 'Système', icon: 'tabler:device-desktop'},
+] %}
+
+<div{{ attributes.defaults({class: 'dropdown theme-switcher'}|merge(stimulus_controller('theme-switcher').toArray())) }}>
+    <button type="button" class="{{ buttonClass }}" data-bs-toggle="dropdown" aria-expanded="false"
+            aria-label="Thème" title="Thème">
+        {% for choice in choices %}
+            <span class="theme-switcher-icon theme-switcher-icon-{{ choice.preference }}">
+                {{- ux_icon(choice.icon, {height: iconSize, width: iconSize}) -}}
+            </span>
+        {% endfor %}
+    </button>
+    <div class="dropdown-menu dropdown-menu-end" role="menu">
+        {% for choice in choices %}
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false"
+                    {{ stimulus_target('theme-switcher', 'choice') }}
+                    {{ stimulus_action('theme-switcher', 'choose', 'click', {preference: choice.preference}) }}>
+                {{ ux_icon(choice.icon, {class: 'me-2'}) }}
+                <span class="flex-fill">{{ choice.label }}</span>
+                {{ ux_icon('tabler:check', {class: 'theme-switcher-check ms-3'}) }}
+            </button>
+        {% endfor %}
+    </div>
+</div>

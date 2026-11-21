@@ -31,7 +31,7 @@
 }
 
 .btn-ghost-danger {
-    color: #fff;
+    color: var(--tblr-emphasis-color);
     background: transparent;
     border: 1px solid var(--tblr-border-color);
 }
@@ -59,8 +59,8 @@
     font-size: 0.8rem;
     font-weight: 400;
     border-radius: 999px;
-    background: rgba(134, 142, 150, 0.15);
-    color: var(--tblr-muted-fg);
+    background: rgba(var(--app-neutral-rgb), 0.15);
+    color: var(--app-text-muted);
     max-width: 100%;
     min-width: 0;
 }
@@ -74,8 +74,8 @@
 }
 
 .member-pill-captain {
-    background: rgba(210, 153, 34, 0.15);
-    color: var(--app-yellow);
+    background: rgba(var(--app-captain-rgb), 0.15);
+    color: var(--app-yellow-text);
 }
 
 .member-pill svg {
@@ -93,7 +93,7 @@
     justify-content: center;
     padding: 0;
     cursor: pointer;
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     transition: background-color 0.15s, color 0.15s;
 }
 

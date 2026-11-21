@@ -16,7 +16,7 @@ La page est la même pour tout le monde : les joueurs la suivent, l'arbitre la p
 
 ### Ce que voit chaque profil
 
-- **Joueur** (anonyme, ou connecté sans `ROLE_REFEREE`) : titre (bingo, équipe, statut), timer, grille, rappel des règles du round, bouton Accueil. Aucune commande : les joueurs ne font que regarder.
+- **Joueur** (anonyme, ou connecté sans `ROLE_REFEREE`) : titre (bingo, équipe, statut), timer, grille, rappel des règles du round, boutons Thème et Accueil. Aucune commande : les joueurs ne font que regarder (le thème est un réglage d'affichage du navigateur, sans requête au serveur).
 - **Arbitre** (`ROLE_REFEREE`), en plus : panneau Notes, carte des actions de la partie (date, retour au tableau de bord, Démarrer / Arrêter / Réinitialiser, temps forts une fois la partie terminée), boutons de chaque case, carte Étapes, panneau Historique, commandes du timer.
 - **Administrateur** (`ROLE_ADMIN`) : comme l'arbitre, plus les boutons de debug du timer si `DEBUG_TIMER=true` (`docs/TIMER.md`, section 3).
 
@@ -176,7 +176,7 @@ Ordre des blocs, de haut en bas :
 5. carte Étapes (arbitre, absente une fois la partie terminée), avant les règles car plus utile à l'arbitre pendant la partie ;
 6. carte Règles : les règles de scoring du round de la partie, libellé et coefficient, absente si le round n'en applique aucune ; visible de tous.
 
-Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauche du bouton Historique.
+Boutons flottants : Notes en haut à gauche ; Thème puis Accueil en haut à droite, à gauche du bouton Historique.
 
 ### Timer
 
@@ -185,7 +185,8 @@ Boutons flottants : Notes en haut à gauche ; Accueil en haut à droite, à gauc
 
 ### Design
 
-- Palette propre à la page, thème sombre uniquement, définie sur `body.game-page` (`assets/styles/game/theme.css`) : orange du HUD pour l'action principale et le temps, vert pour la validation, bleu pour l'information, jaune pour les temps forts et la pause, cramoisi réservé à la réinitialisation, distinct du rouge de Tabler gardé par Retirer du temps. Les variables Tabler (`--tblr-*`) y sont rebranchées. Aucune couleur en dur dans les règles.
+- Palette propre à la page, en thème clair (« papier de terminal » chaud) et sombre, définie sur `body.game-page` dans `assets/styles/game/palette.css` (clair sur `.game-page`, sombre sur `[data-bs-theme="dark"] .game-page`) : orange du HUD pour l'action principale et le temps, vert pour la validation, bleu pour l'information, jaune pour les temps forts et la pause, cramoisi réservé à la réinitialisation, distinct du rouge de Tabler gardé par Retirer du temps. Les variables Tabler (`--tblr-*`) sont rebranchées sur cette palette dans `assets/styles/game/theme.css`. Aucune couleur en dur dans les règles.
+- Contraste AA en clair : le texte orange ou jaune passe par `--app-primary-text` ou `--app-yellow-text`, seulement sur le fond ou la surface (jamais sur `--app-surface-3`) ; `--app-green` n'est jamais une couleur de texte ; le bouton d'une case validée garde un texte sombre (`--app-on-primary`) sur le vert, survol en `--app-green-hover`.
 - Police 3270 (`assets/fonts/`) pour les titres, libellés du HUD, chiffres et coordonnées ; police de Tabler pour le texte.
 - Bouton plein : l'action principale de la carte des actions. Les autres sont en contour ou discrets, Réinitialiser en contour cramoisi (plein dans sa modale de confirmation).
 - Les modales de la page (démarrage, arrêt, réinitialisation, `ConfirmModal`) reprennent la surface des cartes et un titre en 3270. Les boutons de confirmation du démarrage et de l'arrêt sont orange, comme les boutons qui les ouvrent.

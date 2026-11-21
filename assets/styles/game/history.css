@@ -139,7 +139,7 @@
 }
 
 .game-history-icon-highlight {
-    color: var(--app-yellow);
+    color: var(--app-yellow-text);
     background: rgba(var(--app-yellow-rgb), 0.16);
 }
 
@@ -155,7 +155,7 @@
 
 .game-history-highlight-title {
     font-weight: 600;
-    color: var(--app-yellow);
+    color: var(--app-yellow-text);
 }
 
 .game-history-new {

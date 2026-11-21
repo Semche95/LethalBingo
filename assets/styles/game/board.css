@@ -139,9 +139,9 @@
     --tblr-btn-color: var(--app-on-primary);
     --tblr-btn-bg: var(--app-green);
     --tblr-btn-hover-color: var(--app-on-primary);
-    --tblr-btn-hover-bg: var(--app-green-text);
+    --tblr-btn-hover-bg: var(--app-green-hover);
     --tblr-btn-active-color: var(--app-on-primary);
-    --tblr-btn-active-bg: var(--app-green-text);
+    --tblr-btn-active-bg: var(--app-green-hover);
 }
 
 .bingo-square-btn.is-revealed svg,

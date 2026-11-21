@@ -8,6 +8,7 @@
 @import "./styles/components/rules.css";
 @import "./styles/components/toasts.css";
 @import "./styles/components/tom-select.css";
+@import "./styles/components/theme-switcher.css";
 @import "./styles/game/notes.css";
 @import "./styles/pages/home.css";
 @import "./styles/pages/auth.css";
@@ -15,6 +16,7 @@
 @import "./styles/pages/games-grid.css";
 @import "./styles/game/timer-tools.css";
 @import "./styles/game/history.css";
+@import "./styles/game/palette.css";
 @import "./styles/game/theme.css";
 @import "./styles/game/layout.css";
 @import "./styles/game/board.css";

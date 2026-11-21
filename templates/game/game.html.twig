@@ -5,6 +5,7 @@
 {% block body %}
     {# Beside the history of the referee on a wide screen, not under it #}
     <div class="position-fixed top-0 end-0 mt-3 me-3 d-flex gap-2 z-1{{ is_granted('ROLE_REFEREE') ? ' game-top-actions-beside-history' }}">
+        <twig:ThemeSwitcher buttonClass="btn btn-icon btn-overlay" iconSize="20" />
         <a href="{{ path('app_home') }}" class="btn btn-icon btn-overlay" aria-label="Retour à l'accueil"
            title="Retour à l'accueil">
             {{ ux_icon('mdi:home', {height: '20', width: '20'}) }}

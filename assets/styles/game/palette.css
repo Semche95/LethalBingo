@@ -1,0 +1,97 @@
+/* ===================== */
+/* Game page palette     */
+/* ===================== */
+
+/* Palette of the game page only (referee and players), inherited by all its elements.
+   Light theme here, dark theme below; the rules using it are in game/theme.css. */
+.game-page {
+    /* Backgrounds and texts: warm terminal paper */
+    --app-bg: #f3efe9;
+    --app-surface: #fbf8f4;
+    --app-surface-2: #ebe5de;
+    --app-surface-3: #ddd5cc;
+    --app-border: #d6cdc3;
+    --app-text: #1d1918;
+    --app-text-muted: #5f5550;
+    --app-shade: rgb(0 0 0 / 0.08);
+    --app-hover-bg: rgb(0 0 0 / 0.05);
+    --app-overlay-shadow: rgb(0 0 0 / 0.18);
+    --app-page-glow: rgba(var(--app-primary-rgb), 0.06);
+
+    /* Orange of the HUD: main color. As a text, primary-text on bg or surface only */
+    --app-primary: #f8400c;
+    --app-primary-rgb: 248, 64, 12;
+    --app-primary-text: #c2320a;
+    --app-primary-hover: #ff6a3d;
+    --app-on-primary: #0e0c0c;
+
+    /* Green of the scans: validation. Never a text color in light, only fills and borders */
+    --app-green: #3f9a22;
+    --app-green-rgb: 63, 154, 34;
+    --app-green-text: #2a6f15;
+    --app-green-hover: #5bb83a;
+
+    /* Blue of the HUD: information */
+    --app-blue: #3d5cff;
+    --app-blue-rgb: 61, 92, 255;
+    --app-blue-text: #2a44d6;
+
+    /* Yellow: highlights. As a text, yellow-text on bg or surface only */
+    --app-yellow: #e0a800;
+    --app-yellow-rgb: 224, 168, 0;
+    --app-yellow-text: #7a5900;
+
+    /* Crimson: reset only, distinct from the red of the other actions */
+    --app-danger: #c9184a;
+    --app-danger-rgb: 201, 24, 74;
+    --app-danger-hover: #a4133c;
+    --app-danger-text: #a4133c;
+    --app-danger-text-rgb: 164, 19, 60;
+    --app-on-danger: #fff;
+
+    /* Bingo grid */
+    --bingo-coord-color: var(--app-text-muted);
+    --bingo-corner-color: var(--app-primary);
+    --bingo-square-bg: var(--app-surface-2);
+    --bingo-square-border: var(--app-surface-3);
+    --bingo-square-color: var(--app-text);
+    --bingo-square-hidden-color: var(--app-blue-text);
+    --bingo-square-validated-bg: #d6efcb;
+    --bingo-square-masked-bg: repeating-linear-gradient(135deg, rgb(0 0 0 / 0.05) 0 5px, transparent 5px 10px), #e6e0d8;
+    --bingo-square-validated-masked-bg: repeating-linear-gradient(135deg, rgba(var(--app-green-rgb), 0.16) 0 5px, transparent 5px 10px), #e3f2dc;
+}
+
+[data-bs-theme="dark"] .game-page {
+    --app-bg: #0e0c0c;
+    --app-surface: #181515;
+    --app-surface-2: #242020;
+    --app-surface-3: #2f2a29;
+    --app-border: #2c2726;
+    --app-text: #f4eeea;
+    --app-text-muted: #9c918c;
+    --app-shade: rgb(0 0 0 / 0.28);
+    --app-hover-bg: rgb(255 255 255 / 0.07);
+    --app-overlay-shadow: rgb(0 0 0 / 0.5);
+    --app-page-glow: rgba(var(--app-primary-rgb), 0.09);
+
+    --app-primary-text: #ff7a4d;
+    --app-primary-hover: var(--app-primary-text);
+
+    --app-green: #56c832;
+    --app-green-rgb: 86, 200, 50;
+    --app-green-text: #a4e88a;
+    --app-green-hover: var(--app-green-text);
+
+    --app-blue-text: #9aaaff;
+
+    --app-yellow: #ffc21a;
+    --app-yellow-rgb: 255, 194, 26;
+    --app-yellow-text: var(--app-yellow);
+
+    --app-danger-text: #ff4d6d;
+    --app-danger-text-rgb: 255, 77, 109;
+
+    --bingo-square-validated-bg: #1f4a15;
+    --bingo-square-masked-bg: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.045) 0 5px, transparent 5px 10px), #121010;
+    --bingo-square-validated-masked-bg: repeating-linear-gradient(135deg, rgba(var(--app-green-rgb), 0.16) 0 5px, transparent 5px 10px), #0f220b;
+}

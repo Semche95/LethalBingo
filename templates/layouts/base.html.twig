@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{# Dark without JavaScript; public/theme-init.js sets the theme before the first paint #}
 <html lang="fr" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -15,6 +16,7 @@
     <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="{{ asset('assets/img/favicon-180x180.png') }}"/>
     <link rel="apple-touch-icon" type="image/png" sizes="167x167" href="{{ asset('assets/img/favicon-167x167.png') }}"/>
     <link rel="apple-touch-icon" type="image/png" sizes="152x152" href="{{ asset('assets/img/favicon-152x152.png') }}"/>
+    <script src="/theme-init.js"></script>
     {% block stylesheets %}
         {{ vite_entry_link_tags('styles') }}
         {{ vite_entry_link_tags('app') }}

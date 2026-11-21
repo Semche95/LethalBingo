@@ -123,7 +123,7 @@
     transform: translateY(-50%);
     font: 400 1rem/1 var(--app-font-hud);
     letter-spacing: 0.08em;
-    color: var(--app-yellow);
+    color: var(--app-yellow-text);
     text-shadow: 0 0 10px rgba(var(--app-yellow-rgb), 0.45);
     background: rgba(var(--app-yellow-rgb), 0.1);
     border: 1px solid rgba(var(--app-yellow-rgb), 0.5);

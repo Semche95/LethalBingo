@@ -9,7 +9,7 @@
 }
 
 .dashboard-subtitle {
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     margin: 0;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .dashboard-card-bingo .dashboard-card-icon {
-    background: linear-gradient(135deg, var(--app-yellow), #f08c00);
+    background: var(--app-gradient-yellow);
 }
 
 .dashboard-card-title {
@@ -53,7 +53,7 @@
 }
 
 .dashboard-card-desc {
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     font-size: 0.925rem;
     margin: 0 0 1.25rem 0;
     flex: 1;
@@ -149,13 +149,13 @@
 
 .activity-item-date {
     font-size: 0.8rem;
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .activity-empty {
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     font-size: 0.875rem;
     margin: 0;
 }
@@ -176,7 +176,7 @@
     font-size: 0.95rem;
     font-weight: 500;
     border-radius: 999px;
-    background: rgba(134, 142, 150, 0.2);
+    background: rgba(var(--app-neutral-rgb), 0.2);
     color: var(--tblr-body-color);
     text-decoration: none;
     cursor: pointer;
@@ -185,12 +185,12 @@
 
 .round-pill:hover {
     background: var(--tblr-primary);
-    color: #fff;
+    color: var(--tblr-white);
     text-decoration: none;
 }
 
 .round-pill:hover svg {
-    color: #fff;
+    color: var(--tblr-white);
 }
 
 .round-pill svg {
@@ -200,7 +200,7 @@
 
 .round-pill--duplicate {
     border: 1.5px solid var(--tblr-warning);
-    background: rgba(255, 193, 68, 0.08);
+    background: rgba(var(--app-duplicate-rgb), 0.08);
 }
 
 .round-pill--duplicate svg {
@@ -209,7 +209,7 @@
 
 .round-pill--incomplete {
     border: 1.5px solid var(--tblr-orange);
-    background: rgba(255, 145, 0, 0.08);
+    background: rgba(var(--app-incomplete-rgb), 0.08);
 }
 
 .round-pill--incomplete svg {
@@ -226,16 +226,69 @@
     border-radius: 0;
 }
 
-.season-accent-1 { --season-border: #CECBF6; }
-.season-accent-2 { --season-border: #9FE1CB; }
-.season-accent-3 { --season-border: #F5C4B3; }
-.season-accent-4 { --season-border: #F4C0D1; }
-.season-accent-5 { --season-border: #B5D4F4; }
-.season-accent-6 { --season-border: #FAC775; }
+/* Saturated on a light background, pastel on a dark one */
+.season-accent-1 {
+    --season-border: #7f77dd;
+    /* Pastel badge with a dark text, the same in both themes */
+    --season-badge-bg: #EEEDFE;
+    --season-badge-color: #3C3489;
+}
 
-.season-accent-1 .season-count-badge { background: #EEEDFE; color: #3C3489; }
-.season-accent-2 .season-count-badge { background: #E1F5EE; color: #085041; }
-.season-accent-3 .season-count-badge { background: #FAECE7; color: #712B13; }
-.season-accent-4 .season-count-badge { background: #FBEAF0; color: #72243E; }
-.season-accent-5 .season-count-badge { background: #E6F1FB; color: #0C447C; }
-.season-accent-6 .season-count-badge { background: #FAEEDA; color: #633806; }
+.season-accent-2 {
+    --season-border: #1d9e75;
+    --season-badge-bg: #E1F5EE;
+    --season-badge-color: #085041;
+}
+
+.season-accent-3 {
+    --season-border: #d85a30;
+    --season-badge-bg: #FAECE7;
+    --season-badge-color: #712B13;
+}
+
+.season-accent-4 {
+    --season-border: #d4537e;
+    --season-badge-bg: #FBEAF0;
+    --season-badge-color: #72243E;
+}
+
+.season-accent-5 {
+    --season-border: #378add;
+    --season-badge-bg: #E6F1FB;
+    --season-badge-color: #0C447C;
+}
+
+.season-accent-6 {
+    --season-border: #ba7517;
+    --season-badge-bg: #FAEEDA;
+    --season-badge-color: #633806;
+}
+
+[data-bs-theme="dark"] .season-accent-1 {
+    --season-border: #CECBF6;
+}
+
+[data-bs-theme="dark"] .season-accent-2 {
+    --season-border: #9FE1CB;
+}
+
+[data-bs-theme="dark"] .season-accent-3 {
+    --season-border: #F5C4B3;
+}
+
+[data-bs-theme="dark"] .season-accent-4 {
+    --season-border: #F4C0D1;
+}
+
+[data-bs-theme="dark"] .season-accent-5 {
+    --season-border: #B5D4F4;
+}
+
+[data-bs-theme="dark"] .season-accent-6 {
+    --season-border: #FAC775;
+}
+
+.season-accent .season-count-badge {
+    background: var(--season-badge-bg);
+    color: var(--season-badge-color);
+}

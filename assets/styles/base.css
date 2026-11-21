@@ -6,22 +6,50 @@
 }
 
 :root {
-    --bingo-square-blue: #57dbff;
+    /* Light theme values here, dark theme overrides below: every color has both */
+    --bingo-square-blue: #0b7fa3;
+    --bingo-square-color: var(--tblr-body-color);
+    --bingo-validated-bg: #4a7a0c;
     --bingo-border-color: var(--tblr-dark);
-    --app-hover-bg: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.04));
-    --app-header-bg: var(--tblr-bg-surface-2, rgba(0, 0, 0, 0.03));
+    --app-hover-bg: var(--tblr-bg-surface-2, rgba(var(--tblr-black-rgb), 0.04));
+    --app-header-bg: var(--tblr-bg-surface-2, rgba(var(--tblr-black-rgb), 0.03));
     --app-danger: #cc2929;
+    --app-danger-rgb: 204, 41, 41;
+    --app-text-muted: var(--tblr-secondary);
+    --app-neutral-rgb: 134, 142, 150;
+    /* Tints of the duplicate and incomplete rounds, and of the team captain */
+    --app-duplicate-rgb: 245, 159, 0;
+    --app-incomplete-rgb: 247, 103, 7;
+    --app-captain-rgb: 210, 153, 34;
     --app-blue: #339af0;
     --app-blue-rgb: 51, 154, 240;
     --app-green: #51cf66;
     --app-green-rgb: 81, 207, 102;
     --app-yellow: #fcc419;
+    --app-yellow-rgb: 252, 196, 25;
+    /* Texts in these colors: the bright ones only reach AA on a dark background */
+    --app-blue-text: #1971c2;
+    --app-green-text: #237032;
+    --app-yellow-text: #7a5900;
     --app-gradient-blue: linear-gradient(135deg, var(--app-blue), #1c7ed6);
     --app-gradient-green: linear-gradient(135deg, var(--app-green), #2b8a3e);
+    --app-gradient-yellow: linear-gradient(135deg, var(--app-yellow), #f08c00);
+    /* Same in both themes: dark header with a white text, blink of an alert */
+    --app-gradient-slate: linear-gradient(135deg, #475569, #334155);
+    --app-blink: #ff5400;
 }
 
 [data-bs-theme="dark"] {
+    --bingo-square-blue: #57dbff;
+    --bingo-square-color: var(--tblr-white);
+    --bingo-validated-bg: #5d9010;
     --bingo-border-color: var(--tblr-light);
+    --app-text-muted: var(--tblr-muted-fg);
+    --app-duplicate-rgb: 255, 193, 68;
+    --app-incomplete-rgb: 255, 145, 0;
+    --app-blue-text: var(--app-blue);
+    --app-green-text: var(--app-green);
+    --app-yellow-text: var(--app-yellow);
     --app-hover-bg: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.06));
     --app-header-bg: var(--tblr-bg-surface-2, rgba(255, 255, 255, 0.04));
 }
@@ -55,7 +83,7 @@
 .btn-primary-icon {
     background: rgba(var(--app-blue-rgb), 0.1);
     border-color: transparent;
-    color: var(--app-blue);
+    color: var(--app-blue-text);
     box-shadow: none;
     padding: 8px 10px;
 }
@@ -63,7 +91,7 @@
 .btn-primary-icon:hover {
     background: var(--tblr-primary);
     border-color: var(--tblr-primary);
-    color: #fff;
+    color: var(--tblr-white);
 }
 
 /* Minor delete icon: grey, red only on hover or focus */
@@ -88,12 +116,12 @@
 
 .card:has(.table-responsive) {
     border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(var(--tblr-black-rgb), 0.06);
     overflow: hidden;
 }
 
 [data-bs-theme="dark"] .card:has(.table-responsive) {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(var(--tblr-black-rgb), 0.2);
 }
 
 /* Action bar of a card: Tabler's default padding is too tall */
@@ -137,7 +165,7 @@
 
 @keyframes blinker {
     50% {
-        background-color: #ff5400;
+        background-color: var(--app-blink);
     }
 }
 

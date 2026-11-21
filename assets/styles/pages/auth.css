@@ -4,7 +4,7 @@
 
 .profile-avatar {
     background: linear-gradient(135deg, var(--tblr-primary), var(--tblr-azure));
-    color: white;
+    color: var(--tblr-white);
     box-shadow: var(--tblr-shadow-card);
 }
 
@@ -50,7 +50,7 @@
 }
 
 .login-subtitle {
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     font-size: 0.9rem;
     margin: 0;
 }
@@ -72,7 +72,7 @@
     left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     pointer-events: none;
 }
 

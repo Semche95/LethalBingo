@@ -19,7 +19,7 @@
 
 .bingo .bingo-square {
     border: var(--tblr-border-width) var(--tblr-border-style) var(--bingo-border-color);
-    color: var(--tblr-white);
+    color: var(--bingo-square-color);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -31,7 +31,7 @@
 }
 
 .bingo .bingo-square-validated {
-    background: #5d9010;
+    background: var(--bingo-validated-bg);
 }
 
 .bingo-square-missing {
@@ -53,8 +53,8 @@
 }
 
 #bingo-form .alert-danger {
-    background: rgba(204, 41, 41, 0.14);
-    border-color: rgba(204, 41, 41, 0.30);
+    background: rgba(var(--app-danger-rgb), 0.14);
+    border-color: rgba(var(--app-danger-rgb), 0.30);
     color: var(--app-danger);
 }
 

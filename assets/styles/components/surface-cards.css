@@ -17,7 +17,7 @@
 .referee-tabs {
     border-radius: 0.5rem;
     padding: 0.375rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(var(--tblr-black-rgb), 0.06);
 }
 
 .referee-tabs .nav-pills {
@@ -25,7 +25,7 @@
 }
 
 .referee-tabs .nav-link {
-    color: var(--tblr-muted-fg);
+    color: var(--app-text-muted);
     border-radius: 0.375rem;
     padding: 0.5rem 1rem;
     font-weight: 500;
@@ -38,7 +38,7 @@
 }
 
 .referee-tabs .nav-link.active {
-    color: #fff;
+    color: var(--tblr-white);
     background-color: var(--tblr-primary);
     font-weight: 600;
 }

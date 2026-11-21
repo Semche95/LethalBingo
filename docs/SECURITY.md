@@ -50,6 +50,7 @@ This project uses environment variables to store sensitive information like pass
 ## HTTP Security Headers
 
 - Caddy adds to every response, static files included: `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Cross-Origin-Opener-Policy: same-origin` and a restrictive `Permissions-Policy`; the `Server` and `X-Powered-By` headers are removed
+- `public/theme-init.js` (theme set before the first paint, see `.claude/rules/frontend.md`) is served with `Cache-Control: no-cache`: its name has no hash, so the browser revalidates it on every page load
 - Symfony sets the `Content-Security-Policy` (`ContentSecurityPolicyListener`): only the app's own origin may serve scripts, styles, images, fonts and connections, with no inline script and no framing. It is set in Symfony rather than Caddy so the profiler toolbar can add its nonces in development
 - Never add an inline `<script>` or an external resource: move the code into a Stimulus controller and the file into `assets/`
 
