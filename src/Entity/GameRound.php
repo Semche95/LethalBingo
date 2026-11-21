@@ -11,6 +11,8 @@ use Stringable;
 #[ORM\Entity(repositoryClass: GameRoundRepository::class)]
 class GameRound implements Stringable
 {
+    use HasStartedGameTrait;
+
     public const int MAX_ROWS = 5;
     public const int MAX_COLS = 5;
     public const int EXPECTED_SQUARES = self::MAX_ROWS * self::MAX_COLS;

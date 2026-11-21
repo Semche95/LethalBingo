@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[DoctrineAssert\UniqueEntity(fields: ['name'])]
 class Team implements Stringable
 {
+    use HasStartedGameTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

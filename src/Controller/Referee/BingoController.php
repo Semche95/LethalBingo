@@ -83,13 +83,14 @@ class BingoController extends AbstractController
         return $this->handleForm($request, $bingo, $bingo->entityToFormDto($gameRound), $gameRound);
     }
 
-    // Shared by add ($gameRound null) and edit.
+    // Shared by add ($gameRound null) and edit: a round with a started game can no longer be changed.
     private function handleForm(Request $request, BingoService $bingo, BingoDto $bingoDto, ?GameRound $gameRound): Response
     {
-        $form = $this->createForm(BingoFormType::class, $bingoDto);
+        $locked = $gameRound?->hasStartedGame() ?? false;
+        $form = $this->createForm(BingoFormType::class, $bingoDto, ['disabled' => $locked]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid() && !$locked) {
             if ($gameRound === null) {
                 $gameRound = $bingo->create($form->getData());
             } else {
@@ -108,6 +109,7 @@ class BingoController extends AbstractController
             'gameRound' => $gameRound,
             'form' => $form,
             'mode' => $gameRound === null ? 'add' : 'edit',
+            'locked' => $locked,
             'duplicateCoords' => $bingoDto->duplicateCoords,
         ]);
     }

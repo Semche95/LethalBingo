@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Entity;
 
+use App\Entity\Game;
 use App\Entity\Team;
 use App\Entity\TeamMember;
+use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class TeamTest extends TestCase
@@ -98,5 +101,32 @@ class TeamTest extends TestCase
         $team = new Team();
 
         $this->assertNull($team->getId());
+    }
+
+    /**
+     * @return iterable<string, array{?string, ?string, bool}>
+     */
+    public static function startedGameProvider(): iterable
+    {
+        yield 'not started' => [null, null, false];
+        yield 'in progress' => ['-5 minutes', null, true];
+        yield 'finished' => ['-1 hour', '-5 minutes', true];
+    }
+
+    #[DataProvider('startedGameProvider')]
+    public function testHasStartedGameFollowsItsGames(?string $startedAt, ?string $finishedAt, bool $expected): void
+    {
+        $team = new Team();
+        $team->addGame(new Game());
+        $team->addGame(new Game()
+            ->setStartedAt($startedAt !== null ? new DateTimeImmutable($startedAt) : null)
+            ->setFinishedAt($finishedAt !== null ? new DateTimeImmutable($finishedAt) : null));
+
+        $this->assertSame($expected, $team->hasStartedGame());
+    }
+
+    public function testHasStartedGameIsFalseWithoutGames(): void
+    {
+        $this->assertFalse(new Team()->hasStartedGame());
     }
 }

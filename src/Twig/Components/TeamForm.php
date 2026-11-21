@@ -9,6 +9,7 @@ use App\Service\RefreshEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -44,14 +45,22 @@ final class TeamForm extends AbstractController
     {
         return $this->createForm(
             TeamFormType::class,
-            $this->team
+            $this->team,
+            ['disabled' => $this->isLocked()],
         );
+    }
+
+    // A team with a started game can no longer be changed.
+    public function isLocked(): bool
+    {
+        return $this->team?->hasStartedGame() ?? false;
     }
 
     #[LiveAction]
     #[IsGranted('ROLE_REFEREE')]
     public function save(EntityManagerInterface $em): void
     {
+        $this->assertNotLocked();
         $this->submitForm();
 
         /** @var Team $team */
@@ -72,8 +81,10 @@ final class TeamForm extends AbstractController
     }
 
     #[LiveAction]
+    #[IsGranted('ROLE_REFEREE')]
     public function addCollectionItem(PropertyAccessorInterface $propertyAccessor, #[LiveArg] string $name): void
     {
+        $this->assertNotLocked();
         $propertyPath = $this->fieldNameToPropertyPath($name, $this->formName);
         $data = $propertyAccessor->getValue($this->formValues, $propertyPath);
 
@@ -89,17 +100,26 @@ final class TeamForm extends AbstractController
     }
 
     #[LiveAction]
+    #[IsGranted('ROLE_REFEREE')]
     public function removeCollectionItem(
         PropertyAccessorInterface $propertyAccessor,
         #[LiveArg] string $name,
         #[LiveArg] int $index,
     ): void {
+        $this->assertNotLocked();
         $propertyPath = $this->fieldNameToPropertyPath($name, $this->formName);
         $data = $propertyAccessor->getValue($this->formValues, $propertyPath);
         unset($data[$index]);
         $propertyAccessor->setValue($this->formValues, $propertyPath, $data);
 
         $this->ensureCaptainSelected();
+    }
+
+    private function assertNotLocked(): void
+    {
+        if ($this->isLocked()) {
+            throw new BadRequestHttpException();
+        }
     }
 
     private function ensureCaptainSelected(): void

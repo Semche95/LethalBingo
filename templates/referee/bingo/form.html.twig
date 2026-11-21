@@ -47,35 +47,41 @@
             {% for error in form.vars.errors|merge(form.squares.vars.errors) %}
                 <twig:Alert>{{ error.message }}</twig:Alert>
             {% endfor %}
-            {% if mode == 'edit' and (not gameRound.isComplete() or gameRound.hasIncompleteContent()) %}
-                <twig:Alert type="warning" icon="alert-triangle">
-                    Ce bingo est incomplet. Complétez les cases manquantes avant de pouvoir l'utiliser dans une partie.
-                </twig:Alert>
+            {% if locked %}
+                <twig:Alert type="info" icon="lock">Ce bingo est utilisé par une partie en cours ou terminée&nbsp;: il ne peut plus être modifié.</twig:Alert>
             {% endif %}
-            <div class="d-flex gap-3 mb-3">
-                <div>
-                    {{ form_label(form.round) }}
-                    {{ form_widget(form.round) }}
-                    {{ form_errors(form.round) }}
+            {# Also disables the fields BingoCard writes by hand. #}
+            <fieldset{% if locked %} disabled{% endif %}>
+                {% if mode == 'edit' and (not gameRound.isComplete() or gameRound.hasIncompleteContent()) %}
+                    <twig:Alert type="warning" icon="alert-triangle">
+                        Ce bingo est incomplet. Complétez les cases manquantes avant de pouvoir l'utiliser dans une partie.
+                    </twig:Alert>
+                {% endif %}
+                <div class="d-flex gap-3 mb-3">
+                    <div>
+                        {{ form_label(form.round) }}
+                        {{ form_widget(form.round) }}
+                        {{ form_errors(form.round) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.season) }}
+                        {{ form_widget(form.season) }}
+                        {{ form_errors(form.season) }}
+                    </div>
                 </div>
-                <div>
-                    {{ form_label(form.season) }}
-                    {{ form_widget(form.season) }}
-                    {{ form_errors(form.season) }}
+                <div class="mb-4">
+                    {{ form_label(form.rules) }}
+                    {{ form_help(form.rules) }}
+                    {{ form_widget(form.rules) }}
+                    {{ form_errors(form.rules) }}
                 </div>
-            </div>
-            <div class="mb-4">
-                {{ form_label(form.rules) }}
-                {{ form_help(form.rules) }}
-                {{ form_widget(form.rules) }}
-                {{ form_errors(form.rules) }}
-            </div>
-            {{ component('BingoCard', {
-                'editMode': true,
-                'squares': data.squares,
-                'squaresFieldName': form.squares.vars.full_name,
-                'duplicateCoords': duplicateCoords,
-            }|merge(stimulus_target('referee--bingo-form', 'bingo').toArray())) }}
+                {{ component('BingoCard', {
+                    'editMode': true,
+                    'squares': data.squares,
+                    'squaresFieldName': form.squares.vars.full_name,
+                    'duplicateCoords': duplicateCoords,
+                }|merge(stimulus_target('referee--bingo-form', 'bingo').toArray())) }}
+            </fieldset>
         </div>
 
         <div class="card-footer">
@@ -83,6 +89,7 @@
                 :backUrl="path('app_referee_bingo')"
                 :deleteModalId="mode == 'edit' ? 'delete-bingo-modal' : null"
                 :deleteDisabledReason="mode == 'edit' and gameRound.games is not empty ? 'Impossible de supprimer un bingo qui a des parties' : null"
+                :canSave="not locked"
             />
         </div>
         {{ form_widget(form._token) }}

@@ -28,6 +28,7 @@ L'endpoint des Live Components est public : masquer un bouton ne suffit jamais. 
 - `GameHistory::__invoke` est réservé à l'arbitre : un joueur qui demande l'historique n'obtient rien ;
 - l'avertissement du round précédent non terminé (`GameFrame::getPreviousRoundStatus`) n'est calculé que pour l'arbitre ; il ne bloque jamais `startGame` côté serveur ;
 - `GameController::saveNotes` et `GameHighlightController` sont réservés à l'arbitre.
+- `TeamForm::save`, `addCollectionItem` et `removeCollectionItem` sont réservés à l'arbitre et refusés (400) sur une équipe verrouillée ; `BingoController` n'enregistre jamais un bingo verrouillé (section 2).
 
 ---
 
@@ -40,6 +41,10 @@ L'endpoint des Live Components est public : masquer un bouton ne suffit jamais. 
 - **terminée** (`isFinished()`) : `finishedAt` renseigné.
 
 Le statut est affiché sous le titre : « Non démarrée », « En cours » (point vert animé) ou « Terminée ».
+
+### Bingo et équipe verrouillés
+
+Dès qu'une de ses parties est démarrée (`Game::isReadOnly()`), en cours, en pause, au décompte à zéro ou terminée, un bingo (numéro, saison, règles, cases) ou une équipe (nom, membres, capitaine) ne peut plus être modifié (`hasStartedGame()`, trait `HasStartedGameTrait`). Son formulaire s'affiche désactivé, sans bouton Enregistrer, avec une alerte qui en donne la raison ; le serveur refuse l'enregistrement. La réinitialisation remet la partie à « non démarrée » et lève ce verrou. La suppression reste refusée dès qu'une partie existe, même non démarrée. Les règles de scoring ne sont pas verrouillées (« Points », section 4).
 
 ### Actions de l'arbitre
 

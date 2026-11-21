@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\BingoSquare;
+use App\Entity\Game;
 use App\Entity\GameRound;
+use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class GameRoundTest extends TestCase
@@ -191,5 +194,32 @@ class GameRoundTest extends TestCase
         foreach ($missing as $coord) {
             $this->assertMatchesRegularExpression('/^[A-E][1-5]$/', $coord);
         }
+    }
+
+    /**
+     * @return iterable<string, array{?string, ?string, bool}>
+     */
+    public static function startedGameProvider(): iterable
+    {
+        yield 'not started' => [null, null, false];
+        yield 'in progress' => ['-5 minutes', null, true];
+        yield 'finished' => ['-1 hour', '-5 minutes', true];
+    }
+
+    #[DataProvider('startedGameProvider')]
+    public function testHasStartedGameFollowsItsGames(?string $startedAt, ?string $finishedAt, bool $expected): void
+    {
+        $round = new GameRound();
+        $round->addGame(new Game());
+        $round->addGame(new Game()
+            ->setStartedAt($startedAt !== null ? new DateTimeImmutable($startedAt) : null)
+            ->setFinishedAt($finishedAt !== null ? new DateTimeImmutable($finishedAt) : null));
+
+        $this->assertSame($expected, $round->hasStartedGame());
+    }
+
+    public function testHasStartedGameIsFalseWithoutGames(): void
+    {
+        $this->assertFalse(new GameRound()->hasStartedGame());
     }
 }

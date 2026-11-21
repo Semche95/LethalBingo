@@ -7,7 +7,9 @@ namespace App\Tests\Controller\Referee;
 use App\Entity\BingoSquareCategory;
 use App\Entity\GameRound;
 use App\Entity\Rule;
+use App\Service\GameService;
 use App\Tests\Controller\ControllerTestCase;
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 
@@ -95,6 +97,81 @@ class BingoControllerTest extends ControllerTestCase
         self::assertSame(5, $reloaded->getNumber());
         self::assertCount(GameRound::EXPECTED_SQUARES, $reloaded->getBingoSquares());
         self::assertContains('Renamed square', $reloaded->getBingoSquares()->map(static fn ($square) => $square->getLabel())->toArray());
+    }
+
+    /**
+     * @return iterable<string, array{string, ?string, ?string}>
+     */
+    public static function startedGameProvider(): iterable
+    {
+        yield 'in progress' => ['-5 minutes', '+55 minutes', null];
+        yield 'time up' => ['-2 hours', '-1 hour', null];
+        yield 'finished' => ['-1 hour', null, '-5 minutes'];
+    }
+
+    #[DataProvider('startedGameProvider')]
+    public function testAForgedEditOfABingoWithAStartedGameChangesNothing(string $startedAt, ?string $countdownZeroAt, ?string $finishedAt): void
+    {
+        $rule = $this->createFreeRule('Forged measure');
+        $round = $this->createRound(12, 4, complete: true);
+        $game = $this->createGame($round)->resetTimer(new DateTimeImmutable($startedAt), $countdownZeroAt !== null ? new DateTimeImmutable($countdownZeroAt) : null);
+        if ($finishedAt !== null) {
+            $game->setFinishedAt(new DateTimeImmutable($finishedAt));
+        }
+        $this->em->flush();
+        $url = '/referee/bingo/edit/' . $round->getId();
+        $square = $round->getBingoSquares()->first();
+        $this->em->clear();
+
+        $crawler = $this->client->request('GET', $url);
+        $this->client->request('POST', $url, ['bingo_form' => [
+            'season' => '13',
+            'round' => '5',
+            'rules' => [(string) $rule->getId()],
+            'squares' => [$square->getRow() => [$square->getCol() => [
+                'id' => (string) $square->getId(),
+                'label' => 'Forged label',
+                'category' => '',
+                'visible' => '0',
+            ]]],
+            '_token' => $crawler->filter('input[name="bingo_form[_token]"]')->attr('value'),
+        ]]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.alert-info', 'Ce bingo est utilisé par une partie en cours ou terminée');
+        self::assertSelectorExists('#bingo-form fieldset[disabled]');
+        self::assertSelectorNotExists('.card-footer button[type="submit"]');
+        $reloaded = $this->reload(GameRound::class, $round->getId());
+        self::assertSame(12, $reloaded->getSeason());
+        self::assertSame(4, $reloaded->getNumber());
+        self::assertCount(0, $reloaded->getRules());
+        self::assertNotContains('Forged label', $reloaded->getBingoSquares()->map(static fn ($square) => $square->getLabel())->toArray());
+    }
+
+    public function testEditsABingoWhoseGameIsNotStarted(): void
+    {
+        $round = $this->createRound(12, 4, complete: true);
+        $this->createGame($round);
+        $this->em->clear();
+
+        $this->submitBingoForm('/referee/bingo/edit/' . $round->getId(), 13, 5, []);
+
+        self::assertResponseRedirects('/referee/bingo/edit/' . $round->getId());
+        self::assertSame(13, $this->reload(GameRound::class, $round->getId())->getSeason());
+    }
+
+    public function testTheResetUnlocksTheBingo(): void
+    {
+        $round = $this->createRound(12, 4, complete: true);
+        $game = $this->createGame($round)->setStartedAt(new DateTimeImmutable('-5 minutes'));
+        $this->em->flush();
+        self::getContainer()->get(GameService::class)->reset($game);
+        $this->em->clear();
+
+        $this->submitBingoForm('/referee/bingo/edit/' . $round->getId(), 13, 5, []);
+
+        self::assertResponseRedirects('/referee/bingo/edit/' . $round->getId());
+        self::assertSame(13, $this->reload(GameRound::class, $round->getId())->getSeason());
     }
 
     public function testEditPageChecksTheRulesOfTheRound(): void
