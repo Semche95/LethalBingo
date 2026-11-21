@@ -101,9 +101,12 @@ RUN set -eux; \
 # copy sources
 COPY --link --exclude=frankenphp/ . ./
 
+# The cache warmup builds the Doctrine connection without connecting to it:
+# a placeholder DATABASE_URL for this command only, the real one comes at runtime
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
-	composer run-script --no-dev post-install-cmd; \
+	DATABASE_URL='postgresql://app:!ChangeMe!@database:5432/app?serverVersion=18&charset=utf8' \
+		composer run-script --no-dev post-install-cmd; \
 	chmod +x bin/console; sync;
