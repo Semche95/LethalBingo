@@ -3,13 +3,20 @@ id: TASK-6
 title: Ajouter un bouton permettant de régénérer le lien unique d'une partie
 status: Done
 assignee: []
-created_date: '2026-09-30 16:15'
-updated_date: '2026-10-02 21:16'
+created_date: 2026-09-30 16:15
+updated_date: '2026-11-21T10:24:00Z'
 labels:
   - gestion-parties
 dependencies: []
 ordinal: 6000
 ---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+**Renvois**
+- TASK-44 : Couper l'accès d'un joueur qui a déjà la page ouverte quand le lien de la partie est régénéré
+<!-- SECTION:DESCRIPTION:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->

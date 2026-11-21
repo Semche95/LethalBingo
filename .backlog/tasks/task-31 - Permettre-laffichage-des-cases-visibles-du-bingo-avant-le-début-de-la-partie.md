@@ -4,7 +4,7 @@ title: Permettre l'affichage des cases visibles du bingo avant le début de la p
 status: Done
 assignee: []
 created_date: 2026-09-30 16:16
-updated_date: '2026-11-20T22:31:00Z'
+updated_date: '2026-11-21T10:24:00Z'
 labels:
   - preparation
 dependencies: []
@@ -17,6 +17,9 @@ ordinal: 35000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Avant le début d'une partie, les joueurs ne voient le contenu d'aucune case, même celles qui sont prévues pour être visibles dès le départ. Les cases visibles du bingo doivent être affichées aux joueurs avant le démarrage, pour qu'ils puissent préparer leur partie. Les cases cachées restent masquées jusqu'à leur révélation.
+
+**Renvois**
+- TASK-44 : Couper l'accès d'un joueur qui a déjà la page ouverte quand le lien de la partie est régénéré
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
